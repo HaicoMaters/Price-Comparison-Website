@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Product>
+
+<!-- TODO: ADD  search functionality and search pages searching by keyword and category -->
+
+@{
+	ViewBag.Title = "View Products ";
+	var productList = Model.ToList();
+}
+
+@functions{
+
+}
+
+<h2>All Products </h2>
+
+
+<div class="row">
+	@for(int i = 0; i < 20; i++)
+	{
+		Product prod = productList[i];
+		<div class="col-md-4">
+			<!-- Controller here for function product individual view page including all the prices and stuff -->
+			<div class="card" style="width: 18rem;">
+				<img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
+				<div class="card-body">
+					<h5 class="card-title">@prod.Name</h5>
+					<p class="card-text">@prod.Description</p>
+				</div>
+			</div>
+		</div>
+	}
+</>
