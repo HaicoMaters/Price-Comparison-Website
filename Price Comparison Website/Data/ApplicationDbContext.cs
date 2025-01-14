@@ -17,6 +17,8 @@ namespace Price_Comparison_Website.Data
 		public DbSet<Category> Categories { get; set; }
 		public DbSet<Vendor> Vendors { get; set; }
 		public DbSet<PriceListing> PriceListings { get; set; }
+		public DbSet<UserWishList> UserWishLists { get; set; }
+		public DbSet<UserViewingHistory> UserViewingHistories { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
@@ -40,17 +42,34 @@ namespace Price_Comparison_Website.Data
 				.WithMany(v => v.PriceListings)  // One Vendor can have many PriceListings
 				.HasForeignKey(pl => pl.VendorId);
 
-			// Many-to-many relationship between ApplicationUser and Product (Wishlist)
-			builder.Entity<ApplicationUser>()
-				.HasMany(u => u.WishList)
-				.WithMany()
-				.UsingEntity(j => j.ToTable("UserWishList"));  // Creates the UserWishList join table
+			// Many-to-many relationship between ApplicationUser and Product for WishList
+			builder.Entity<UserWishList>()
+				.HasKey(uw => new { uw.UserId, uw.ProductId });
 
-			// Many-to-many relationship between ApplicationUser and Product (ViewingHistory)
-			builder.Entity<ApplicationUser>()
-				.HasMany(u => u.ViewingHistory)
+			builder.Entity<UserWishList>()
+				.HasOne(uw => uw.User)
+				.WithMany(u => u.WishList)
+				.HasForeignKey(uw => uw.UserId);
+
+			builder.Entity<UserWishList>()
+				.HasOne(uw => uw.Product)
 				.WithMany()
-				.UsingEntity(j => j.ToTable("UserViewingHistory"));  // Creates the UserViewingHistory join table
+				.HasForeignKey(uw => uw.ProductId);
+
+			// Many-to-many relationship between ApplicationUser and Product for ViewingHistory
+			builder.Entity<UserViewingHistory>()
+				.HasKey(uv => new { uv.UserId, uv.ProductId });
+
+			builder.Entity<UserViewingHistory>()
+				.HasOne(uv => uv.User)
+				.WithMany(u => u.ViewingHistory)
+				.HasForeignKey(uv => uv.UserId);
+
+			builder.Entity<UserViewingHistory>()
+				.HasOne(uv => uv.Product)
+				.WithMany()
+				.HasForeignKey(uv => uv.ProductId);
+
 		}
 	}
 }
