@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Price_Comparison_Website.Data;
 
@@ -11,9 +12,11 @@ using Price_Comparison_Website.Data;
 namespace Price_Comparison_Website.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250114163218_UpdateListingRelationship")]
+    partial class UpdateListingRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,36 +24,6 @@ namespace Price_Comparison_Website.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ApplicationUserProduct", b =>
-                {
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("WishListProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ApplicationUserId", "WishListProductId");
-
-                    b.HasIndex("WishListProductId");
-
-                    b.ToTable("UserWishList", (string)null);
-                });
-
-            modelBuilder.Entity("ApplicationUserProduct1", b =>
-                {
-                    b.Property<string>("ApplicationUser1Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("ViewingHistoryProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ApplicationUser1Id", "ViewingHistoryProductId");
-
-                    b.HasIndex("ViewingHistoryProductId");
-
-                    b.ToTable("UserViewingHistory", (string)null);
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -313,6 +286,12 @@ namespace Price_Comparison_Website.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ApplicationUserId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -326,6 +305,10 @@ namespace Price_Comparison_Website.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ProductId");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ApplicationUserId1");
 
                     b.HasIndex("CategoryId");
 
@@ -349,36 +332,6 @@ namespace Price_Comparison_Website.Data.Migrations
                     b.HasKey("VendorId");
 
                     b.ToTable("Vendors");
-                });
-
-            modelBuilder.Entity("ApplicationUserProduct", b =>
-                {
-                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Price_Comparison_Website.Models.Product", null)
-                        .WithMany()
-                        .HasForeignKey("WishListProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ApplicationUserProduct1", b =>
-                {
-                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("ApplicationUser1Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Price_Comparison_Website.Models.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ViewingHistoryProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -453,6 +406,14 @@ namespace Price_Comparison_Website.Data.Migrations
 
             modelBuilder.Entity("Price_Comparison_Website.Models.Product", b =>
                 {
+                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", null)
+                        .WithMany("ViewingHistory")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", null)
+                        .WithMany("WishList")
+                        .HasForeignKey("ApplicationUserId1");
+
                     b.HasOne("Price_Comparison_Website.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
@@ -460,6 +421,13 @@ namespace Price_Comparison_Website.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Price_Comparison_Website.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("ViewingHistory");
+
+                    b.Navigation("WishList");
                 });
 
             modelBuilder.Entity("Price_Comparison_Website.Models.Category", b =>
