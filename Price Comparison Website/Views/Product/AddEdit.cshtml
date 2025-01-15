@@ -1,5 +1,59 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Product
+
+
 @{
+	ViewBag.Title = $"{ViewBag.Operation} Item";
 }
+
+<h1>@ViewBag.Operation Product</h1>
+
+<form asp-action="AddEdit" method="post" enctype="multipart/form-data">
+	<input type="hidden" asp-for="ProductId" />
+	<input type="hidden" asp-for="CategoryId" />
+	<div class="form-group">
+		<label asp-for="Name"></label>
+		<input asp-for="Name" class="form-control" name="Name" />
+		<span asp-validation-for="Name" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<label asp-for="ImageUrl"></label>
+		<input asp-for="ImageUrl" class="form-control" name="ImageUrl" />
+		<span asp-validation-for="ImageUrl" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<label asp-for="Description"></label>
+		<textarea asp-for="Description" class="form-control" name="Description" rows="5"></textarea>
+		<span asp-validation-for="Description" class="text-danger"></span>
+	</div>
+	<div class="row">
+        <h4 class="mb-3">Select a Category</h4>
+        @for (int i = 0; i < ViewBag.Categories.Count; i++)
+        {
+            var category = ViewBag.Categories[i];
+            var isChecked = Model.CategoryId == category.CategoryId;
+            if (i % 3 == 0)
+            {
+                @:<div class="row mb-2">
+            }
+            <div class="col-md-4">
+                <div class="form-check">
+                    <input type="radio"
+                           class="form-check-input"
+                           id="category-@category.CategoryId"
+                           name="catId"
+                           value="@category.CategoryId"
+                           @(isChecked ? "checked" : "") />
+                    <label class="form-check-label" for="category-@category.CategoryId">
+                        @category.Name
+                    </label>
+                </div>
+            </div>
+            if ((i + 1) % 3 == 0 || i == ViewBag.Categories.Count - 1)
+            {
+                @:</div>
+            }
+        }
+    </div>
+	<button type="submit" class="btn btn-primary">Save Changes</button>
+	<a asp-action="Index" asp-controller="Product" class="btn btn-outline-dark">Cancel</a>
+</form>

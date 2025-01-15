@@ -15,7 +15,15 @@
 }
 
 @functions{
+	string GetDeleteModalId(Product prod)
+	{
+		return "#deleteModal" + prod.ProductId;
+	}
 
+	string GetModalId(Product prod)
+	{
+		return "deleteModal" + prod.ProductId;
+	}
 }
 
 <h2>All Products </h2>
@@ -23,16 +31,16 @@
 
 
 <div class="row">
-	@for(int i = 0; i < 20 && productList.Count - 1 > i; i++)
+	@for(int i = 0; i < 15 && productList.Count - 1 > i; i++)
 	{
 		Product prod = productList[i];
 		<div class="col-md-4">
-			<!-- Controller here for function product individual view page including all the prices and stuff -->
 			<div class="card" style="width: 18rem;">
 				<img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
 				<div class="card-body">
 					<h5 class="card-title">@prod.Name</h5>
 					<p class="card-text">@prod.Description</p>
+					<a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId"><i class="bi bi-pencil-fill">View</i></a>
 				</div>
 			</div>
 		</div>

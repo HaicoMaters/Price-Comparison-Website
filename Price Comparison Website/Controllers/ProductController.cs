@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 
@@ -46,7 +47,55 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEdit(Product product, int catId)
         {
-            return View();
+            ViewBag.Categories = await categories.GetAllAsync();
+            if (ModelState.IsValid)
+            {
+                // Add Operation
+                if(product.ProductId == 0)
+                {
+                    product.CategoryId = catId;
+                    await products.AddAsync(product);
+                }
+
+                // Edit Opertaion
+                else
+                {
+                    var existingProduct = await products.GetByIdAsync(product.ProductId, new QueryOptions<Product>());
+
+                    if (existingProduct == null)
+                    {
+                        ModelState.AddModelError("", "Product not found");
+                        return View(product);
+                    }
+
+                    existingProduct.Name = product.Name;
+                    existingProduct.Description = product.Description;
+                    existingProduct.ImageUrl = product.ImageUrl;
+                    existingProduct.CategoryId = catId;
+
+                    try
+                    {
+                        await products.UpdateAsync(existingProduct);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
+                        return View(product);
+                    }
+                }
+            }
+            return RedirectToAction("Index", "Product");
         }
-    }
+
+		[HttpGet]
+        public async Task<IActionResult> ViewProduct(int id)
+        {
+            if (id == 0)
+            {
+				return RedirectToAction("Index", "Product");
+			}
+			Product product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+			return View(product);
+        }
+	}
 }
