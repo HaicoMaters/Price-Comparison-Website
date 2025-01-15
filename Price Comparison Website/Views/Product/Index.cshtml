@@ -1,6 +1,9 @@
 ﻿@model IEnumerable<Product>
 
-<!-- TODO: ADD  search functionality and search pages searching by keyword and category -->
+<!-- TODO: ADD  search functionality and search pages searching by keyword and category also
+	add page numbers where (20 * (page number - 1)) are the results from the list can be extended
+	more by sorting by categories (oldest newest)
+-->
 
 @{
 	ViewBag.Title = "View Products ";
@@ -16,6 +19,7 @@
 }
 
 <h2>All Products </h2>
+<a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary"> Add New Product </a>
 
 
 <div class="row">
