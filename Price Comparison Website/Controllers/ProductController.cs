@@ -87,6 +87,20 @@ namespace Price_Comparison_Website.Controllers
             return RedirectToAction("Index", "Product");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+			try
+			{
+				await products.DeleteAsync(id);
+			}
+			catch (Exception ex)
+			{
+				ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
+			}
+			return RedirectToAction("Index", "Product");
+		}
+
 		[HttpGet]
         public async Task<IActionResult> ViewProduct(int id)
         {

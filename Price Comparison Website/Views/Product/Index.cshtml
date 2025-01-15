@@ -14,18 +14,6 @@
 	}
 }
 
-@functions{
-	string GetDeleteModalId(Product prod)
-	{
-		return "#deleteModal" + prod.ProductId;
-	}
-
-	string GetModalId(Product prod)
-	{
-		return "deleteModal" + prod.ProductId;
-	}
-}
-
 <h2>All Products </h2>
 <a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary"> Add New Product </a>
 
