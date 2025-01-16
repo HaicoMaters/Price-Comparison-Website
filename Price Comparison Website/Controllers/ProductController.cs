@@ -133,5 +133,5 @@ namespace Price_Comparison_Website.Controllers
 			Product product = await products.GetByIdAsync(id, new QueryOptions<Product>());
 			return View(product);
         }
-	}
+    }
 }

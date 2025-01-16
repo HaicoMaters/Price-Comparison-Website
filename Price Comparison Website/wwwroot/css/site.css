@@ -26,3 +26,23 @@ body {
     object-fit: cover;
     width: 100%;
 }
+
+.card-text {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    max-width: 300px; 
+}
+
+.pagination a {
+    margin: 5px;
+    padding: 8px 16px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+}
+
+    .pagination a.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }

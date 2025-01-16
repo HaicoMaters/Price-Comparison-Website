@@ -37,6 +37,7 @@ namespace Price_Comparison_Website.Controllers
 				ViewBag.Operation = "Add";
 				return View(new PriceListing() { ProductId = prodId });
 			}
+			
 			else
 			{
 				PriceListing priceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>

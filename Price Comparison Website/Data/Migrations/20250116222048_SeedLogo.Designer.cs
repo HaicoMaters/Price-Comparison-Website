@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Price_Comparison_Website.Data;
 
@@ -11,9 +12,11 @@ using Price_Comparison_Website.Data;
 namespace Price_Comparison_Website.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250116222048_SeedLogo")]
+    partial class SeedLogo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -367,18 +370,18 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             PriceListingId = 1,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3661),
+                            DateListed = new DateTime(2025, 1, 16, 22, 20, 48, 289, DateTimeKind.Local).AddTicks(1859),
                             Price = 99.00m,
-                            ProductId = 1,
+                            ProductId = 53,
                             PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9/ref=sr_1_5?_encoding=UTF8&content-id=amzn1.sym.12129333-2117-4490-9c17-6d31baf0582a&dib=eyJ2IjoiMSJ9.VGoru17L34M5u4AqX0EqqypmcGNBhQxULfjaHbYVNmd0PXtUKoq0IryVhEe8Avp17c7W4F1avbJAkvdvMH3jBAvS1y-h85YgufTd1_YFIBFyMR3ugPGW3V_AdDjgteUFyhz_Eez0nfm7auWFQlzkPy2RTQwsDVHjaVrtwgAkM3xC_LGBLXpf8WBiOQfNuzqJezm6DyoWKDfnAMQK88unx_KwWs3-xqdFcuBtzcNb5QU.kSL29Wzha8iyoHFr3XL-ZPQOSlLNXOyLBsq88fLMoBg&dib_tag=se&keywords=gaming+headsets&pd_rd_r=2d291fd7-dfbe-4e94-a175-382f3c52d742&pd_rd_w=WK5FS&pd_rd_wg=SgrUc&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=K2AVFG3GKGVRSJCX847Q&qid=1737064698&sr=8-5&th=1",
                             VendorId = 1
                         },
                         new
                         {
                             PriceListingId = 2,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3702),
+                            DateListed = new DateTime(2025, 1, 16, 22, 20, 48, 289, DateTimeKind.Local).AddTicks(1906),
                             Price = 190.36m,
-                            ProductId = 1,
+                            ProductId = 53,
                             PurchaseUrl = "https://www.ebay.co.uk/itm/286226735878",
                             VendorId = 2
                         });
@@ -413,7 +416,7 @@ namespace Price_Comparison_Website.Data.Migrations
                     b.HasData(
                         new
                         {
-                            ProductId = 1,
+                            ProductId = 53,
                             CategoryId = 1,
                             Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions",
                             ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg",

@@ -72,7 +72,7 @@ namespace Price_Comparison_Website.Data
 				.HasForeignKey(uv => uv.ProductId);
 
 
-			// Seed Data
+			// Seed Data (Used AI Assistance just to have large quantity
 
 			//Categories
 			builder.Entity<Category>().HasData(
@@ -95,53 +95,28 @@ namespace Price_Comparison_Website.Data
 				new Category { CategoryId = 17, Name = "Travel" },
 				new Category { CategoryId = 18, Name = "Gifts" }
 				);
-			
+
 			// Products
 			builder.Entity<Product>().HasData(
-				new Product { ProductId = 1, Name = "Laptop", Description = "A high-performance laptop", ImageUrl = "laptop.jpg", CategoryId = 1 },
-				new Product { ProductId = 2, Name = "Smartphone", Description = "Latest smartphone model", ImageUrl = "smartphone.jpg", CategoryId = 1 },
-				new Product { ProductId = 3, Name = "Tablet", Description = "Portable tablet for all your needs", ImageUrl = "tablet.jpg", CategoryId = 1 },
-				new Product { ProductId = 4, Name = "Hammer", Description = "A durable hammer for all your needs", ImageUrl = "hammer.jpg", CategoryId = 2 },
-				new Product { ProductId = 5, Name = "Screwdriver Set", Description = "Comprehensive screwdriver set", ImageUrl = "screwdriverset.jpg", CategoryId = 2 },
-				new Product { ProductId = 6, Name = "T-shirt", Description = "Cotton T-shirt in various colors", ImageUrl = "tshirt.jpg", CategoryId = 3 },
-				new Product { ProductId = 7, Name = "Jeans", Description = "Stylish denim jeans", ImageUrl = "jeans.jpg", CategoryId = 3 },
-				new Product { ProductId = 8, Name = "Jacket", Description = "Warm winter jacket", ImageUrl = "jacket.jpg", CategoryId = 3 },
-				new Product { ProductId = 9, Name = "Canned Soup", Description = "Ready-to-eat canned soup", ImageUrl = "cannedsoup.jpg", CategoryId = 4 },
-				new Product { ProductId = 10, Name = "Dog Toy", Description = "A squeaky dog toy", ImageUrl = "dogtoy.jpg", CategoryId = 5 },
-				new Product { ProductId = 11, Name = "Cat Food", Description = "Healthy food for your cat", ImageUrl = "catfood.jpg", CategoryId = 5 },
-				new Product { ProductId = 12, Name = "Building Blocks", Description = "Colorful building blocks for kids", ImageUrl = "blocks.jpg", CategoryId = 6 },
-				new Product { ProductId = 13, Name = "Action Figure", Description = "A detailed action figure", ImageUrl = "actionfigure.jpg", CategoryId = 6 },
-				new Product { ProductId = 14, Name = "Notebook", Description = "A spiral-bound notebook", ImageUrl = "notebook.jpg", CategoryId = 7 },
-				new Product { ProductId = 15, Name = "Pen Set", Description = "High-quality pens in a set", ImageUrl = "penset.jpg", CategoryId = 7 },
-				new Product { ProductId = 16, Name = "Orange Juice", Description = "Freshly squeezed orange juice", ImageUrl = "orangejuice.jpg", CategoryId = 8 },
-				new Product { ProductId = 17, Name = "Sparkling Water", Description = "Refreshing sparkling water", ImageUrl = "sparklingwater.jpg", CategoryId = 8 },
-				new Product { ProductId = 18, Name = "Chocolate Bar", Description = "Delicious milk chocolate bar", ImageUrl = "chocolatebar.jpg", CategoryId = 8 },
-				new Product { ProductId = 19, Name = "Chess Set", Description = "Wooden chess set", ImageUrl = "chessset.jpg", CategoryId = 9 },
-				new Product { ProductId = 20, Name = "Novel", Description = "A thrilling new novel", ImageUrl = "novel.jpg", CategoryId = 10 },
-				new Product { ProductId = 21, Name = "Science Book", Description = "An insightful science book", ImageUrl = "sciencebook.jpg", CategoryId = 10 },
-				new Product { ProductId = 22, Name = "Cookbook", Description = "A cookbook full of delicious recipes", ImageUrl = "cookbook.jpg", CategoryId = 10 },
-				new Product { ProductId = 23, Name = "Coffee Table", Description = "A modern coffee table", ImageUrl = "coffeetable.jpg", CategoryId = 11 },
-				new Product { ProductId = 24, Name = "Sofa", Description = "Comfortable 3-seater sofa", ImageUrl = "sofa.jpg", CategoryId = 11 },
-				new Product { ProductId = 25, Name = "Shampoo", Description = "Shampoo for all hair types", ImageUrl = "shampoo.jpg", CategoryId = 12 },
-				new Product { ProductId = 26, Name = "Football", Description = "High-quality football", ImageUrl = "football.jpg", CategoryId = 13 },
-				new Product { ProductId = 27, Name = "Baseball Bat", Description = "Wooden baseball bat", ImageUrl = "baseballbat.jpg", CategoryId = 13 },
-				new Product { ProductId = 28, Name = "Vitamins", Description = "Multivitamins for daily health", ImageUrl = "vitamins.jpg", CategoryId = 14 },
-				new Product { ProductId = 29, Name = "Protein Powder", Description = "Whey protein powder", ImageUrl = "proteinpowder.jpg", CategoryId = 14 },
-				new Product { ProductId = 30, Name = "Yoga Mat", Description = "Non-slip yoga mat", ImageUrl = "yogamat.jpg", CategoryId = 14 }
+				new Product { ProductId = 1, Name = "Turtle Beach Stealth 600 Gen 3 Wireless Multiplatform Amplified Gaming Headset", Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions", ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg", CategoryId = 1 }
 		);
 			// Vendors
 			builder.Entity<Vendor>().HasData(
-				new Vendor { VendorId = 1, Name = "Amazon", VendorUrl = "https://www.amazon.com" },
-				new Vendor { VendorId = 2, Name = "eBay", VendorUrl = "https://www.ebay.com" },
-				new Vendor { VendorId = 3, Name = "Best Buy", VendorUrl = "https://www.bestbuy.com" },
-				new Vendor { VendorId = 4, Name = "Target", VendorUrl = "https://www.target.com" },
-				new Vendor { VendorId = 5, Name = "Home Depot", VendorUrl = "https://www.homedepot.com" },
-				new Vendor { VendorId = 6, Name = "Ikea", VendorUrl = "https://www.ikea.com" },
-				new Vendor { VendorId = 7, Name = "AliExpress", VendorUrl = "https://www.aliexpress.com" },
-				new Vendor { VendorId = 8, Name = "Etsy", VendorUrl = "https://www.etsy.com" }
+				new Vendor { VendorId = 1, Name = "Amazon", VendorUrl = "https://www.amazon.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
+				new Vendor { VendorId = 2, Name = "eBay", VendorUrl = "https://www.ebay.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg" },
+				new Vendor { VendorId = 3, Name = "Best Buy", VendorUrl = "https://www.bestbuy.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/2f/Best_Buy_Logo.svg" },
+				new Vendor { VendorId = 4, Name = "Target", VendorUrl = "https://www.target.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/9/9a/Target_logo.svg" },
+				new Vendor { VendorId = 5, Name = "Home Depot", VendorUrl = "https://www.homedepot.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5f/TheHomeDepot.svg" },
+				new Vendor { VendorId = 6, Name = "Ikea", VendorUrl = "https://www.ikea.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/8b/Ikea_logo.svg" },
+				new Vendor { VendorId = 7, Name = "AliExpress", VendorUrl = "https://www.aliexpress.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/f9/AliExpress_logo.svg" },
+				new Vendor { VendorId = 8, Name = "Etsy", VendorUrl = "https://www.etsy.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/82/Etsy_logo.svg" }
 		);
 
 			// Price Listings
+			builder.Entity<PriceListing>().HasData(
+				new PriceListing { PriceListingId = 1, VendorId = 1, ProductId = 1, PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9/ref=sr_1_5?_encoding=UTF8&content-id=amzn1.sym.12129333-2117-4490-9c17-6d31baf0582a&dib=eyJ2IjoiMSJ9.VGoru17L34M5u4AqX0EqqypmcGNBhQxULfjaHbYVNmd0PXtUKoq0IryVhEe8Avp17c7W4F1avbJAkvdvMH3jBAvS1y-h85YgufTd1_YFIBFyMR3ugPGW3V_AdDjgteUFyhz_Eez0nfm7auWFQlzkPy2RTQwsDVHjaVrtwgAkM3xC_LGBLXpf8WBiOQfNuzqJezm6DyoWKDfnAMQK88unx_KwWs3-xqdFcuBtzcNb5QU.kSL29Wzha8iyoHFr3XL-ZPQOSlLNXOyLBsq88fLMoBg&dib_tag=se&keywords=gaming+headsets&pd_rd_r=2d291fd7-dfbe-4e94-a175-382f3c52d742&pd_rd_w=WK5FS&pd_rd_wg=SgrUc&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=K2AVFG3GKGVRSJCX847Q&qid=1737064698&sr=8-5&th=1", Price = 99.00m, DateListed = DateTime.Now },
+				new PriceListing { PriceListingId = 2, VendorId = 2, ProductId = 1, PurchaseUrl = "https://www.ebay.co.uk/itm/286226735878", Price = 190.36m, DateListed = DateTime.Now }
+		);
 		}
 	}
 }

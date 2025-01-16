@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Price_Comparison_Website.Data;
 
@@ -11,9 +12,11 @@ using Price_Comparison_Website.Data;
 namespace Price_Comparison_Website.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250116224907_LargeAmountOfSeedData")]
+    partial class LargeAmountOfSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -367,19 +370,19 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             PriceListingId = 1,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3661),
+                            DateListed = new DateTime(2025, 1, 16, 22, 49, 7, 202, DateTimeKind.Local).AddTicks(547),
                             Price = 99.00m,
                             ProductId = 1,
-                            PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9/ref=sr_1_5?_encoding=UTF8&content-id=amzn1.sym.12129333-2117-4490-9c17-6d31baf0582a&dib=eyJ2IjoiMSJ9.VGoru17L34M5u4AqX0EqqypmcGNBhQxULfjaHbYVNmd0PXtUKoq0IryVhEe8Avp17c7W4F1avbJAkvdvMH3jBAvS1y-h85YgufTd1_YFIBFyMR3ugPGW3V_AdDjgteUFyhz_Eez0nfm7auWFQlzkPy2RTQwsDVHjaVrtwgAkM3xC_LGBLXpf8WBiOQfNuzqJezm6DyoWKDfnAMQK88unx_KwWs3-xqdFcuBtzcNb5QU.kSL29Wzha8iyoHFr3XL-ZPQOSlLNXOyLBsq88fLMoBg&dib_tag=se&keywords=gaming+headsets&pd_rd_r=2d291fd7-dfbe-4e94-a175-382f3c52d742&pd_rd_w=WK5FS&pd_rd_wg=SgrUc&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=K2AVFG3GKGVRSJCX847Q&qid=1737064698&sr=8-5&th=1",
+                            PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9",
                             VendorId = 1
                         },
                         new
                         {
                             PriceListingId = 2,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3702),
+                            DateListed = new DateTime(2025, 1, 16, 22, 49, 7, 202, DateTimeKind.Local).AddTicks(592),
                             Price = 190.36m,
                             ProductId = 1,
-                            PurchaseUrl = "https://www.ebay.co.uk/itm/286226735878",
+                            PurchaseUrl = "https://www.ebay.com/itm/286226735878",
                             VendorId = 2
                         });
                 });
@@ -415,9 +418,161 @@ namespace Price_Comparison_Website.Data.Migrations
                         {
                             ProductId = 1,
                             CategoryId = 1,
-                            Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions",
+                            Description = "Low-latency wireless with 80-hour battery life.",
                             ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg",
-                            Name = "Turtle Beach Stealth 600 Gen 3 Wireless Multiplatform Amplified Gaming Headset"
+                            Name = "Turtle Beach Stealth 600 Gen 3 Wireless Gaming Headset"
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            CategoryId = 2,
+                            Description = "18V Lithium-Ion Cordless Drill with 2 Batteries.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/71TkKfUE5tL._AC_SL1500_.jpg",
+                            Name = "Makita Cordless Drill"
+                        },
+                        new
+                        {
+                            ProductId = 3,
+                            CategoryId = 3,
+                            Description = "Stylish genuine leather jacket for all seasons.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/71hL5OdDfkL._AC_UL1500_.jpg",
+                            Name = "Men's Leather Jacket"
+                        },
+                        new
+                        {
+                            ProductId = 4,
+                            CategoryId = 4,
+                            Description = "Premium Arabica coffee beans for coffee lovers.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81yK1I2v+7L._AC_SL1500_.jpg",
+                            Name = "Gourmet Coffee Beans"
+                        },
+                        new
+                        {
+                            ProductId = 5,
+                            CategoryId = 5,
+                            Description = "Comfortable bed for your pet to sleep in.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91tFlLWs9bL._AC_SL1500_.jpg",
+                            Name = "Pet Dog Bed"
+                        },
+                        new
+                        {
+                            ProductId = 6,
+                            CategoryId = 6,
+                            Description = "Build your own Star Wars ships with this LEGO set.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91y4VNCpdVL._AC_SL1500_.jpg",
+                            Name = "LEGO Star Wars Set"
+                        },
+                        new
+                        {
+                            ProductId = 7,
+                            CategoryId = 7,
+                            Description = "Pack of 20 ballpoint pens, medium point.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/71rlE9Hr8dL._AC_SL1500_.jpg",
+                            Name = "BIC Round Stic Pens"
+                        },
+                        new
+                        {
+                            ProductId = 8,
+                            CategoryId = 8,
+                            Description = "Refreshing Coca-Cola drink in a 6-pack of cans.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/71p7DQ0wwHL._AC_SL1500_.jpg",
+                            Name = "Coca-Cola Soda"
+                        },
+                        new
+                        {
+                            ProductId = 9,
+                            CategoryId = 9,
+                            Description = "Next-gen gaming console with ultra-high-speed SSD.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91hBYiq0jQL._AC_SL1500_.jpg",
+                            Name = "PlayStation 5 Console"
+                        },
+                        new
+                        {
+                            ProductId = 10,
+                            CategoryId = 10,
+                            Description = "The complete set of 7 books in the Harry Potter series.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91e5U7ADuyL._AC_SL1500_.jpg",
+                            Name = "Harry Potter Book Set"
+                        },
+                        new
+                        {
+                            ProductId = 11,
+                            CategoryId = 11,
+                            Description = "Comfortable and stylish 3-piece sofa set for your home.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81m82HyH2yL._AC_SL1500_.jpg",
+                            Name = "Sofa Set"
+                        },
+                        new
+                        {
+                            ProductId = 12,
+                            CategoryId = 12,
+                            Description = "Smooth and even foundation with SPF 15 protection.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91sLD3u7JLL._AC_SL1500_.jpg",
+                            Name = "Maybelline Foundation"
+                        },
+                        new
+                        {
+                            ProductId = 13,
+                            CategoryId = 13,
+                            Description = "Non-slip, eco-friendly yoga mat for all levels.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81uWqK2l+mL._AC_SL1500_.jpg",
+                            Name = "Yoga Mat"
+                        },
+                        new
+                        {
+                            ProductId = 14,
+                            CategoryId = 14,
+                            Description = "Track your fitness progress with this advanced heart rate monitor.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91uy8RZPqZL._AC_SL1500_.jpg",
+                            Name = "Heart Rate Monitor Watch"
+                        },
+                        new
+                        {
+                            ProductId = 15,
+                            CategoryId = 15,
+                            Description = "Premium guitar picks in different thicknesses.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91m4ZCugAkL._AC_SL1500_.jpg",
+                            Name = "Guitar Pick Set"
+                        },
+                        new
+                        {
+                            ProductId = 16,
+                            CategoryId = 16,
+                            Description = "Display your favorite movie posters in style with this frame.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81IjAgu10mL._AC_SL1500_.jpg",
+                            Name = "Movie Poster Frame"
+                        },
+                        new
+                        {
+                            ProductId = 17,
+                            CategoryId = 17,
+                            Description = "Durable and spacious backpack for all your travel essentials.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91b9RpqOeCL._AC_SL1500_.jpg",
+                            Name = "Travel Backpack"
+                        },
+                        new
+                        {
+                            ProductId = 18,
+                            CategoryId = 18,
+                            Description = "Gift basket with assorted chocolates and goodies.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81R-CmbkpLL._AC_SL1500_.jpg",
+                            Name = "Gifting Basket"
+                        },
+                        new
+                        {
+                            ProductId = 19,
+                            CategoryId = 3,
+                            Description = "Warm and stylish winter jacket for cold weather.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91Dzpw8iL1L._AC_SL1500_.jpg",
+                            Name = "Men's Winter Jacket"
+                        },
+                        new
+                        {
+                            ProductId = 20,
+                            CategoryId = 1,
+                            Description = "Waterproof and portable Bluetooth speaker for outdoor use.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/91g2c2tKmPL._AC_SL1500_.jpg",
+                            Name = "Portable Bluetooth Speaker"
                         });
                 });
 
