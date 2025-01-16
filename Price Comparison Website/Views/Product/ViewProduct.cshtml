@@ -35,7 +35,6 @@
             </div>
         </div>
 
-        <!-- Listings Section (Right Side) -->
         <div class="col-lg-6 col-md-12">
             <h2 class="mb-3 fs-4 fs-lg-3">Listings</h2>
             <div class="list-group">
@@ -59,6 +58,31 @@
                                 <a href="@listing.PurchaseUrl" target="_blank" class="btn btn-outline-info me-2 fs-6">View Listing</a>
                                 <a asp-action="AddEdit" asp-controller="PriceListing" asp-route-id="@listing.PriceListingId"
                                    asp-route-prodId="@Model.ProductId" class="btn btn-primary fs-6">Update Listing</a>
+
+                                <!-- Delete Listing Button -->
+                                <form asp-action="Delete" asp-controller="PriceListing" asp-route-id="@listing.PriceListingId" method="post" class="d-inline">
+                                    <!-- Trigger Button -->
+                                    <button type="button" class="btn btn-danger fs-6" data-bs-toggle="modal" data-bs-target="#deleteModal-@listing.PriceListingId">
+                                        <i class="bi bi-trash"></i> Remove Listing
+                                    </button>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteModal-@listing.PriceListingId" tabindex="-1" aria-labelledby="deleteModalLabel-@listing.PriceListingId" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5" id="deleteModalLabel-@listing.PriceListingId">Are you sure you want to remove this listing?</h1>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <!-- Submit Button -->
+                                                    <button type="submit" class="btn btn-danger">Remove</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     }
@@ -71,6 +95,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="d-flex justify-content-between mt-4">
     <a asp-action="AddEdit" asp-controller="PriceListing" asp-route-id="0" asp-route-prodId="@Model.ProductId" class="btn btn-primary">

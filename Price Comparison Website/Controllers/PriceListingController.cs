@@ -90,5 +90,25 @@ namespace Price_Comparison_Website.Controllers
 			}
             return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var existingPriceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>());
+            // Delete Product
+            try
+            {
+                await priceListings.DeleteAsync(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error deleting listing: {ex.GetBaseException().Message}");
+            }
+            return RedirectToAction("ViewProduct", "Product", new { id = existingPriceListing.ProductId });
+        }
     }
 }
