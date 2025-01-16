@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 
@@ -94,18 +95,25 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-			try
-			{
-				await products.DeleteAsync(id);
-			}
-			catch (Exception ex)
-			{
-				ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-			}
-			return RedirectToAction("Index", "Product");
-		}
+            // Delete Product
+            try
+            {
+                await products.DeleteAsync(id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
+            }
 
-		[HttpGet]
+
+            return RedirectToAction("Index", "Product");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> ViewProduct(int id)
         {
             ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>

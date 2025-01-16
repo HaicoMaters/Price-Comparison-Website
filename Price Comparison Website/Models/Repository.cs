@@ -21,14 +21,20 @@ namespace Price_Comparison_Website.Models
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task DeleteAsync(int id)
-		{
-			T entity = await _dbSet.FindAsync(id);
-			_dbSet.Remove(entity);
-			await _context.SaveChangesAsync();
-		}
+        public async Task DeleteAsync(int id)
+        {
+            var entity = await _dbSet.FindAsync(id);
+            if (entity == null)
+            {
+                throw new InvalidOperationException($"Entity with ID {id} not found.");
+            }
 
-		public async Task<IEnumerable<T>> GetAllAsync()
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task<IEnumerable<T>> GetAllAsync()
 		{
 			return await _dbSet.ToListAsync();
 		}

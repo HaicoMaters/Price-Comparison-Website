@@ -56,7 +56,7 @@
 </div>
 
 <a asp-action="AddEdit" asp-controller="PriceListing" asp-route-id="0" asp-route-prodId="@Model.ProductId" class="btn btn-primary">Add New Listing</a>
-<form asp-action="delete" asp-controller="product" method="post">
+<form asp-action="delete" asp-controller="product" asp-route-id="@Model.ProductId" method="post">
     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="@GetDeleteModalId(Model)">
         <i class="bi bi-trash">Remove Product</i>
     </button>

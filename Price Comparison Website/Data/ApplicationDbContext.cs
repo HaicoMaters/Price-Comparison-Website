@@ -33,13 +33,15 @@ namespace Price_Comparison_Website.Data
 			builder.Entity<PriceListing>()
 				.HasOne(pl => pl.Product)
 				.WithMany(p => p.PriceListings)  // One Product can have many PriceListings
-				.HasForeignKey(pl => pl.ProductId);
+				.HasForeignKey(pl => pl.ProductId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 			// Vendors can have many Listings
 			builder.Entity<PriceListing>()
 				.HasOne(pl => pl.Vendor)
 				.WithMany(v => v.PriceListings)  // One Vendor can have many PriceListings
-				.HasForeignKey(pl => pl.VendorId);
+				.HasForeignKey(pl => pl.VendorId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 			// Many-to-many relationship between ApplicationUser and Product for WishList
 			builder.Entity<UserWishList>()
