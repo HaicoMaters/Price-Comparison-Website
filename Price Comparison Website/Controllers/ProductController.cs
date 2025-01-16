@@ -10,12 +10,16 @@ namespace Price_Comparison_Website.Controllers
     {
 		private Repository<Product> products;
 		private Repository<Category> categories;
+        private Repository<PriceListing> priceListings;
+        private Repository<Vendor> vendors;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
         public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             products = new Repository<Product>(context);
             categories = new Repository<Category>(context);
+            priceListings = new Repository<PriceListing>(context);
+            vendors = new Repository<Vendor>(context);
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -104,6 +108,16 @@ namespace Price_Comparison_Website.Controllers
 		[HttpGet]
         public async Task<IActionResult> ViewProduct(int id)
         {
+            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
+            {
+                Includes = "Product",
+                Where = pl => pl.ProductId == id
+            });
+            foreach (PriceListing listing in ViewBag.Listings)
+            {
+                listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
+            }
+
             if (id == 0)
             {
 				return RedirectToAction("Index", "Product");

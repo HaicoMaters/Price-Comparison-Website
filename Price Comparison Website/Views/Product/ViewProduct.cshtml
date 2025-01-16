@@ -1,5 +1,6 @@
 ﻿@model Product
 @{
+
 	ViewBag.Title = "View Individual Product";
 }
 
@@ -40,11 +41,12 @@
             <div class="list-group">
             @if (Model.PriceListings != null)
             {
-                @foreach (PriceListing listing in Model.PriceListings)
+                    @foreach (var listing in ViewBag.Listings)
                 {
+                    <!-- Make this look good and figure out how to easily get vendor name-->
                         <a href="#" class="list-group-item list-group-item-action">
                             @listing.Vendor.Name @listing.Price.ToString("C") @listing.PurchaseUrl
-                            <a asp-action="AddEdit" asp-controller="PriceListing" class="btn btn-primary">Update Listing</a>
+                            <a asp-action="AddEdit" asp-controller="PriceListing" asp-route-id="@listing.PriceListingId" asp-route-prodId="@Model.ProductId" class="btn btn-primary">Update Listing</a>
                         </a>
                 }
             }
@@ -53,7 +55,7 @@
     </div>
 </div>
 
-<a asp-action="AddEdit" asp-controller="PriceListing" class="btn btn-primary">Add Listing</a>
+<a asp-action="AddEdit" asp-controller="PriceListing" asp-route-id="0" asp-route-prodId="@Model.ProductId" class="btn btn-primary">Add New Listing</a>
 <form asp-action="delete" asp-controller="product" method="post">
     <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="@GetDeleteModalId(Model)">
         <i class="bi bi-trash">Remove Product</i>

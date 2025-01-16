@@ -7,7 +7,7 @@
 
 <h1>@ViewBag.Operation Product</h1>
 
-<form asp-action="AddEdit" method="post" enctype="multipart/form-data">
+<form asp-action="AddEdit" asp-controller="Product" method="post" enctype="multipart/form-data">
 	<input type="hidden" asp-for="ProductId" />
 	<input type="hidden" asp-for="CategoryId" />
 	<div class="form-group">
