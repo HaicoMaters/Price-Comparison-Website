@@ -1,1 +1,28 @@
 ﻿<!-- Page to add new vendors or edit a vendor e.g. change their url-->
+@model Vendor
+
+@{
+	ViewBag.Title = $"{ViewBag.Operation} Vendor";
+}
+
+<h1>@ViewBag.Operation Vendor</h1>
+
+<form asp-action="AddEdit" asp-controller="Vendor" method="post" enctype="multipart/form-data">
+	<input type="hidden" asp-for="VendorId" />
+	<div class="form-group">
+		<label asp-for="Name"></label>
+		<input asp-for="Name" class="form-control" name="Name" />
+		<span asp-validation-for="Name" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<label asp-for="VendorUrl"></label>
+		<input asp-for="VendorUrl" class="form-control" name="VendorUrl" />
+		<span asp-validation-for="VendorUrl" class="text-danger"></span>
+	</div>
+	<div class="form-group">
+		<label asp-for="VendorLogoUrl"></label>
+		<input asp-for="VendorLogoUrl" class="form-control" name="VendorLogoUrl" />
+		<span asp-validation-for="VendorLogoUrl" class="text-danger"></span>
+	</div>
+	<button type="submit" class="btn btn-primary">Save Changes</button>
+</form>

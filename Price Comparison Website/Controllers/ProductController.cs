@@ -81,6 +81,7 @@ namespace Price_Comparison_Website.Controllers
                     try
                     {
                         await products.UpdateAsync(existingProduct);
+                        return RedirectToAction("ViewProduct", "Product", new { id = existingProduct.ProductId });
                     }
                     catch (Exception ex)
                     {
@@ -113,7 +114,6 @@ namespace Price_Comparison_Website.Controllers
             return RedirectToAction("Index", "Product");
         }
 
-        [HttpGet]
         public async Task<IActionResult> ViewProduct(int id)
         {
             ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>

@@ -1,3 +1,32 @@
-﻿<!-- Page showing all vendors also add solo page for each 
-	vendor with all their products with a link to their sites
--->
+﻿@model IEnumerable<Vendor>
+
+@{
+	ViewBag.Title = "View All Vendors";
+    List<Vendor> vendorList = new List<Vendor>();
+    if (Model != null)
+    {
+        vendorList = Model.ToList();
+    }
+}
+
+<h1>View Vendors</h1>
+<a asp-action="AddEdit" asp-controller="Vendor" class="btn btn-primary"> Add New Vendor </a>
+
+
+<div class="row">
+    @for (int i = 0; i < 20 && vendorList.Count > i; i++)
+    {
+        Vendor vendor = vendorList[i];
+        <div class="col-6 col-md-3 col-lg-3 mb-4">
+            <!-- 4 items per row on large screens, 2 items per row on medium screens, 1 item per row on small screens -->
+            <div class="card">
+                <img src="@Url.Content(vendor.VendorLogoUrl)" class="card-img-top fixed-image-height" alt="@vendor.VendorUrl" />
+                <div class="card-body">
+                    <h5 class="card-title">@vendor.Name</h5>
+                    <p class="card-text">@vendor.VendorUrl</p>
+                    <a class="btn btn-info" asp-controller="Vendor" asp-action="ViewVendor" asp-route-id="@vendor.VendorId"><i class="bi bi-pencil-fill">View</i></a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
