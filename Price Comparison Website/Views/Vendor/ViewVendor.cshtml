@@ -1,7 +1,7 @@
 ﻿@model Vendor
 @{
 
-    ViewBag.Title = "View Individual Vendor";
+    ViewBag.Title = $"{Model.Name} Vendor";
 }
 
 @functions {
@@ -44,7 +44,8 @@
                     {
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <img src="@listing.Product.ImageUrl" alt="@listing.Product.Name Logo" />
+                                <img src="@listing.Product.ImageUrl" alt="@listing.Product.Name Logo"
+                                     style="width: 80px; height: 80px; object-fit: contain; margin-right: 10px;">
                                 <strong class="fs-6 fs-md-5">@listing.Product.Name</strong>
                             </div>
                             <span class="text-success font-weight-bold fs-6 fs-md-5">@listing.Price.ToString("C")</span>
