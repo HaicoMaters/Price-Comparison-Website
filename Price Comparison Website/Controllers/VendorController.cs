@@ -20,9 +20,22 @@ namespace Price_Comparison_Website.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> IndexAsync()
+        public async Task<IActionResult> Index(int pageNumber = 1)
         {
-            return View(await vendors.GetAllAsync());
+            int pageSize = 20; // Number of products per page
+            var allVendors = await vendors.GetAllAsync(); // Fetch all products from the repository
+
+            // Paginate the products
+            var pagedVendors = allVendors
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Calculate total pages and set ViewData for pagination
+            ViewData["PageNumber"] = pageNumber;
+            ViewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
+
+            return View(pagedVendors);
         }
 
         [HttpGet]

@@ -1,4 +1,5 @@
 ﻿
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -24,10 +25,24 @@ namespace Price_Comparison_Website.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-		public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int pageNumber = 1)
         {
-            return View(await products.GetAllAsync());
+            int pageSize = 20; // Number of products per page
+            var allProducts = await products.GetAllAsync(); // Fetch all products from the repository
+
+            // Paginate the products
+            var pagedProducts = allProducts
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Calculate total pages and set ViewData for pagination
+            ViewData["PageNumber"] = pageNumber;
+            ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
+
+            return View(pagedProducts);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)

@@ -1,40 +1,47 @@
 ﻿@model IEnumerable<Product>
 
 <!-- TODO: ADD  search functionality and search pages searching by keyword and category also
-	add page numbers where (20 * (page number - 1)) are the results from the list can be extended
 	more by sorting by categories (oldest newest)
     Also need to do, wishlisting, view history and user account authentication authoirization elsewhere in the project
 -->
 
 @{
-	ViewBag.Title = "View Products ";
-	List<Product> productList = new List<Product>();
-	if (Model != null)
-	{
-		 productList = Model.ToList();
-	}
+    ViewBag.Title = "View Products";
+    List<Product> productList = Model?.ToList() ?? new List<Product>();
 }
 
-<h2>All Products </h2>
-<a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary"> Add New Product </a>
-
+<h2>All Products</h2>
+<a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary mb-3">Add New Product</a>
 
 <div class="row">
-    @for (int i = 0; i < 20 && productList.Count > i; i++)
+    @foreach (var prod in productList)
     {
-        Product prod = productList[i];
         <div class="col-6 col-md-3 col-lg-3 mb-4">
-            <!-- 4 items per row on large screens, 2 items per row on medium screens, 1 item per row on small screens -->
             <div class="card">
                 <img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
                 <div class="card-body">
                     <h5 class="card-title">@prod.Name</h5>
                     <p class="card-text">@prod.Description</p>
-                    <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId"><i class="bi bi-pencil-fill">View</i></a>
+                    <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId">
+                        <i class="bi bi-pencil-fill"></i> View
+                    </a>
                 </div>
             </div>
         </div>
     }
 </div>
 
+@if (ViewData["PageNumber"] is int currentPage && ViewData["TotalPages"] is int totalPages)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center mt-4">
+            @for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++)
+            {
+                <li class="page-item @(currentPage == pageIndex ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { pageNumber = pageIndex })">@pageIndex</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
 
