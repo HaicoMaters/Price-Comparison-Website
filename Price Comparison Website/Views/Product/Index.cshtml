@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<Product>
 
-<!-- TODO: ADD  search functionality and search pages searching by keyword and category also
+<!-- TODO: ADD  search functionality and search pages searching by keyword
 	more by sorting by categories (oldest newest)
     Also need to do, wishlisting, view history and user account authentication authoirization elsewhere in the project
 -->
@@ -8,40 +8,69 @@
 @{
     ViewBag.Title = "View Products";
     List<Product> productList = Model?.ToList() ?? new List<Product>();
+    int selectedCategoryId = ViewData["CategoryId"] as int? ?? 0;
 }
 
 <h2>All Products</h2>
 <a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary mb-3">Add New Product</a>
 
 <div class="row">
-    @foreach (var prod in productList)
-    {
-        <div class="col-6 col-md-3 col-lg-3 mb-4">
-            <div class="card">
-                <img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
-                <div class="card-body">
-                    <h5 class="card-title">@prod.Name</h5>
-                    <p class="card-text">@prod.Description</p>
-                    <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId">
-                        <i class="bi bi-pencil-fill"></i> View
-                    </a>
-                </div>
+    <!-- Sidebar Filter on the left (col-md-3) -->
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h4>Categories</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <li class="list-group-item @(selectedCategoryId == 0 ? "active" : "")">
+                        <a href="@Url.Action("Index", new { pageNumber = 1, catId = 0 })">All Categories</a>
+                    </li>
+                    @foreach (var category in ViewBag.Categories as List<Category>)
+                    {
+                        <li class="list-group-item @(selectedCategoryId == category.CategoryId ? "active" : "")">
+                            <a href="@Url.Action("Index", new { pageNumber = 1, catId = category.CategoryId })">@category.Name</a>
+                        </li>
+                    }
+                </ul>
             </div>
         </div>
-    }
-</div>
+    </div>
 
-@if (ViewData["PageNumber"] is int currentPage && ViewData["TotalPages"] is int totalPages)
-{
-    <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center mt-4">
-            @for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++)
+    <!-- Product List on the right (col-md-9) -->
+    <div class="col-md-9">
+        <div class="row">
+            @foreach (var prod in productList)
             {
-                <li class="page-item @(currentPage == pageIndex ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("Index", new { pageNumber = pageIndex })">@pageIndex</a>
-                </li>
+                <div class="col-4 col-md-4 col-lg-4 mb-4">
+                    <!-- 3 products across -->
+                    <div class="card">
+                        <img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
+                        <div class="card-body">
+                            <h5 class="card-title">@prod.Name</h5>
+                            <p class="card-text">@prod.Description</p>
+                            <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId">
+                                <i class="bi bi-pencil-fill"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
             }
-        </ul>
-    </nav>
-}
+        </div>
 
+        <!-- Pagination -->
+        @if (ViewData["PageNumber"] is int currentPage && ViewData["TotalPages"] is int totalPages)
+        {
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    @for (int pageIndex = 1; pageIndex <= totalPages; pageIndex++)
+                    {
+                        <li class="page-item @(currentPage == pageIndex ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { pageNumber = pageIndex, catId = selectedCategoryId })">@pageIndex</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>

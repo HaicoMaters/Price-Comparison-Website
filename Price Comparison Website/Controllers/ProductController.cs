@@ -25,20 +25,38 @@ namespace Price_Comparison_Website.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index(int pageNumber = 1)
+        public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0)
         {
-            int pageSize = 20; // Number of products per page
-            var allProducts = await products.GetAllAsync(); // Fetch all products from the repository
+            ViewBag.Categories = await categories.GetAllAsync();
 
-            // Paginate the products
-            var pagedProducts = allProducts
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            int pageSize = 12; // Number of products per page
+            IEnumerable<Product> allProducts;
+            //IEnumerable<Product> pagedProducts = new List<Product>();
 
-            // Calculate total pages and set ViewData for pagination
+            if (catId == 0) // Search All Categories
+            {
+                allProducts = await products.GetAllAsync(); // Fetch all products from the repository
+            }
+            else // Search Products by CategoryId
+            {
+                allProducts = await products.GetAllByIdAsync(catId, "CategoryId", new QueryOptions<Product>
+                {
+                    Includes = "Category",
+                    Where = p => p.CategoryId == catId
+                });
+            }
+                // Paginate the products
+                var pagedProducts = allProducts
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+          
+
+            // Calculate total pages and set ViewData
             ViewData["PageNumber"] = pageNumber;
             ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
+            ViewData["CategoryId"] = catId; 
+
 
             return View(pagedProducts);
         }

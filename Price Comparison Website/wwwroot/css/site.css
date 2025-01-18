@@ -34,15 +34,19 @@ body {
     max-width: 300px; 
 }
 
-.pagination a {
-    margin: 5px;
-    padding: 8px 16px;
-    text-decoration: none;
-    border: 1px solid #ddd;
+/* Start of Sidebar Values*/
+.list-group-item.active {
+    background-color: #f8f9fa; /* Light grey background */
+    color: #000; /* Dark text*/
+    font-weight: bold; 
 }
 
-    .pagination a.active {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-    }
+.list-group-item a {
+    color: #007bff; /* Blue text for links*/
+}
+
+.list-group-item a:hover {
+        color: #0056b3; /* Dark blue */
+}
+/* End of Sidebar*/
+
