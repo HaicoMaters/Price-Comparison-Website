@@ -7,7 +7,8 @@ namespace Price_Comparison_Website.Models
 	{
 		public string? UserId { get; set; } // FK
 		public int ProductId { get; set; } // FK
-										   // Navigation Properties
+										  
+		// Navigation Properties
 		[ValidateNever]
 		public ApplicationUser User { get; set; }
 		[ValidateNever]

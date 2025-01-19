@@ -81,7 +81,31 @@ namespace Price_Comparison_Website.Models
 			return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, primaryKeyName) == id);
 		}
 
-		public async Task UpdateAsync(T entity)
+        public async Task<UserViewingHistory> GetByIdAsync(string userId, int productId, QueryOptions<UserViewingHistory> options) // For the user viewing history
+        {
+            IQueryable<UserViewingHistory> query = (IQueryable<UserViewingHistory>)_dbSet;
+
+            if (options.HasWhere)
+            {
+                query = query.Where(options.Where);
+            }
+
+            if (options.HasOrderBy)
+            {
+                query = query.OrderBy(options.OrderBy);
+            }
+
+            foreach (string include in options.GetIncludes())
+            {
+                query = query.Include(include);
+            }
+
+            return await query
+                .FirstOrDefaultAsync(uvh => uvh.UserId == userId && uvh.ProductId == productId);
+        }
+
+
+        public async Task UpdateAsync(T entity)
 		{
 			_context.Update(entity);
 			await _context.SaveChangesAsync();

@@ -1,9 +1,11 @@
 ﻿
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 
@@ -15,14 +17,18 @@ namespace Price_Comparison_Website.Controllers
 		private Repository<Category> categories;
         private Repository<PriceListing> priceListings;
         private Repository<Vendor> vendors;
+        private Repository<UserViewingHistory> userViewingHistory;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<ApplicationUser> userManager)
         {
             products = new Repository<Product>(context);
             categories = new Repository<Category>(context);
             priceListings = new Repository<PriceListing>(context);
             vendors = new Repository<Vendor>(context);
+            userViewingHistory = new Repository<UserViewingHistory>(context);
+            _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
         }
 
@@ -91,10 +97,7 @@ namespace Price_Comparison_Website.Controllers
             }
             else
             {
-                Product product = await products.GetByIdAsync(id, new QueryOptions<Product>
-                {
-                    Includes = "Category", Where = p => p.ProductId == id
-                });
+                Product product = await products.GetByIdAsync(id, new QueryOptions<Product>());
                 ViewBag.Operation = "Edit";
                 return View(product);
             }
@@ -169,24 +172,61 @@ namespace Price_Comparison_Website.Controllers
             return RedirectToAction("Index", "Product");
         }
 
-        public async Task<IActionResult> ViewProduct(int id)
+       public async Task<IActionResult> ViewProduct(int id)
         {
-            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
+            if (id == 0)
             {
-                Includes = "Product",
-                Where = pl => pl.ProductId == id
-            });
-            foreach (PriceListing listing in ViewBag.Listings)
+                return RedirectToAction("Index", "Product");
+            }
+
+            var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>());
+            foreach (var listing in ViewBag.Listings)
             {
                 listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
             }
 
-            if (id == 0)
+            // Update the user viewing History
+            if (User.Identity.IsAuthenticated)
             {
-				return RedirectToAction("Index", "Product");
-			}
-			Product product = await products.GetByIdAsync(id, new QueryOptions<Product>());
-			return View(product);
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null && await _userManager.IsInRoleAsync(user, "User"))
+                {
+                    try
+                    {
+                        var existingEntity = await userViewingHistory.GetByIdAsync(user.Id, id, new QueryOptions<UserViewingHistory>());
+                        if (existingEntity != null)
+                        {
+                            existingEntity.LastViewed = DateTime.Now;
+                            await userViewingHistory.UpdateAsync(existingEntity);
+                        }
+                        else
+                        {
+                            var newEntity = new UserViewingHistory
+                            {
+                                ProductId = id,
+                                LastViewed = DateTime.Now,
+                                UserId = user.Id
+                            };
+                            await userViewingHistory.AddAsync(newEntity);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                        ModelState.AddModelError("", $"Error updating viewing history: {ex.GetBaseException().Message}");
+                    }
+                }
+            }
+
+            return View(product);
         }
+
     }
 }
