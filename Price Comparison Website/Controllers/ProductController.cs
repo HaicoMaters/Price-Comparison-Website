@@ -25,7 +25,7 @@ namespace Price_Comparison_Website.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0)
+        public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0, string searchQuery = "")
         {
             ViewBag.Categories = await categories.GetAllAsync();
 
@@ -36,6 +36,14 @@ namespace Price_Comparison_Website.Controllers
             if (catId == 0) // Search All Categories
             {
                 allProducts = await products.GetAllAsync(); // Fetch all products from the repository
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    // Filter products based on the search query
+                    allProducts = allProducts 
+                        .Where(p =>(p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                        (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+                }
             }
             else // Search Products by CategoryId
             {
@@ -44,6 +52,15 @@ namespace Price_Comparison_Website.Controllers
                     Includes = "Category",
                     Where = p => p.CategoryId == catId
                 });
+
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    // Filter products based on the search query
+                    allProducts = allProducts
+                        .Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                        (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+                }
             }
                 // Paginate the products
                 var pagedProducts = allProducts
@@ -55,7 +72,8 @@ namespace Price_Comparison_Website.Controllers
             // Calculate total pages and set ViewData
             ViewData["PageNumber"] = pageNumber;
             ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
-            ViewData["CategoryId"] = catId; 
+            ViewData["CategoryId"] = catId;
+            ViewData["SearchQuery"] = searchQuery;
 
 
             return View(pagedProducts);

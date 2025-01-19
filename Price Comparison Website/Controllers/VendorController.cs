@@ -20,10 +20,12 @@ namespace Price_Comparison_Website.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<IActionResult> Index(int pageNumber = 1)
+        public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
         {
             int pageSize = 20; // Number of products per page
             var allVendors = await vendors.GetAllAsync(); // Fetch all products from the repository
+
+            allVendors = allVendors.Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
 
             // Paginate the products
             var pagedVendors = allVendors
@@ -34,6 +36,7 @@ namespace Price_Comparison_Website.Controllers
             // Calculate total pages and set ViewData for pagination
             ViewData["PageNumber"] = pageNumber;
             ViewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
+            ViewData["SearchQuery"] = searchQuery;
 
             return View(pagedVendors);
         }

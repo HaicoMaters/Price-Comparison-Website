@@ -3,6 +3,7 @@
 <!-- TODO: ADD  search functionality and search pages searching by keyword
 	more by sorting by categories (oldest newest)
     Also need to do, wishlisting, view history and user account authentication authoirization elsewhere in the project
+    If Product in Wishlist Put a Star Next To It and Colour the Card Yellow
 -->
 
 @{
@@ -39,6 +40,18 @@
 
     <!-- Product List on the right (col-md-9) -->
     <div class="col-md-9">
+        <!-- Search Bar -->
+        <form method="get" action="@Url.Action("Index", "Product")" class="mb-4">
+            <div class="input-group">
+                <input type="hidden" name="pageNumber" value="1" />
+                <input type="hidden" name="catId" value="@selectedCategoryId" />
+                <input type="text" name="searchQuery" value="@ViewData["SearchQuery"]" class="form-control" placeholder="Search products..." />
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+
         <div class="row">
             @foreach (var prod in productList)
             {
