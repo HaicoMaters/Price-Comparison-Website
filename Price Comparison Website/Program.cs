@@ -14,7 +14,16 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
 	.AddRoles<IdentityRole>()
 	.AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddControllersWithViews();
+
+
+    builder.Services.AddMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
+
 
 var app = builder.Build();
 
@@ -42,5 +51,42 @@ app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+// Create user roles if not in db
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    var roles = new[] { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole(role));
+    }
+}
+
+// Create a default admin account for showcasing funcionality
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    string email = "admin@admin.com";
+    string password = "Test1234,";
+
+    if (await userManager.FindByEmailAsync(email) == null)
+    {
+        var user = new ApplicationUser();
+        user.UserName = email;
+        user.Email = email;
+        user.EmailConfirmed = true;
+
+        await userManager.CreateAsync(user, password);
+
+        await userManager.AddToRoleAsync(user, "Admin");
+    }
+}
+
 
 app.Run();

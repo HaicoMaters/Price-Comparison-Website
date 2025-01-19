@@ -1,17 +1,18 @@
-﻿@model IEnumerable<Vendor>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model IEnumerable<Vendor>
 
 @{
 	ViewBag.Title = "View All Vendors";
-    List<Vendor> vendorList = new List<Vendor>();
-    if (Model != null)
-    {
-        vendorList = Model.ToList();
-    }
+    List<Vendor> vendorList = Model?.ToList() ?? new List<Vendor>();
 }
 
 <h1>View Vendors</h1>
-<a asp-action="AddEdit" asp-controller="Vendor" class="btn btn-primary mb-4"> Add New Vendor </a>
-
+@if (User.IsInRole("Admin"))
+{
+    <a asp-action="AddEdit" asp-controller="Vendor" class="btn btn-primary mb-4"> Add New Vendor </a>
+}
 <div class="row">
     <!-- Search Bar -->
     <form method="get" action="@Url.Action("Index", "Vendor")" class="mb-4 w-100">

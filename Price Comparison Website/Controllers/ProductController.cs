@@ -1,5 +1,6 @@
 ﻿
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -31,11 +32,10 @@ namespace Price_Comparison_Website.Controllers
 
             int pageSize = 12; // Number of products per page
             IEnumerable<Product> allProducts;
-            //IEnumerable<Product> pagedProducts = new List<Product>();
 
             if (catId == 0) // Search All Categories
             {
-                allProducts = await products.GetAllAsync(); // Fetch all products from the repository
+                allProducts = await products.GetAllAsync();
                 if (!string.IsNullOrEmpty(searchQuery))
                 {
                     // Filter products based on the search query
@@ -79,7 +79,7 @@ namespace Price_Comparison_Website.Controllers
             return View(pagedProducts);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)
         {
@@ -100,6 +100,8 @@ namespace Price_Comparison_Website.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> AddEdit(Product product, int catId)
         {
@@ -144,6 +146,8 @@ namespace Price_Comparison_Website.Controllers
             return RedirectToAction("Index", "Product");
         }
 
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

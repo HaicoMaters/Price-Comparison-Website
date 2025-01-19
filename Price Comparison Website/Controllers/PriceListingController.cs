@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 
 namespace Price_Comparison_Website.Controllers
 {
-	public class PriceListingController : Controller
+    [Authorize(Roles = "Admin")]
+    public class PriceListingController : Controller
 	{
 		private Repository<PriceListing> priceListings;
 		private Repository<Vendor> vendors;
@@ -24,7 +26,7 @@ namespace Price_Comparison_Website.Controllers
 			return RedirectToAction("Index", "Home");
 		}
 
-		[HttpGet]
+        [HttpGet]
 		public async Task<IActionResult> AddEdit(int id, int prodId)
 		{
 			ViewBag.Product = await products.GetByIdAsync(prodId, new QueryOptions<Product>
@@ -49,8 +51,9 @@ namespace Price_Comparison_Website.Controllers
 			}
 		}
 
-		[HttpPost]
-		public async Task<IActionResult> AddEdit(PriceListing priceListing, int vendorId)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddEdit(PriceListing priceListing, int vendorId)
 		{
 			ViewBag.Vendors = await vendors.GetAllAsync();
 			if (ModelState.IsValid)
@@ -92,6 +95,7 @@ namespace Price_Comparison_Website.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var existingPriceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>());

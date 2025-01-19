@@ -1,6 +1,9 @@
-﻿@model IEnumerable<Product>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@model IEnumerable<Product>
 
-<!-- TODO: ADD  search functionality and search pages searching by keyword
+<!-- TODO: ADD  
 	more by sorting by categories (oldest newest)
     Also need to do, wishlisting, view history and user account authentication authoirization elsewhere in the project
     If Product in Wishlist Put a Star Next To It and Colour the Card Yellow
@@ -13,7 +16,10 @@
 }
 
 <h2>All Products</h2>
-<a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary mb-3">Add New Product</a>
+@if (User.IsInRole("Admin"))
+{
+    <a asp-action="AddEdit" asp-controller="Product" class="btn btn-primary mb-3">Add New Product</a>
+}
 
 <div class="row">
     <!-- Sidebar Filter on the left (col-md-3) -->

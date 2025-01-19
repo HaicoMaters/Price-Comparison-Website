@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
@@ -23,9 +24,12 @@ namespace Price_Comparison_Website.Controllers
         public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
         {
             int pageSize = 20; // Number of products per page
-            var allVendors = await vendors.GetAllAsync(); // Fetch all products from the repository
+            var allVendors = await vendors.GetAllAsync();
 
-            allVendors = allVendors.Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (!string.IsNullOrEmpty(searchQuery)) // Seaarch functionality
+            {
+                allVendors = allVendors.Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
+            }
 
             // Paginate the products
             var pagedVendors = allVendors
@@ -41,6 +45,8 @@ namespace Price_Comparison_Website.Controllers
             return View(pagedVendors);
         }
 
+
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)
         {
@@ -57,6 +63,8 @@ namespace Price_Comparison_Website.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> AddEdit(Vendor vendor)
         {
@@ -119,6 +127,8 @@ namespace Price_Comparison_Website.Controllers
             return View(vendor);
         }
 
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
