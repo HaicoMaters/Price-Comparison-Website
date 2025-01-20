@@ -107,11 +107,8 @@ namespace Price_Comparison_Website.Controllers
 
         public async Task<IActionResult> ViewVendor(int id)
         {
-            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "VendorId", new QueryOptions<PriceListing>
-            {
-                Includes = "Vendor",
-                Where = pl => pl.VendorId == id
-            });
+            var listings = await priceListings.GetAllByIdAsync<int>(id, "VendorId", new QueryOptions<PriceListing>());
+            ViewBag.Listings = listings.OrderByDescending(e => e.DateListed);
             foreach (PriceListing listing in ViewBag.Listings)
             {
                 listing.Product = await products.GetByIdAsync(listing.ProductId, new QueryOptions<Product>());

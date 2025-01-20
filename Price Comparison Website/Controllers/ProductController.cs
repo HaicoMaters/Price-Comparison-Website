@@ -186,7 +186,11 @@ namespace Price_Comparison_Website.Controllers
                 return NotFound();
             }
 
-            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>());
+            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
+            {
+                OrderBy = listing => listing.Price // Order by Price in ascending order (cheapest first)
+            });
+
             foreach (var listing in ViewBag.Listings)
             {
                 listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
@@ -222,6 +226,33 @@ namespace Price_Comparison_Website.Controllers
 
                         ModelState.AddModelError("", $"Error updating viewing history: {ex.GetBaseException().Message}");
                     }
+
+                    // Fetch viewing history ordered by the oldest first
+                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory> { OrderBy = e => e.LastViewed });
+                    List<UserViewingHistory> viewingHistoriesList = viewingHistories.ToList();
+
+                    if (viewingHistoriesList.Count > 20)
+                    {
+                        // Delete extra entries beyond 20
+                        while (viewingHistoriesList.Count > 20)
+                        {
+                            try
+                            {
+                                var entityToDelete = viewingHistoriesList[0];
+                                await userViewingHistory.DeleteAsync(entityToDelete); // Delete the oldest entry
+                                viewingHistoriesList.RemoveAt(0); // Remove the entity from the list
+                            }
+                            catch (InvalidOperationException ex)
+                            {
+                                ModelState.AddModelError("", ex.Message); // Handle deletion issue
+                            }
+                            catch (Exception ex)
+                            {
+                                ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}"); // General error handler
+                            }
+                        }
+                    }
+
                 }
             }
 

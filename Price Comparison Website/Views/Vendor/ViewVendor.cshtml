@@ -4,18 +4,6 @@
     ViewBag.Title = $"{Model.Name} Vendor";
 }
 
-@functions {
-    string GetDeleteModalId(Vendor vendor)
-    {
-        return "#deleteModal" + vendor.VendorId;
-    }
-
-    string GetModalId(Vendor vendor)
-    {
-        return "deleteModal" + vendor.VendorId;
-    }
-}
-
 <h1>@Model.Name</h1>
 <div class="col-md-12">
     <input type="hidden" name="id" value="@Model.VendorId" />
@@ -105,10 +93,10 @@
         </a>
 
         <form asp-action="delete" asp-controller="Vendor" asp-route-id="@Model.VendorId" method="post">
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="@GetDeleteModalId(Model)">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal0">
                 <i class="bi bi-trash"> Remove Vendor</i>
             </button>
-            <div class="modal fade" id="@GetModalId(Model)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal fade" id="deleteModal0" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">

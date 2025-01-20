@@ -33,6 +33,18 @@ namespace Price_Comparison_Website.Models
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteAsync(T entity) // For the user viewing history
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity), "Entity cannot be null.");
+            }
+
+            _dbSet.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+
 
         public async Task<IEnumerable<T>> GetAllAsync()
 		{

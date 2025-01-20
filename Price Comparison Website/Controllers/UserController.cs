@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -27,12 +28,13 @@ namespace Price_Comparison_Website.Controllers
         {
             return View();
         }
-        public async Task<IActionResult> ViewingHistoryAsync()
+        public async Task<IActionResult> ViewingHistory()
         {
             // Get all viewing histories
             var user = await _userManager.GetUserAsync(User);
-            var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory>());
+            var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory> ());
             List<Product> productList = new List<Product>();
+            viewingHistories = viewingHistories.OrderByDescending(e => e.LastViewed); // Order by most recents first
 
             // Add the associated products to the viewbag
             foreach (var history in viewingHistories)
@@ -44,7 +46,32 @@ namespace Price_Comparison_Website.Controllers
 
             return View(viewingHistories);
 
-    }
+        }
+
+        public async Task<IActionResult> DeleteViewingHistory()
+        {
+            // Get all viewing histories
+            var user = await _userManager.GetUserAsync(User);
+            var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory>());
+
+            foreach (UserViewingHistory history in viewingHistories)
+            {
+                try
+                {
+                    await userViewingHistory.DeleteAsync(history);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
+                }
+            }
+
+                return RedirectToAction("ViewingHistory");
+        }
     } 
 }
 
