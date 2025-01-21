@@ -3,11 +3,18 @@
 @inject UserManager<ApplicationUser> UserManager
 @model Product
 @{
-
-	ViewBag.Title = $"{Model.Name} Product";
+    ViewBag.Title = $"{Model.Name} Product";
+    bool isOnWishlist = User.IsInRole("User") && ViewData["OnWishlist"]?.ToString() == "True";
 }
 
-<h1>@Model.Name</h1>
+<h1>
+    @Model.Name
+    @if (isOnWishlist)
+    {
+        <i class="bi bi-star-fill" style="color: gold;"></i>
+    }
+</h1>
+
 <div class="col-md-12">
     <input type="hidden" name="id" value="@Model.ProductId" />
     <div class="row">
@@ -19,7 +26,18 @@
                      alt="@Model.Description"
                      style="max-width: 100%; height: auto; object-fit: cover;" />
             </div>
-            <!-- Space below the image for additional content -->
+                    <!-- Wishlist button -->
+                    @if(User.IsInRole("User"))
+                    {
+                         <div class="text-end mt-3">
+                            <form asp-action="UpdateWishList" asp-controller="Product" method="post">
+                                <input type="hidden" name="prodId" value="@Model.ProductId" />
+                                <button type="submit" class="btn @(isOnWishlist ? "btn-danger" : "btn-warning")">
+                                    <i class="bi bi-heart"></i> @(isOnWishlist ? "Remove from Wishlist" : "Add to Wishlist")
+                                </button>
+                            </form>
+                        </div>
+                    }
             <div class="mt-3">
                 <h3>Additional Information</h3>
                 <p>@Model.Description</p>
@@ -73,7 +91,6 @@
                                         </div>
                                     </form>
                                 }
-                                
                             </div>
                         </div>
                     }
@@ -87,7 +104,7 @@
     </div>
 </div>
 
-@if(User.IsInRole("Admin"))
+@if (User.IsInRole("Admin"))
 {
     <div class="d-flex justify-content-between mt-4">
         <a asp-action="AddEdit" asp-controller="Product" asp-route-id="@Model.ProductId" class="btn btn-primary">

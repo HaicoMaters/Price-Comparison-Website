@@ -6,6 +6,7 @@
     @if (User.IsInRole("User"))
     {
         <li class="nav-item"><a class="nav-link id="viewHistory" asp-action="ViewingHistory" asp-controller="User">Product Viewing History</a></li>
+        <li class="nav-item"><a class="nav-link id="wishlist" asp-action="Wishlist" asp-controller="User">View Your Wishlist</a></li>
     }
     <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
     <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>

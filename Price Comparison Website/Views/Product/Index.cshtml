@@ -5,8 +5,7 @@
 
 <!-- TODO: ADD  
 	more by sorting by categories (oldest newest)
-    Also need to do, wishlisting, view history and user account authentication authoirization elsewhere in the project
-    If Product in Wishlist Put a Star Next To It and Colour the Card Yellow
+    Add tooltip when hovering over wishlist star using bootstrap
 -->
 
 @{
@@ -59,23 +58,37 @@
         </form>
 
         <div class="row">
-            @foreach (var prod in productList)
+            @for (int i = 0; i < productList.Count; i++)
             {
+                bool isOnWishlist = User.IsInRole("User") && ViewBag.OnWishlist != null && ViewBag.OnWishlist[i] == true;
+
                 <div class="col-4 col-md-4 col-lg-4 mb-4">
                     <!-- 3 products across -->
-                    <div class="card">
-                        <img src="@Url.Content(prod.ImageUrl)" class="card-img-top fixed-image-height" alt="@prod.Description" />
-                        <div class="card-body">
-                            <h5 class="card-title">@prod.Name</h5>
-                            <p class="card-text">@prod.Description</p>
-                            <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@prod.ProductId">
-                                <i class="bi bi-pencil-fill"></i> View
-                            </a>
-                        </div>
+                    <div class="card" style="position: relative; @if (isOnWishlist) {
+                <text>background-color: #fdf8e3;</text>
+            }">
+                    <!-- Yellow star in the bottom-right corner if on wishlist -->
+                        @if (isOnWishlist)
+                        {
+                            <div style="position: absolute; bottom: 10px; right: 10px; z-index: 10;">
+                                <i class="bi bi-star-fill" style="color: gold; font-size: 2rem;"></i>
+                            </div>
+                        }
+
+                    <img src="@Url.Content(productList[i].ImageUrl)" class="card-img-top fixed-image-height" alt="@productList[i].Description" />
+                    <div class="card-body">
+                        <h5 class="card-title">@productList[i].Name</h5>
+                        <p class="card-text">@productList[i].Description</p>
+                        <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@productList[i].ProductId">
+                            <i class="bi bi-pencil-fill"></i> View
+                        </a>
                     </div>
+                </div>
                 </div>
             }
         </div>
+
+
 
         <!-- Pagination -->
         @if (ViewData["PageNumber"] is int currentPage && ViewData["TotalPages"] is int totalPages)

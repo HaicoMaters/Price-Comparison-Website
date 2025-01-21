@@ -32,14 +32,9 @@ namespace Price_Comparison_Website.Controllers
             }
 
             // Paginate the products
-            var pagedVendors = allVendors
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var pagedVendors = SetupPagination(allVendors, pageNumber);
 
-            // Calculate total pages and set ViewData for pagination
-            ViewData["PageNumber"] = pageNumber;
-            ViewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
+            // Set ViewData
             ViewData["SearchQuery"] = searchQuery;
 
             return View(pagedVendors);
@@ -145,6 +140,20 @@ namespace Price_Comparison_Website.Controllers
 
 
             return RedirectToAction("Index", "Vendor");
+        }
+
+        // ------------------------------------------- Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
+        public List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber)
+        {
+            int pageSize = 12; // Number of products per page
+
+            ViewData["PageNumber"] = pageNumber;
+            ViewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
+
+            return allVendors
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
         }
     }
 }

@@ -116,6 +116,28 @@ namespace Price_Comparison_Website.Models
                 .FirstOrDefaultAsync(uvh => uvh.UserId == userId && uvh.ProductId == productId);
         }
 
+        public async Task<UserWishList> GetByIdAsync(string userId, int productId, QueryOptions<UserWishList> options) // For the user wishlist
+        {
+            IQueryable<UserWishList> query = (IQueryable<UserWishList>)_dbSet;
+
+            if (options.HasWhere)
+            {
+                query = query.Where(options.Where);
+            }
+
+            if (options.HasOrderBy)
+            {
+                query = query.OrderBy(options.OrderBy);
+            }
+
+            foreach (string include in options.GetIncludes())
+            {
+                query = query.Include(include);
+            }
+
+            return await query
+                .FirstOrDefaultAsync(uw => uw.UserId == userId && uw.ProductId == productId);
+        }
 
         public async Task UpdateAsync(T entity)
 		{

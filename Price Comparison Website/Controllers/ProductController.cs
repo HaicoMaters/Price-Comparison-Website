@@ -1,4 +1,5 @@
 ﻿
+using System.Drawing.Printing;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,7 @@ namespace Price_Comparison_Website.Controllers
         private Repository<PriceListing> priceListings;
         private Repository<Vendor> vendors;
         private Repository<UserViewingHistory> userViewingHistory;
+        private Repository<UserWishList> userWishlists;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -28,6 +30,7 @@ namespace Price_Comparison_Website.Controllers
             priceListings = new Repository<PriceListing>(context);
             vendors = new Repository<Vendor>(context);
             userViewingHistory = new Repository<UserViewingHistory>(context);
+            userWishlists = new Repository<UserWishList>(context);
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
         }
@@ -36,7 +39,6 @@ namespace Price_Comparison_Website.Controllers
         {
             ViewBag.Categories = await categories.GetAllAsync();
 
-            int pageSize = 12; // Number of products per page
             IEnumerable<Product> allProducts;
 
             if (catId == 0) // Search All Categories
@@ -45,8 +47,8 @@ namespace Price_Comparison_Website.Controllers
                 if (!string.IsNullOrEmpty(searchQuery))
                 {
                     // Filter products based on the search query
-                    allProducts = allProducts 
-                        .Where(p =>(p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                    allProducts = allProducts
+                        .Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
                         (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
                         .ToList();
                 }
@@ -68,16 +70,36 @@ namespace Price_Comparison_Website.Controllers
                         .ToList();
                 }
             }
-                // Paginate the products
-                var pagedProducts = allProducts
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-          
+
+            // Paginate the products
+            var pagedProducts = SetupPagination(allProducts, pageNumber);
+            
+            // Handle User Specific Data
+            if (User.Identity.IsAuthenticated)
+            {
+
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null && await _userManager.IsInRoleAsync(user, "User"))
+                {
+                    // Get which items are on the wishlist
+                    List<bool> onWishlist = new List<bool>();
+                    for (int i = 0; i < pagedProducts.Count; i++)
+                    {
+                        var existingEntity = await userWishlists.GetByIdAsync(user.Id, pagedProducts[i].ProductId, new QueryOptions<UserWishList>());
+                        if(existingEntity != null)
+                        {
+                            onWishlist.Add(true);
+                        }
+                        else
+                        {
+                            onWishlist.Add(false);
+                        }
+                    }
+                    ViewBag.OnWishlist = onWishlist;
+                }
+            }
 
             // Calculate total pages and set ViewData
-            ViewData["PageNumber"] = pageNumber;
-            ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
             ViewData["CategoryId"] = catId;
             ViewData["SearchQuery"] = searchQuery;
 
@@ -196,12 +218,12 @@ namespace Price_Comparison_Website.Controllers
                 listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
             }
 
-            // Update the user viewing History
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null && await _userManager.IsInRoleAsync(user, "User"))
                 {
+                    // Update Viewing Histories------------------------------------------------------------------------------------------------------------------------------------------
                     try
                     {
                         var existingEntity = await userViewingHistory.GetByIdAsync(user.Id, id, new QueryOptions<UserViewingHistory>());
@@ -253,10 +275,70 @@ namespace Price_Comparison_Website.Controllers
                         }
                     }
 
+
+                    // Check if on Wishlist ------------------------------------------------------------------------------------------------------------------------------------------
+                    var existingWishlistItem = await userWishlists.GetByIdAsync(user.Id, id, new QueryOptions<UserWishList>());
+                    ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
+
                 }
             }
 
             return View(product);
+        }
+
+        [Authorize(Roles = "User")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateWishList(int prodId) // If in wishlist delete if not in wishlist add to wishlist
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user != null)
+            {
+                // Find if product is not in wishlist
+                var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
+
+                // Exists so delete from wishlist
+                if (existingEntity != null)
+                {
+                    try
+                    {
+                        await userWishlists.DeleteAsync(existingEntity);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        ModelState.AddModelError("", ex.Message); // Handle deletion issue
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}"); // General error handler
+                    }
+                }
+                // Add to wishlist
+                else
+                {
+                    UserWishList newWishlistItem = new UserWishList{ ProductId = prodId, UserId = user.Id };
+                    await userWishlists.AddAsync(newWishlistItem);
+                }
+            }
+
+            return RedirectToAction("ViewProduct", "Product", new { id = prodId });
+        }
+
+
+
+
+        // ------------------------------------------- Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
+        public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber)
+        {
+            int pageSize = 12; // Number of products per page
+
+            ViewData["PageNumber"] = pageNumber;
+            ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
+
+            return allProducts
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
         }
 
     }
