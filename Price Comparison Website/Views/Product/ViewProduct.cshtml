@@ -58,7 +58,15 @@
                                      style="width: 80px; height: 80px; object-fit: contain; margin-right: 10px;">
                                 <strong class="fs-6 fs-md-5">@listing.Vendor.Name</strong>
                             </div>
-                            <span class="text-success font-weight-bold fs-6 fs-md-5">@listing.Price.ToString("C")</span>
+                            @if (listing.DiscountedPrice < listing.Price)
+                            {
+                                <span class="text-danger font-weight-bold fs-6 fs-md-5">@listing.DiscountedPrice.ToString("C")</span>
+                                <span class="text-muted fs-7"><del>@listing.Price.ToString("C")</del></span>
+                            }
+                            else
+                            {
+                                <span class="text-success font-weight-bold fs-6 fs-md-5">@listing.Price.ToString("C")</span>
+                            }
                             @if (listing.DateListed != null)
                             {
                                 <small class="text-muted fs-7">Last Checked: @listing.DateListed.ToString("g")</small>

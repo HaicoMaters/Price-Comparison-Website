@@ -53,46 +53,57 @@ namespace Price_Comparison_Website.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddEdit(PriceListing priceListing, int vendorId)
+		public async Task<IActionResult> AddEdit(PriceListing priceListing)
 		{
 			ViewBag.Vendors = await vendors.GetAllAsync();
+
 			if (ModelState.IsValid)
 			{
-                // Add Operation
-                if (priceListing.PriceListingId == 0)
+				// Ensure discounted price is set correctly
+				if (!Request.Form.ContainsKey("IsDiscounted"))
+				{
+					priceListing.DiscountedPrice = priceListing.Price;
+				}
+
+				// Add Operation
+				if (priceListing.PriceListingId == 0)
 				{
 					priceListing.DateListed = DateTime.Now;
-					priceListing.VendorId = vendorId;
 					await priceListings.AddAsync(priceListing);
 				}
 				else
 				{
 					var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
 
-                    if(existingPriceListing == null)
-                    {
-                        ModelState.AddModelError("", "Listing not found");
-                        return View(priceListing);
-                    }
+					if (existingPriceListing == null)
+					{
+						ModelState.AddModelError("", "Listing not found");
+						return View(priceListing);
+					}
 
 					existingPriceListing.Price = priceListing.Price;
+					existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
 					existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
-					existingPriceListing.VendorId = vendorId;
+					existingPriceListing.VendorId = priceListing.VendorId;
 					existingPriceListing.DateListed = DateTime.Now;
 
 					try
 					{
 						await priceListings.UpdateAsync(existingPriceListing);
 					}
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-                        return View(priceListing);
-                    }
-                }
+					catch (Exception ex)
+					{
+						ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
+						return View(priceListing);
+					}
+				}
+
+				return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
 			}
-            return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
-        }
+
+			return View(priceListing);
+		}
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

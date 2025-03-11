@@ -9,10 +9,11 @@ namespace Price_Comparison_Website.Models
 		public int ProductId { get; set; } // FK
 		[ValidateNever]
 		public Product Product { get; set; }
-		public int VendorId { get; set; } // FK
-        [ValidateNever]
-        public Vendor Vendor { get; set; }
+		public int VendorId { get; set; } // FK       
+	 	[ValidateNever]      
+        public Vendor Vendor { get; set; }		
 		public decimal Price { get; set; }
+		public decimal DiscountedPrice { get; set; } // For discounts, default to Price if no discount
 		public string? PurchaseUrl { get; set; }
 		public DateTime? DateListed { get; set; } // When the listing was last updated
 	}

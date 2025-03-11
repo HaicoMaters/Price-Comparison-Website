@@ -1,28 +1,43 @@
-﻿@model PriceListing
+﻿@model PriceListing 
 
 @{
-	var product = ViewBag.Product;
-	ViewBag.Title = $"{ViewBag.Operation} Listing";
+    var product = ViewBag.Product;
+    ViewBag.Title = $"{ViewBag.Operation} Listing";
 }
 
 <h1>@ViewBag.Operation @product.Name Listing</h1>
 
 <form asp-action="AddEdit" asp-controller="PriceListing" method="post" enctype="multipart/form-data">
-	<input type="hidden" asp-for="PriceListingId" />
-	<input type="hidden" asp-for="ProductId" />
-	
+    <input type="hidden" asp-for="PriceListingId" />
+    <input type="hidden" asp-for="ProductId" />
     <input type="hidden" asp-for="DateListed" />
-	<div class="form-group">
-		<label asp-for="PurchaseUrl"></label>
-		<input asp-for="PurchaseUrl" class="form-control" name="PurchaseUrl" />
-		<span asp-validation-for="PurchaseUrl" class="text-danger"></span>
-	</div>
+
     <div class="form-group">
-		<label asp-for="Price"></label>
-		<input asp-for="Price" class="form-control" name="Price" />
-		<span asp-validation-for="Price" class="text-danger"></span>
-	</div>
-	<div class="row">
+        <label asp-for="PurchaseUrl"></label>
+        <input asp-for="PurchaseUrl" class="form-control" />
+        <span asp-validation-for="PurchaseUrl" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" class="form-control" id="Price" />
+        <span asp-validation-for="Price" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="isDiscounted" name="IsDiscounted" @(Model.DiscountedPrice != Model.Price ? "checked" : "") />
+            <label class="form-check-label" for="isDiscounted">Is Discounted</label>
+        </div>
+    </div>
+
+    <div class="form-group" id="discountedPriceGroup" style="display: @(Model.DiscountedPrice != Model.Price ? "block" : "none")">
+        <label for="DiscountedPrice">Discounted Price</label>
+        <input class="form-control" id="DiscountedPrice" name="DiscountedPrice" value="@Model.DiscountedPrice" />
+        <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+    </div>
+
+    <div class="row">
         <h4 class="mb-3">Select a Vendor</h4>
         @for (int i = 0; i < ViewBag.Vendors.Count; i++)
         {
@@ -34,12 +49,7 @@
             }
             <div class="col-md-4">
                 <div class="form-check">
-                    <input type="radio"   
-                           class="form-check-input"
-                           id="vendor-@vendor.VendorId"
-                           name="vendorId"
-                           value="@vendor.VendorId"
-                           @(isChecked ? "checked" : "") />
+                    <input type="radio" class="form-check-input" id="vendor-@vendor.VendorId" name="VendorId" value="@vendor.VendorId" @(isChecked ? "checked" : "") />
                     <label class="form-check-label" for="vendor-@vendor.VendorId">
                         @vendor.Name
                     </label>
@@ -50,5 +60,24 @@
                 @:</div>
             }
         }
-	<button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
 </form>
+
+@section Scripts {
+    <script>
+        document.getElementById('isDiscounted').addEventListener('change', function () {
+            var discountedPriceGroup = document.getElementById('discountedPriceGroup');
+            var discountedPriceInput = document.getElementById('DiscountedPrice');
+            var originalPriceInput = document.getElementById('Price');
+
+            if (this.checked) {
+                discountedPriceGroup.style.display = 'block';
+            } else {
+                discountedPriceGroup.style.display = 'none';
+                discountedPriceInput.value = originalPriceInput.value;
+            }
+        });
+    </script>
+}
