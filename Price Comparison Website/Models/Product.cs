@@ -10,7 +10,7 @@ namespace Price_Comparison_Website.Models
 		}
 
 		public int ProductId { get; set; } // PK
-		public string? Name { get; set; }
+		public string Name { get; set; }
 		public string? Description { get; set; }
 		public string? ImageUrl { get; set; }
 		public decimal CheapestPrice { get; set; }

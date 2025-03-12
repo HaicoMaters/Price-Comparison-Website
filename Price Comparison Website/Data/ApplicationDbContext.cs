@@ -18,6 +18,8 @@ namespace Price_Comparison_Website.Data
 		public DbSet<PriceListing> PriceListings { get; set; }
 		public DbSet<UserWishList> UserWishLists { get; set; }
 		public DbSet<UserViewingHistory> UserViewingHistories { get; set; }
+		public DbSet<Notification> Notifications { get; set; }
+		public DbSet<UserNotification> UserNotifications { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
@@ -70,6 +72,20 @@ namespace Price_Comparison_Website.Data
 				.HasOne(uv => uv.Product)
 				.WithMany()
 				.HasForeignKey(uv => uv.ProductId);
+			
+			builder.Entity<UserNotification>().HasKey(un => new { un.UserId, un.NotificationId }); // Composite Key
+
+			builder.Entity<UserNotification>()
+				.HasOne(un => un.User)
+				.WithMany(u => u.UserNotifications)
+				.HasForeignKey(un => un.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			builder.Entity<UserNotification>()
+				.HasOne(un => un.Notification)
+				.WithMany(n => n.UserNotifications)
+				.HasForeignKey(un => un.NotificationId)
+				.OnDelete(DeleteBehavior.Cascade);
 
 
 			// Seed Data (Used AI Assistance just to have large quantity
