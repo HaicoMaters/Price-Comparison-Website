@@ -60,7 +60,7 @@ namespace Price_Comparison_Website.Controllers
 			if (ModelState.IsValid)
 			{
 				// Ensure discounted price is set correctly
-				if (!Request.Form.ContainsKey("IsDiscounted"))
+				if (!Request.Form.ContainsKey("IsDiscounted") || priceListing.DiscountedPrice > priceListing.Price)
 				{
 					priceListing.DiscountedPrice = priceListing.Price;
 				}
@@ -96,8 +96,10 @@ namespace Price_Comparison_Website.Controllers
 						ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
 						return View(priceListing);
 					}
-				}
 
+				}
+				await UpdateCheapestPrice(priceListing.ProductId, (Request.Form.ContainsKey("IsDiscounted") ? priceListing.DiscountedPrice : priceListing.Price));
+				
 				return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
 			}
 
@@ -125,5 +127,18 @@ namespace Price_Comparison_Website.Controllers
             }
             return RedirectToAction("ViewProduct", "Product", new { id = existingPriceListing.ProductId });
         }
+
+
+		// Helper Methods -------------------------------------------------------
+		public async Task UpdateCheapestPrice(int productId, decimal newPrice){
+			Product exsitingProduct = await products.GetByIdAsync(productId, new QueryOptions<Product>());
+			if(newPrice < exsitingProduct.CheapestPrice || exsitingProduct.CheapestPrice == 0){ // Assume no listing has a price of 0
+				exsitingProduct.CheapestPrice = newPrice;
+				await products.UpdateAsync(exsitingProduct);
+
+				// Send Notification to Users with item on wishlist (need to implement the notification system)
+			}
+		}
+
     }
 }

@@ -20,6 +20,10 @@
                         <img src="@product.ImageUrl" alt="@product.Name Logo"
                              style="width: 160px; height: 160px; object-fit: contain; margin-right: 10px;">
                         <strong class="fs-6 fs-md-5">@product.Name</strong>
+                        @if (product.CheapestPrice != 0)
+                        {
+                            <span class="ms-2 text-success fw-bold">$@product.CheapestPrice</span>
+                        }
                     </div>
                     @if (viewingHistoryList[i] != null)
                     {

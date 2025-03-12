@@ -3,11 +3,6 @@
 @inject UserManager<ApplicationUser> UserManager
 @model IEnumerable<Product>
 
-<!-- TODO: ADD  
-	more by sorting by categories (oldest newest)
-    Add tooltip when hovering over wishlist star using bootstrap
--->
-
 @{
     ViewBag.Title = "View Products";
     List<Product> productList = Model?.ToList() ?? new List<Product>();
@@ -43,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Product List on the right (col-md-9) -->
     <div class="col-md-9">
         <!-- Search Bar -->
         <form method="get" action="@Url.Action("Index", "Product")" class="mb-4">
@@ -57,6 +51,7 @@
             </div>
         </form>
 
+        <!-- Product List on the right (col-md-9) -->
         <div class="row">
             @for (int i = 0; i < productList.Count; i++)
             {
@@ -79,7 +74,13 @@
 
                     <img src="@Url.Content(productList[i].ImageUrl)" class="card-img-top fixed-image-height" alt="@productList[i].Description" />
                     <div class="card-body">
-                        <h5 class="card-title">@productList[i].Name</h5>
+                        <h5 class="card-title">
+                            @productList[i].Name 
+                            @if (productList[i].CheapestPrice != 0)
+                            {
+                                <span class="card-price"> - $@productList[i].CheapestPrice</span>
+                            }
+                        </h5>
                         <p class="card-text">@productList[i].Description</p>
                         <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@productList[i].ProductId">
                             <i class="bi bi-pencil-fill"></i> View

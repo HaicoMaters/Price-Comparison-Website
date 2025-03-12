@@ -296,7 +296,7 @@ namespace Price_Comparison_Website.Controllers
             {
                 // Find if product is not in wishlist
                 var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
-
+                                
                 // Exists so delete from wishlist
                 if (existingEntity != null)
                 {
@@ -316,7 +316,8 @@ namespace Price_Comparison_Website.Controllers
                 // Add to wishlist
                 else
                 {
-                    UserWishList newWishlistItem = new UserWishList{ ProductId = prodId, UserId = user.Id };
+                    Product existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
+                    UserWishList newWishlistItem = new UserWishList{ ProductId = prodId, UserId = user.Id, LastCheapestPrice = existingProd.CheapestPrice};
                     await userWishlists.AddAsync(newWishlistItem);
                 }
             }

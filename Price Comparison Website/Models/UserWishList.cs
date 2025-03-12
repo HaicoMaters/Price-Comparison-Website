@@ -13,6 +13,6 @@ namespace Price_Comparison_Website.Models
 		public ApplicationUser User { get; set; }
 		[ValidateNever]
 		public Product Product { get; set; }
-
+		public decimal LastCheapestPrice { get; set; } // For Notifiation System
 	}
 }

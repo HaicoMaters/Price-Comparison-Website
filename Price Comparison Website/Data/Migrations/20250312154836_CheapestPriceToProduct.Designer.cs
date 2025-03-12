@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Price_Comparison_Website.Data;
 
@@ -11,9 +12,11 @@ using Price_Comparison_Website.Data;
 namespace Price_Comparison_Website.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312154836_CheapestPriceToProduct")]
+    partial class CheapestPriceToProduct
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,7 +373,7 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             PriceListingId = 1,
-                            DateListed = new DateTime(2025, 3, 12, 16, 18, 9, 137, DateTimeKind.Local).AddTicks(3075),
+                            DateListed = new DateTime(2025, 3, 12, 15, 48, 34, 969, DateTimeKind.Local).AddTicks(7004),
                             DiscountedPrice = 99.00m,
                             Price = 99.00m,
                             ProductId = 1,
@@ -380,7 +383,7 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             PriceListingId = 2,
-                            DateListed = new DateTime(2025, 3, 12, 16, 18, 9, 137, DateTimeKind.Local).AddTicks(3138),
+                            DateListed = new DateTime(2025, 3, 12, 15, 48, 34, 969, DateTimeKind.Local).AddTicks(7055),
                             DiscountedPrice = 110.21m,
                             Price = 190.36m,
                             ProductId = 1,
@@ -423,7 +426,7 @@ namespace Price_Comparison_Website.Data.Migrations
                         {
                             ProductId = 1,
                             CategoryId = 1,
-                            CheapestPrice = 99.00m,
+                            CheapestPrice = 0m,
                             Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions",
                             ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg",
                             Name = "Turtle Beach Stealth 600 Gen 3 Wireless Multiplatform Amplified Gaming Headset"
@@ -455,9 +458,6 @@ namespace Price_Comparison_Website.Data.Migrations
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("LastCheapestPrice")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("UserId", "ProductId");
 

@@ -13,7 +13,7 @@ namespace Price_Comparison_Website.Models
 		public string? Name { get; set; }
 		public string? Description { get; set; }
 		public string? ImageUrl { get; set; }
-
+		public decimal CheapestPrice { get; set; }
 		public int CategoryId { get; set; } // Foreign Key
 		// Navigation Property
 		[ValidateNever]
