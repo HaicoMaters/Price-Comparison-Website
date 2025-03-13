@@ -69,12 +69,28 @@ body {
 }
 
 .notification-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #dee2e6;
     overflow-x: auto;
     white-space: nowrap;
-    padding: 8px 12px;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.dismiss-notification {
+    padding: 0;
+    margin-left: 0.5rem;
+}
+
+.dismiss-notification:hover {
+    opacity: 0.8;
 }
 
 .notification-text {
+    flex: 1;
+    margin-right: 0.5rem;
     display: inline-block;
     padding-right: 16px;
 }

@@ -31,97 +31,147 @@ namespace Price_Comparison_Website.Controllers
             notificationService = new NotificationService(context);
         }
 
-        [Authorize (Roles = "User")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Wishlist()
         {
-            // Get all wishlist
-            var user = await _userManager.GetUserAsync(User);
-            var wishlist = await userWishlists.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserWishList>());
-            List<Product> productList = new List<Product>();
-
-            // Add the associated products
-            foreach (var wishlistItem in wishlist)
+            try
             {
-                productList.Add(await products.GetByIdAsync(wishlistItem.ProductId, new QueryOptions<Product>()));
-            }
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Unauthorized();
 
-            return View(productList);
-        }
-
-        [Authorize (Roles = "User")]
-        public async Task<IActionResult> ViewingHistory()
-        {
-            // Get all viewing histories
-            var user = await _userManager.GetUserAsync(User);
-            var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory> ());
-            List<Product> productList = new List<Product>();
-            viewingHistories = viewingHistories.OrderByDescending(e => e.LastViewed); // Order by most recents first
-
-            // Add the associated products to the viewbag
-            foreach (var history in viewingHistories)
-            {
-                productList.Add(await products.GetByIdAsync(history.ProductId, new QueryOptions<Product>()));
-            }
-
-            ViewBag.Products = productList;
-
-            return View(viewingHistories);
-        }
-    
-        [Authorize (Roles = "User")]
-        public async Task<IActionResult> RemoveFromWishlist(int prodId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user != null)
-            {
-                var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
-
-                // Delete from wishlist
-                if (existingEntity != null)
-                {
-                    try
-                    {
-                        await userWishlists.DeleteAsync(existingEntity);
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        ModelState.AddModelError("", ex.Message); // Handle deletion issue
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}"); // General error handler
-                    }
-                }
-            }
-
-            return RedirectToAction("Wishlist");
-        }
-
-        [Authorize (Roles = "User")]
-        public async Task<IActionResult> DeleteViewingHistory()
-        {
-            // Get all viewing histories
-            var user = await _userManager.GetUserAsync(User);
-            var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory>());
-
-            foreach (UserViewingHistory history in viewingHistories)
-            {
                 try
                 {
-                    await userViewingHistory.DeleteAsync(history);
+                    // Get all wishlist
+                    var wishlist = await userWishlists.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserWishList>());
+                    List<Product> productList = new List<Product>();
+
+                    // Add the associated products
+                    foreach (var wishlistItem in wishlist)
+                    {
+                        var product = await products.GetByIdAsync(wishlistItem.ProductId, new QueryOptions<Product>());
+                        if (product != null)
+                        {
+                            productList.Add(product);
+                        }
+                    }
+
+                    return View(productList);
                 }
                 catch (InvalidOperationException ex)
                 {
-                    ModelState.AddModelError("", ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
+                    return BadRequest(new { error = "Failed to load wishlist", details = ex.Message });
                 }
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
+        }
 
-                return RedirectToAction("ViewingHistory");
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> ViewingHistory()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Unauthorized();
+
+                try
+                {
+                    // Get all viewing histories
+                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", 
+                        new QueryOptions<UserViewingHistory>());
+                    List<Product> productList = new List<Product>();
+                    
+                    // Order by most recents first
+                    viewingHistories = viewingHistories.OrderByDescending(e => e.LastViewed);
+
+                    // Add the associated products to the viewbag
+                    foreach (var history in viewingHistories)
+                    {
+                        var product = await products.GetByIdAsync(history.ProductId, new QueryOptions<Product>());
+                        if (product != null)
+                        {
+                            productList.Add(product);
+                        }
+                    }
+
+                    ViewBag.Products = productList;
+                    return View(viewingHistories);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to load viewing history", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveFromWishlist(int prodId)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Unauthorized();
+
+                try
+                {
+                    var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
+                    if (existingEntity == null)
+                        return NotFound(new { error = "Wishlist item not found" });
+
+                    await userWishlists.DeleteAsync(existingEntity);
+                    return RedirectToAction("Wishlist");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteViewingHistory()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Unauthorized();
+
+                try
+                {
+                    // Get all viewing histories
+                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", 
+                        new QueryOptions<UserViewingHistory>());
+
+                    foreach (var history in viewingHistories)
+                    {
+                        await userViewingHistory.DeleteAsync(history);
+                    }
+
+                    return RedirectToAction("ViewingHistory");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to delete viewing history", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -132,31 +182,37 @@ namespace Price_Comparison_Website.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) return Unauthorized();
 
-                // This is a pretty bad solution but it works for now
+                try
+                {
+                    // This is a pretty bad solution but it works for now
+                    // Get both read and unread notifications
+                    var readNotifications = await notificationService.GetReadUserNotifications(user.Id);
+                    var unreadNotifications = await notificationService.GetUnreadUserNotifications(user.Id);
+                    
+                    // Merge both lists and remove duplicates
+                    var allNotifications = readNotifications.Concat(unreadNotifications)
+                        .GroupBy(n => n.Id) // Remove duplicate notifications by ID
+                        .Select(g => g.First()) // Take the first occurrence
+                        .OrderByDescending(n => n.CreatedAt) // Sort by newest first
+                        .Select(n => new
+                        {
+                            id = n.Id,
+                            message = n.Message,
+                            timestamp = n.CreatedAt.ToString("g"),
+                            isRead = !unreadNotifications.Any(un => un.Id == n.Id) // Mark as read if not in unread list
+                        })
+                        .ToList();
 
-                // Get both read and unread notifications
-                var readNotifications = await notificationService.GetReadUserNotifications(user.Id);
-                var unreadNotifications = await notificationService.GetUnreadUserNotifications(user.Id);
-                
-                 // Merge both lists and remove duplicates
-                var allNotifications = readNotifications.Concat(unreadNotifications)
-                    .GroupBy(n => n.Id) // Remove duplicate notifications by ID
-                    .Select(g => g.First()) // Take the first occurrence
-                    .OrderByDescending(n => n.CreatedAt) // Sort by newest first
-                    .Select(n => new
-                    {
-                        id = n.Id,
-                        message = n.Message,
-                        timestamp = n.CreatedAt.ToString("g"),
-                        isRead = !unreadNotifications.Any(un => un.Id == n.Id) // Mark as read if not in unread list
-                    })
-                    .ToList();
-
-                return Json(new { notifications = allNotifications });
+                    return Json(new { notifications = allNotifications });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to fetch notifications", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "An error occurred while fetching notifications" });
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
 
@@ -169,14 +225,48 @@ namespace Price_Comparison_Website.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null) return Unauthorized();
 
-                await notificationService.MarkNotificationsAsRead(user.Id);
-                return Ok(new { success = true });
+                try
+                {
+                    await notificationService.MarkNotificationsAsRead(user.Id);
+                    return Ok(new { success = true });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to mark notifications as read", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "An error occurred while marking notifications as read" });
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("[controller]/DismissNotification/{notificationId}")]
+        public async Task<IActionResult> DismissNotification(int notificationId)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null) return Unauthorized();
+
+                try
+                {
+                    await notificationService.DeleteUserNotification(notificationId, user.Id);
+                    return Ok(new { success = true });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to dismiss notification", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
+        }
+        
     } 
 }
 

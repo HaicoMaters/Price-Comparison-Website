@@ -32,25 +32,38 @@ namespace Price_Comparison_Website.Controllers
         [HttpGet]
 		public async Task<IActionResult> AddEdit(int id, int prodId)
 		{
-			ViewBag.Product = await products.GetByIdAsync(prodId, new QueryOptions<Product>
-				{
-				Where = p => p.ProductId == prodId
-				});
-			ViewBag.Vendors = await vendors.GetAllAsync();
-			if(id == 0)
+			try
 			{
-				ViewBag.Operation = "Add";
-				return View(new PriceListing() { ProductId = prodId });
-			}
-			
-			else
-			{
-				PriceListing priceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>
+				var product = await products.GetByIdAsync(prodId, new QueryOptions<Product>
 				{
-					Includes = "Product", Where = pl => pl.PriceListingId == id
+					Where = p => p.ProductId == prodId
 				});
+				if (product == null)
+					return NotFound(new { error = "Product not found" });
+
+				ViewBag.Product = product;
+				ViewBag.Vendors = await vendors.GetAllAsync();
+
+				if (id == 0)
+				{
+					ViewBag.Operation = "Add";
+					return View(new PriceListing() { ProductId = prodId });
+				}
+				
+				var priceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>
+				{
+					Includes = "Product",
+					Where = pl => pl.PriceListingId == id
+				});
+				if (priceListing == null)
+					return NotFound(new { error = "Price listing not found" });
+
 				ViewBag.Operation = "Edit";
 				return View(priceListing);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, new { error = "An error occurred while loading the price listing", details = ex.Message });
 			}
 		}
 
@@ -58,90 +71,140 @@ namespace Price_Comparison_Website.Controllers
         [ValidateAntiForgeryToken]
 		public async Task<IActionResult> AddEdit(PriceListing priceListing)
 		{
-			ViewBag.Vendors = await vendors.GetAllAsync();
-
-			if (ModelState.IsValid)
+			try
 			{
-				// Ensure discounted price is set correctly
-				if (!Request.Form.ContainsKey("IsDiscounted") || priceListing.DiscountedPrice > priceListing.Price)
-				{
-					priceListing.DiscountedPrice = priceListing.Price;
-				}
+				ViewBag.Vendors = await vendors.GetAllAsync();
 
-				// Add Operation
-				if (priceListing.PriceListingId == 0)
-				{
-					priceListing.DateListed = DateTime.Now;
-					await priceListings.AddAsync(priceListing);
-				}
-				else
-				{
-					var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
+				if (!ModelState.IsValid)
+					return View(priceListing);
 
-					if (existingPriceListing == null)
+				try
+				{
+					// Ensure discounted price is set correctly
+					if (!Request.Form.ContainsKey("IsDiscounted") || priceListing.DiscountedPrice > priceListing.Price)
 					{
-						ModelState.AddModelError("", "Listing not found");
-						return View(priceListing);
+						priceListing.DiscountedPrice = priceListing.Price;
 					}
 
-					existingPriceListing.Price = priceListing.Price;
-					existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
-					existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
-					existingPriceListing.VendorId = priceListing.VendorId;
-					existingPriceListing.DateListed = DateTime.Now;
+					await RecalculateCheapestPrice(priceListing.ProductId); // Update cheapest price before adding/editing in case of price change in other parts of the system for notifs
 
-					try
+					// Add Operation
+					if (priceListing.PriceListingId == 0)
 					{
-						await priceListings.UpdateAsync(existingPriceListing);
+						priceListing.DateListed = DateTime.Now;
+						await priceListings.AddAsync(priceListing);
 					}
-					catch (Exception ex)
+					else // Edit Operation
 					{
-						ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-						return View(priceListing);
+						await HandleExistingPriceListing(priceListing);
 					}
 
+					await UpdateCheapestPrice(priceListing.ProductId, priceListing.DiscountedPrice); // Update cheapest price after adding/editing to send notifications if price drops
+					return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
 				}
-				await UpdateCheapestPrice(priceListing.ProductId, (Request.Form.ContainsKey("IsDiscounted") ? priceListing.DiscountedPrice : priceListing.Price));
-				
-				return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
+				catch (InvalidOperationException ex)
+				{
+					ModelState.AddModelError("", ex.Message);
+					return View(priceListing);
+				}
+				catch (Exception ex)
+				{
+					ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
+					return View(priceListing);
+				}
 			}
-
-			return View(priceListing);
+			catch (Exception ex)
+			{
+				return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+			}
 		}
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var existingPriceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>());
-            // Delete Product
             try
             {
-                await priceListings.DeleteAsync(id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("", ex.Message);
+                var existingPriceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>());
+                if (existingPriceListing == null)
+                    return NotFound(new { error = "Price listing not found" });
+				
+				int prodId = existingPriceListing.ProductId;
+
+                try
+                {
+                    await priceListings.DeleteAsync(id);
+					await RecalculateCheapestPrice(prodId); // Update cheapest price after deletion
+                    return RedirectToAction("ViewProduct", "Product", new { id = existingPriceListing.ProductId });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to delete price listing", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error deleting listing: {ex.GetBaseException().Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
-            return RedirectToAction("ViewProduct", "Product", new { id = existingPriceListing.ProductId });
         }
 
 
 		// Helper Methods -------------------------------------------------------
-		public async Task UpdateCheapestPrice(int productId, decimal newPrice){
-			Product exsitingProduct = await products.GetByIdAsync(productId, new QueryOptions<Product>());
-			decimal oldPrice = exsitingProduct.CheapestPrice;
-			if(newPrice < exsitingProduct.CheapestPrice || exsitingProduct.CheapestPrice == 0){ // Assume no listing has a price of 0
-				exsitingProduct.CheapestPrice = newPrice;
-				await products.UpdateAsync(exsitingProduct);
+		private async Task HandleExistingPriceListing(PriceListing priceListing)
+		{
+			var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
+			if (existingPriceListing == null)
+				throw new InvalidOperationException("Listing not found");
 
-				// Send Notification to Users with item on wishlist if price drops
-				await notificationService.CreateProductPriceDropNotifications(productId, exsitingProduct.Name, newPrice, oldPrice);
+			existingPriceListing.Price = priceListing.Price;
+			existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
+			existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
+			existingPriceListing.VendorId = priceListing.VendorId;
+			existingPriceListing.DateListed = DateTime.Now;
+
+			await priceListings.UpdateAsync(existingPriceListing);
+		}
+
+		public async Task UpdateCheapestPrice(int productId, decimal newPrice)
+		{
+			try
+			{
+				var existingProduct = await products.GetByIdAsync(productId, new QueryOptions<Product>());
+				if (existingProduct == null)
+					throw new InvalidOperationException("Product not found");
+
+				decimal oldPrice = existingProduct.CheapestPrice;
+				if (newPrice < existingProduct.CheapestPrice || existingProduct.CheapestPrice == 0)
+				{
+					// Send Notification to Users with item on wishlist if price drops
+					await notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
+				}
+				await RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException("Failed to update cheapest price", ex);
+			}
+		}
+
+		public async Task RecalculateCheapestPrice(int productId){
+			try
+			{
+				var product = await products.GetByIdAsync(productId, new QueryOptions<Product>());
+				if (product == null)
+					throw new InvalidOperationException("Product not found");
+
+				var listings = await priceListings.GetAllByIdAsync(productId, "ProductId", new QueryOptions<PriceListing>());
+				if (listings == null)
+					throw new InvalidOperationException("No listings found for product");
+
+				decimal cheapestPrice = listings.Min(l => l.DiscountedPrice);
+				product.CheapestPrice = cheapestPrice;
+				await products.UpdateAsync(product);
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException("Failed to recalculate cheapest price", ex);
 			}
 		}
 

@@ -76,13 +76,64 @@ function updateNotificationUI(data) {
             const itemClass = notification.isRead ? '' : 'notification-unread';
             const textClass = notification.isRead ? 'text-muted' : '';
             listItem.innerHTML = `
-                <div class="notification-item ${itemClass}">
+                <div class="notification-item ${itemClass} d-flex align-items-center justify-content-between">
                     <div class="notification-text ${textClass}">
                         ${notification.message}
                         <small class="notification-timestamp">${formatTimestamp(notification.timestamp)}</small>
                     </div>
+                    <button class="btn btn-link text-danger dismiss-notification" 
+                            data-notification-id="${notification.id}"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="left"
+                            title="Dismiss notification">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>`;
             notificationList.appendChild(listItem);
+
+            // Initialize tooltip
+            const tooltips = listItem.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => {
+                const bsTooltip = new bootstrap.Tooltip(tooltip);
+                tooltip.addEventListener('mouseleave', () => {
+                    bsTooltip.hide();
+                });
+            });
+            
+            // Add click event for dismiss button
+            const dismissButton = listItem.querySelector('.dismiss-notification');
+            dismissButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const notificationId = e.currentTarget.dataset.notificationId;
+                console.log('Attempting to dismiss notification:', notificationId);
+                
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const response = await fetch(`/User/DismissNotification/${notificationId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        }
+                    });
+
+                    console.log('Dismiss response:', response);
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            await fetchNotifications(); // Refresh the notifications list
+                        } else {
+                            console.error('Failed to dismiss notification');
+                        }
+                    } else {
+                        console.error('Response not OK:', response.status, response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error dismissing notification:', error);
+                }
+            });
         });
     } else {
         notificationCount.textContent = '0';

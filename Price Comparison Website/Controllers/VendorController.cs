@@ -23,38 +23,53 @@ namespace Price_Comparison_Website.Controllers
 
         public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
         {
-            int pageSize = 20; // Number of products per page
-            var allVendors = await vendors.GetAllAsync();
-
-            if (!string.IsNullOrEmpty(searchQuery)) // Seaarch functionality
+            try
             {
-                allVendors = allVendors.Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
+                int pageSize = 20; // Number of products per page
+                var allVendors = await vendors.GetAllAsync();
+
+                if (!string.IsNullOrEmpty(searchQuery)) // Search functionality
+                {
+                    allVendors = allVendors.Where(p => (p.Name != null && 
+                        p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
+                }
+
+                // Paginate the products
+                var pagedVendors = SetupPagination(allVendors, pageNumber);
+
+                // Set ViewData
+                ViewData["SearchQuery"] = searchQuery;
+
+                return View(pagedVendors);
             }
-
-            // Paginate the products
-            var pagedVendors = SetupPagination(allVendors, pageNumber);
-
-            // Set ViewData
-            ViewData["SearchQuery"] = searchQuery;
-
-            return View(pagedVendors);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while fetching vendors", details = ex.Message });
+            }
         }
-
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)
         {
-            if (id == 0)
+            try
             {
-                ViewBag.Operation = "Add";
-                return View(new Vendor());
-            }
-            else
-            {
-                Vendor vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                if (id == 0)
+                {
+                    ViewBag.Operation = "Add";
+                    return View(new Vendor());
+                }
+
+                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                if (vendor == null)
+                    return NotFound(new { error = "Vendor not found" });
+
                 ViewBag.Operation = "Edit";
                 return View(vendor);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while loading vendor", details = ex.Message });
             }
         }
 
@@ -63,60 +78,82 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEdit(Vendor vendor)
         {
-            if (ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(new { error = "Invalid model state", details = ModelState });
+
                 // Add Operation
                 if (vendor.VendorId == 0)
                 {
-                    vendors.AddAsync(vendor);
-                }
-                // Edit Operation
-                else
-                {
-                    var existingVendor = await vendors.GetByIdAsync(vendor.VendorId, new QueryOptions<Vendor>());
-
-                    if (existingVendor == null)
+                    try
                     {
-                        ModelState.AddModelError("", "Vendor not found");
-                        return View(vendor);
+                        await vendors.AddAsync(vendor);
+                        return RedirectToAction("Index");
                     }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(new { error = "Failed to add vendor", details = ex.Message });
+                    }
+                }
 
+                // Edit Operation
+                var existingVendor = await vendors.GetByIdAsync(vendor.VendorId, new QueryOptions<Vendor>());
+                if (existingVendor == null)
+                    return NotFound(new { error = "Vendor not found" });
+
+                try
+                {
                     existingVendor.VendorUrl = vendor.VendorUrl;
                     existingVendor.VendorLogoUrl = vendor.VendorLogoUrl;
                     existingVendor.Name = vendor.Name;
 
-                    try
-                    {
-                        vendors.UpdateAsync(existingVendor);
-                        return RedirectToAction("ViewVendor", "Vendor", new { id = existingVendor.VendorId });
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-                        return View(vendor);
-                    }
+                    await vendors.UpdateAsync(existingVendor);
+                    return RedirectToAction("ViewVendor", new { id = existingVendor.VendorId });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { error = "Failed to update vendor", details = ex.Message });
                 }
             }
-            return RedirectToAction("Index", "Vendor");
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
         public async Task<IActionResult> ViewVendor(int id)
         {
-            var listings = await priceListings.GetAllByIdAsync<int>(id, "VendorId", new QueryOptions<PriceListing>());
-            ViewBag.Listings = listings.OrderByDescending(e => e.DateListed);
-            foreach (PriceListing listing in ViewBag.Listings)
+            try
             {
-                listing.Product = await products.GetByIdAsync(listing.ProductId, new QueryOptions<Product>());
-            }
+                if (id == 0)
+                    return RedirectToAction("Index");
 
-            if (id == 0)
+                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                if (vendor == null)
+                    return NotFound(new { error = "Vendor not found" });
+
+                try
+                {
+                    var listings = await priceListings.GetAllByIdAsync<int>(id, "VendorId", new QueryOptions<PriceListing>());
+                    ViewBag.Listings = listings.OrderByDescending(e => e.DateListed);
+
+                    foreach (var listing in ViewBag.Listings)
+                    {
+                        listing.Product = await products.GetByIdAsync(listing.ProductId, new QueryOptions<Product>());
+                    }
+
+                    return View(vendor);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to load vendor details", details = ex.Message });
+                }
+            }
+            catch (Exception ex)
             {
-                return RedirectToAction("Index", "Vendor");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
-
-            var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
-
-            return View(vendor);
         }
 
         [Authorize(Roles = "Admin")]
@@ -124,26 +161,30 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            // Delete Vendor
             try
             {
-                await vendors.DeleteAsync(id);
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("", ex.Message);
+                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                if (vendor == null)
+                    return NotFound(new { error = "Vendor not found" });
+
+                try
+                {
+                    await vendors.DeleteAsync(id);
+                    return RedirectToAction("Index");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Failed to delete vendor", details = ex.Message });
+                }
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
-
-
-            return RedirectToAction("Index", "Vendor");
         }
 
         // ------------------------------------------- Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
-        public List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber)
+        private List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber)
         {
             int pageSize = 12; // Number of products per page
 

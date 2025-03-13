@@ -106,36 +106,44 @@ namespace Price_Comparison_Website.Services
             {
                 if (!userNotif.IsRead)
                 {
-                    userNotif.IsRead = true;
-                    await userNotifications.UpdateAsync(userNotif);
+                    try
+                    {
+                        userNotif.IsRead = true;
+                        await userNotifications.UpdateAsync(userNotif);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error marking notification as read: " + ex.Message);
+                    }
                 }
             }
         }
 
-        public async Task CreateGlobalNotification(string message)
+        public async Task DeleteUserNotification(int notificationId, string userId)
         {
-            // Create the global notification
-            var notification = new Notification
+            // Get all notifications for the user with the specified ID
+            var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
             {
-                Message = NotificationMessages.GlobalAnnouncement(message),
-                IsGlobal = true // Mark as a global notification
-            };
+                Where = n => n.NotificationId == notificationId
+            });
 
-            await notifications.AddAsync(notification);
-
-            // Associate notification with all users
-            var sendees = await users.GetAllAsync();
-
-            foreach (var user in sendees)
+            var notificationToDelete = userNotifs.FirstOrDefault();
+            if (notificationToDelete != null)
             {
-                var userNotification = new UserNotification
+                try
                 {
-                    UserId = user.Id,
-                    NotificationId = notification.Id,
-                    IsRead = false
-                };
-
-                await userNotifications.AddAsync(userNotification);
+                    await userNotifications.DeleteAsync(notificationToDelete);
+                    Console.WriteLine($"Successfully deleted notification {notificationId} for user {userId}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting notification {notificationId}: {ex.Message}");
+                    throw;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No notification found with ID {notificationId} for user {userId}");
             }
         }
 

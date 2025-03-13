@@ -1,5 +1,4 @@
-﻿
-using System.Drawing.Printing;
+﻿using System.Drawing.Printing;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -37,91 +36,96 @@ namespace Price_Comparison_Website.Controllers
 
         public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0, string searchQuery = "")
         {
-            ViewBag.Categories = await categories.GetAllAsync();
-
-            IEnumerable<Product> allProducts;
-
-            if (catId == 0) // Search All Categories
+            try
             {
-                allProducts = await products.GetAllAsync();
-                if (!string.IsNullOrEmpty(searchQuery))
-                {
-                    // Filter products based on the search query
-                    allProducts = allProducts
-                        .Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
-                        (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
-                        .ToList();
-                }
-            }
-            else // Search Products by CategoryId
-            {
-                allProducts = await products.GetAllByIdAsync(catId, "CategoryId", new QueryOptions<Product>
-                {
-                    Includes = "Category",
-                    Where = p => p.CategoryId == catId
-                });
+                // Get categories for filtering
+                ViewBag.Categories = await categories.GetAllAsync();
+                IEnumerable<Product> allProducts;
 
-                if (!string.IsNullOrEmpty(searchQuery))
+                try
                 {
-                    // Filter products based on the search query
-                    allProducts = allProducts
-                        .Where(p => (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
-                        (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
-                        .ToList();
-                }
-            }
-
-            // Paginate the products
-            var pagedProducts = SetupPagination(allProducts, pageNumber);
-            
-            // Handle User Specific Data
-            if (User.Identity.IsAuthenticated)
-            {
-
-                var user = await _userManager.GetUserAsync(User);
-                if (user != null && await _userManager.IsInRoleAsync(user, "User"))
-                {
-                    // Get which items are on the wishlist
-                    List<bool> onWishlist = new List<bool>();
-                    for (int i = 0; i < pagedProducts.Count; i++)
+                    // Search All Categories or by CategoryId
+                    if (catId == 0)
                     {
-                        var existingEntity = await userWishlists.GetByIdAsync(user.Id, pagedProducts[i].ProductId, new QueryOptions<UserWishList>());
-                        if(existingEntity != null)
+                        allProducts = await products.GetAllAsync();
+                    }
+                    else
+                    {
+                        allProducts = await products.GetAllByIdAsync(catId, "CategoryId", new QueryOptions<Product>
                         {
-                            onWishlist.Add(true);
-                        }
-                        else
+                            Includes = "Category",
+                            Where = p => p.CategoryId == catId
+                        });
+                    }
+
+                    // Apply search filter if provided
+                    if (!string.IsNullOrEmpty(searchQuery))
+                    {
+                        allProducts = allProducts.Where(p => 
+                            (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                            (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
+                            .ToList();
+                    }
+
+                    // Paginate products
+                    var pagedProducts = SetupPagination(allProducts, pageNumber);
+
+                    // Handle User Specific Data for wishlist
+                    if (User.Identity.IsAuthenticated)
+                    {
+                        var user = await _userManager.GetUserAsync(User);
+                        if (user != null && await _userManager.IsInRoleAsync(user, "User"))
                         {
-                            onWishlist.Add(false);
+                            List<bool> onWishlist = new List<bool>();
+                            foreach (var product in pagedProducts)
+                            {
+                                var existingEntity = await userWishlists.GetByIdAsync(user.Id, product.ProductId, new QueryOptions<UserWishList>());
+                                onWishlist.Add(existingEntity != null);
+                            }
+                            ViewBag.OnWishlist = onWishlist;
                         }
                     }
-                    ViewBag.OnWishlist = onWishlist;
+
+                    ViewData["CategoryId"] = catId;
+                    ViewData["SearchQuery"] = searchQuery;
+
+                    return View(pagedProducts);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Invalid operation while fetching products", details = ex.Message });
                 }
             }
-
-            // Calculate total pages and set ViewData
-            ViewData["CategoryId"] = catId;
-            ViewData["SearchQuery"] = searchQuery;
-
-
-            return View(pagedProducts);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)
         {
-            ViewBag.Categories = await categories.GetAllAsync();
-            if (id==0)
+            try
             {
-                ViewBag.Operation = "Add";
-                return View(new Product());
-            }
-            else
-            {
-                Product product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                ViewBag.Categories = await categories.GetAllAsync();
+
+                if (id == 0)
+                {
+                    ViewBag.Operation = "Add";
+                    return View(new Product());
+                }
+
+                var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                if (product == null)
+                    return NotFound(new { error = "Product not found" });
+
                 ViewBag.Operation = "Edit";
                 return View(product);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while loading product", details = ex.Message });
             }
         }
 
@@ -130,45 +134,49 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEdit(Product product, int catId)
         {
-            ViewBag.Categories = await categories.GetAllAsync();
-            if (ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(new { error = "Invalid model state", details = ModelState });
+
                 // Add Operation
-                if(product.ProductId == 0)
+                if (product.ProductId == 0)
                 {
-                    product.CategoryId = catId;
-                    await products.AddAsync(product);
-                }
-
-                // Edit Opertaion
-                else
-                {
-                    var existingProduct = await products.GetByIdAsync(product.ProductId, new QueryOptions<Product>());
-
-                    if (existingProduct == null)
-                    {
-                        ModelState.AddModelError("", "Product not found");
-                        return View(product);
-                    }
-
-                    existingProduct.Name = product.Name;
-                    existingProduct.Description = product.Description;
-                    existingProduct.ImageUrl = product.ImageUrl;
-                    existingProduct.CategoryId = catId;
-
                     try
                     {
-                        await products.UpdateAsync(existingProduct);
-                        return RedirectToAction("ViewProduct", "Product", new { id = existingProduct.ProductId });
+                        product.CategoryId = catId;
+                        await products.AddAsync(product);
+                        return RedirectToAction("Index");
                     }
                     catch (Exception ex)
                     {
-                        ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-                        return View(product);
+                        return BadRequest(new { error = "Failed to add product", details = ex.Message });
                     }
                 }
+
+                // Edit Operation
+                var existingProduct = await products.GetByIdAsync(product.ProductId, new QueryOptions<Product>());
+                if (existingProduct == null)
+                    return NotFound(new { error = "Product not found" });
+
+                try
+                {
+                    existingProduct.Name = product.Name;
+                    existingProduct.Description = product.Description;
+                    existingProduct.CategoryId = catId;
+
+                    await products.UpdateAsync(existingProduct);
+                    return RedirectToAction("ViewProduct", new { id = existingProduct.ProductId });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { error = "Failed to update product", details = ex.Message });
+                }
             }
-            return RedirectToAction("Index", "Product");
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
         [Authorize(Roles = "Admin")]
@@ -194,141 +202,174 @@ namespace Price_Comparison_Website.Controllers
             return RedirectToAction("Index", "Product");
         }
 
-       public async Task<IActionResult> ViewProduct(int id)
+        public async Task<IActionResult> ViewProduct(int id)
         {
-            if (id == 0)
+            try
             {
-                return RedirectToAction("Index", "Product");
-            }
+                if (id == 0)
+                    return RedirectToAction("Index", "Product");
 
-            var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                if (product == null)
+                    return NotFound(new { error = "Product not found" });
 
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
-            {
-                OrderBy = listing => listing.Price // Order by Price in ascending order (cheapest first)
-            });
-
-            foreach (var listing in ViewBag.Listings)
-            {
-                listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
-            }
-
-            if (User.Identity.IsAuthenticated)
-            {
-                var user = await _userManager.GetUserAsync(User);
-                if (user != null && await _userManager.IsInRoleAsync(user, "User"))
+                try
                 {
-                    // Update Viewing Histories------------------------------------------------------------------------------------------------------------------------------------------
-                    try
+                    // Get price listings
+                    ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
                     {
-                        var existingEntity = await userViewingHistory.GetByIdAsync(user.Id, id, new QueryOptions<UserViewingHistory>());
-                        if (existingEntity != null)
-                        {
-                            existingEntity.LastViewed = DateTime.Now;
-                            await userViewingHistory.UpdateAsync(existingEntity);
-                        }
-                        else
-                        {
-                            var newEntity = new UserViewingHistory
-                            {
-                                ProductId = id,
-                                LastViewed = DateTime.Now,
-                                UserId = user.Id
-                            };
-                            await userViewingHistory.AddAsync(newEntity);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
+                        OrderBy = listing => listing.DiscountedPrice // Order by Price in ascending order (cheapest first) discounted price is set to price if not discounted
+                    });
 
-                        ModelState.AddModelError("", $"Error updating viewing history: {ex.GetBaseException().Message}");
+                    foreach (var listing in ViewBag.Listings)
+                    {
+                        listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
                     }
 
-                    // Fetch viewing history ordered by the oldest first
-                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserViewingHistory> { OrderBy = e => e.LastViewed });
-                    List<UserViewingHistory> viewingHistoriesList = viewingHistories.ToList();
-
-                    if (viewingHistoriesList.Count > 20)
+                    if (User.Identity.IsAuthenticated)
                     {
-                        // Delete extra entries beyond 20
-                        while (viewingHistoriesList.Count > 20)
+                        var user = await _userManager.GetUserAsync(User);
+                        if (user != null && await _userManager.IsInRoleAsync(user, "User"))
                         {
+                            // Update Viewing Histories
                             try
                             {
-                                var entityToDelete = viewingHistoriesList[0];
-                                await userViewingHistory.DeleteAsync(entityToDelete); // Delete the oldest entry
-                                viewingHistoriesList.RemoveAt(0); // Remove the entity from the list
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                ModelState.AddModelError("", ex.Message); // Handle deletion issue
+                                await UpdateViewingHistory(user.Id, id);
+                                await CleanupViewingHistory(user.Id);
                             }
                             catch (Exception ex)
                             {
-                                ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}"); // General error handler
+                                // Log but don't fail the request
+                                Console.WriteLine($"Error managing viewing history: {ex.Message}");
+                            }
+
+                            // Check if on Wishlist
+                            try
+                            {
+                                var existingWishlistItem = await userWishlists.GetByIdAsync(user.Id, id, new QueryOptions<UserWishList>());
+                                ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
+                            }
+                            catch (Exception ex)
+                            {
+                                // Log but don't fail the request
+                                Console.WriteLine($"Error checking wishlist status: {ex.Message}");
+                                ViewData["OnWishlist"] = "False";
                             }
                         }
                     }
 
-
-                    // Check if on Wishlist ------------------------------------------------------------------------------------------------------------------------------------------
-                    var existingWishlistItem = await userWishlists.GetByIdAsync(user.Id, id, new QueryOptions<UserWishList>());
-                    ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
-
+                    return View(product);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { error = "Invalid operation while loading product details", details = ex.Message });
                 }
             }
-
-            return View(product);
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
         [Authorize(Roles = "User")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateWishList(int prodId) // If in wishlist delete if not in wishlist add to wishlist
+        [HttpPost]
+        public async Task<IActionResult> UpdateWishList(int prodId)
         {
-            var user = await _userManager.GetUserAsync(User);
-
-            if (user != null)
+            try
             {
-                // Find if product is not in wishlist
-                var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                    return Unauthorized(new { error = "User not authenticated" });
+
+                try
+                {
+                    // Find if product is in wishlist
+                    var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
                                 
-                // Exists so delete from wishlist
-                if (existingEntity != null)
-                {
-                    try
+                    if (existingEntity != null)
                     {
-                        await userWishlists.DeleteAsync(existingEntity);
+                        // Exists so delete from wishlist
+                        try
+                        {
+                            await userWishlists.DeleteAsync(existingEntity);
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
+                        }
                     }
-                    catch (InvalidOperationException ex)
+                    else
                     {
-                        ModelState.AddModelError("", ex.Message); // Handle deletion issue
+                        // Add to wishlist
+                        var existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
+                        if (existingProd == null)
+                            return NotFound(new { error = "Product not found" });
+
+                        try
+                        {
+                            var newWishlistItem = new UserWishList
+                            { 
+                                ProductId = prodId,
+                                UserId = user.Id,
+                                LastCheapestPrice = existingProd.CheapestPrice
+                            };
+                            await userWishlists.AddAsync(newWishlistItem);
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest(new { error = "Failed to add to wishlist", details = ex.Message });
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}"); // General error handler
-                    }
+
+                    return RedirectToAction("ViewProduct", "Product", new { id = prodId });
                 }
-                // Add to wishlist
-                else
+                catch (InvalidOperationException ex)
                 {
-                    Product existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
-                    UserWishList newWishlistItem = new UserWishList{ ProductId = prodId, UserId = user.Id, LastCheapestPrice = existingProd.CheapestPrice};
-                    await userWishlists.AddAsync(newWishlistItem);
+                    return BadRequest(new { error = "Invalid operation while updating wishlist", details = ex.Message });
                 }
             }
-
-            return RedirectToAction("ViewProduct", "Product", new { id = prodId });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+            }
         }
 
+        //  Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
+        private async Task UpdateViewingHistory(string userId, int productId)
+        {
+            var existingEntity = await userViewingHistory.GetByIdAsync(userId, productId, new QueryOptions<UserViewingHistory>());
+            if (existingEntity != null)
+            {
+                existingEntity.LastViewed = DateTime.Now;
+                await userViewingHistory.UpdateAsync(existingEntity);
+            }
+            else
+            {
+                var newEntity = new UserViewingHistory
+                {
+                    ProductId = productId,
+                    LastViewed = DateTime.Now,
+                    UserId = userId
+                };
+                await userViewingHistory.AddAsync(newEntity);
+            }
+        }
 
+        private async Task CleanupViewingHistory(string userId)
+        {
+            var viewingHistories = await userViewingHistory.GetAllByIdAsync(userId, "UserId", 
+                new QueryOptions<UserViewingHistory> { OrderBy = e => e.LastViewed });
+            var viewingHistoriesList = viewingHistories.ToList();
 
+            while (viewingHistoriesList.Count > 20)
+            {
+                var entityToDelete = viewingHistoriesList[0];
+                await userViewingHistory.DeleteAsync(entityToDelete);
+                viewingHistoriesList.RemoveAt(0);
+            }
+        }
 
-        // ------------------------------------------- Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
         public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber)
         {
             int pageSize = 12; // Number of products per page
