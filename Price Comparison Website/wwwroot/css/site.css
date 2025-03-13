@@ -68,24 +68,20 @@ body {
     background-color: #e3f2fd;
 }
 
+/* Modified notification item styles */
+.notification-wrapper {
+    overflow-x: auto;
+    padding-bottom: 12px; /* Space for scrollbar */
+}
+
 .notification-item {
     padding: 0.5rem 1rem;
     border-bottom: 1px solid #dee2e6;
-    overflow-x: auto;
     white-space: nowrap;
 }
 
 .notification-item:last-child {
     border-bottom: none;
-}
-
-.dismiss-notification {
-    padding: 0;
-    margin-left: 0.5rem;
-}
-
-.dismiss-notification:hover {
-    opacity: 0.8;
 }
 
 .notification-text {
@@ -95,33 +91,26 @@ body {
     padding-right: 16px;
 }
 
-.notification-timestamp {
-    font-size: 0.8rem;
-    color: #6c757d;
-    display: block;
-    margin-top: 4px;
-}
-
-/* Single scrollbar styling */
-.notification-item::-webkit-scrollbar {
+/* Single scrollbar styling for wrapper */
+.notification-wrapper::-webkit-scrollbar {
     height: 8px;
 }
 
-.notification-item::-webkit-scrollbar-track {
+.notification-wrapper::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
 }
 
-.notification-item::-webkit-scrollbar-thumb {
+.notification-wrapper::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 4px;
 }
 
-.notification-item::-webkit-scrollbar-thumb:hover {
+.notification-wrapper::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
 
-/* Hide other scrollbars */
+/* Hide menu scrollbar */
 .notification-menu::-webkit-scrollbar {
     width: 0;
     height: 0;

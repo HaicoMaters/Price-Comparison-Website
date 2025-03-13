@@ -71,12 +71,18 @@ function updateNotificationUI(data) {
         headerItem.innerHTML = `<h6 class="dropdown-header">Notifications</h6>`;
         notificationList.appendChild(headerItem);
 
+        // Create wrapper for horizontal scrolling
+        const wrapper = document.createElement('div');
+        wrapper.className = 'notification-wrapper';
+        
         data.notifications.forEach(notification => {
-            const listItem = document.createElement('li');
             const itemClass = notification.isRead ? '' : 'notification-unread';
             const textClass = notification.isRead ? 'text-muted' : '';
-            listItem.innerHTML = `
-                <div class="notification-item ${itemClass} d-flex align-items-center justify-content-between">
+            
+            const notificationDiv = document.createElement('div');
+            notificationDiv.className = `notification-item ${itemClass}`;
+            notificationDiv.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between">
                     <div class="notification-text ${textClass}">
                         ${notification.message}
                         <small class="notification-timestamp">${formatTimestamp(notification.timestamp)}</small>
@@ -89,19 +95,17 @@ function updateNotificationUI(data) {
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>`;
-            notificationList.appendChild(listItem);
+            wrapper.appendChild(notificationDiv);
 
             // Initialize tooltip
-            const tooltips = listItem.querySelectorAll('[data-bs-toggle="tooltip"]');
-            tooltips.forEach(tooltip => {
-                const bsTooltip = new bootstrap.Tooltip(tooltip);
-                tooltip.addEventListener('mouseleave', () => {
-                    bsTooltip.hide();
-                });
+            const tooltip = notificationDiv.querySelector('[data-bs-toggle="tooltip"]');
+            const bsTooltip = new bootstrap.Tooltip(tooltip);
+            tooltip.addEventListener('mouseleave', () => {
+                bsTooltip.hide();
             });
             
             // Add click event for dismiss button
-            const dismissButton = listItem.querySelector('.dismiss-notification');
+            const dismissButton = notificationDiv.querySelector('.dismiss-notification');
             dismissButton.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -135,6 +139,11 @@ function updateNotificationUI(data) {
                 }
             });
         });
+
+        // Add wrapper to list
+        const wrapperItem = document.createElement('li');
+        wrapperItem.appendChild(wrapper);
+        notificationList.appendChild(wrapperItem);
     } else {
         notificationCount.textContent = '0';
         const listItem = document.createElement('li');
@@ -144,16 +153,45 @@ function updateNotificationUI(data) {
 }
 
 function formatTimestamp(timestamp) {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    // Parse the timestamp string into a Date object
+    // Example format: "3/13/2024 2:30 PM" (general format)
+    const date = new Date(Date.parse(timestamp));
     
-    return date.toLocaleDateString();
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        console.error('Invalid timestamp:', timestamp);
+        return 'Invalid date';
+    }
+
+    const now = new Date();
+    const diffInMilliseconds = now - date;
+    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+
+    // Return relative time based on how long ago it was
+    if (diffInMinutes < 1) {
+        return 'Just now';
+    } 
+    else if (diffInMinutes < 60) {
+        return `${diffInMinutes}m ago`;
+    } 
+    else if (diffInMinutes < 1440) {
+        const hours = Math.floor(diffInMinutes / 60);
+        return `${hours}h ago`;
+    } 
+    else if (diffInMinutes < 10080) {
+        const days = Math.floor(diffInMinutes / 1440);
+        return `${days}d ago`;
+    } 
+    else {
+        // For timestamps older than a week, return the formatted date
+        return date.toLocaleDateString('en-UK', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
 }
 
 async function markNotificationsAsRead() {
