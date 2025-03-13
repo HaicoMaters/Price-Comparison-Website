@@ -60,12 +60,12 @@
                             </div>
                             @if (listing.DiscountedPrice < listing.Price)
                             {
-                                <span class="text-danger font-weight-bold fs-6 fs-md-5">@listing.DiscountedPrice.ToString("C")</span>
-                                <span class="text-muted fs-7"><del>@listing.Price.ToString("C")</del></span>
+                                <span class="text-danger font-weight-bold fs-6 fs-md-5" data-price="@listing.DiscountedPrice"></span>
+                                <span class="text-muted fs-7"><del data-price="@listing.Price"></del></span>
                             }
                             else
                             {
-                                <span class="text-success font-weight-bold fs-6 fs-md-5">@listing.Price.ToString("C")</span>
+                                <span class="text-success font-weight-bold fs-6 fs-md-5" data-price="@listing.Price"></span>
                             }
                             @if (listing.DateListed != null)
                             {

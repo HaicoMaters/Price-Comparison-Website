@@ -216,4 +216,25 @@ async function markNotificationsAsRead() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Format all price elements
+    function formatPrices() {
+        document.querySelectorAll('[data-price]').forEach(element => {
+            const price = parseFloat(element.dataset.price);
+            if (!isNaN(price)) {
+                element.textContent = window.currencyFormatter.format(price);
+            }
+        });
+    }
+
+    // Initial format
+    formatPrices();
+
+    document.addEventListener('pricesUpdated', formatPrices);
+});
+
+function formatPrice(price) {
+    return window.currencyFormatter.format(price);
+}
+
 //---------------------------------------------------------------------------------------

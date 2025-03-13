@@ -59,34 +59,30 @@
 
                 <div class="col-4 col-md-4 col-lg-4 mb-4">
                     <!-- 3 products across -->
-                    <div class="card" style="position: relative; @if (isOnWishlist) {
-                <text>background-color: #fdf8e3;</text>
-            }">
-                    <!-- Yellow star in the bottom-right corner if on wishlist -->
+                    <div class="card @(isOnWishlist ? "card-wishlisted" : "")" style="position: relative;">
+                        <!-- Wishlist indicator -->
                         @if (isOnWishlist)
                         {
-                            <div style="position: absolute; bottom: 10px; right: 10px; z-index: 10;">
-                                <i class="bi bi-star-fill" style="color: gold; font-size: 2rem;"
-                                   data-bs-toggle="tooltip" data-bs-placement="top" title="Is on wishlist"></i>
+                            <div class="wishlist-indicator" data-bs-toggle="tooltip" data-bs-placement="top" title="On your wishlist">
+                                <i class="bi bi-star-fill"></i>
                             </div>
                         }
 
-
-                    <img src="@Url.Content(productList[i].ImageUrl)" class="card-img-top fixed-image-height" alt="@productList[i].Description" />
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            @productList[i].Name 
-                            @if (productList[i].CheapestPrice != 0)
-                            {
-                                <span class="card-price"> - $@productList[i].CheapestPrice</span>
-                            }
-                        </h5>
-                        <p class="card-text">@productList[i].Description</p>
-                        <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@productList[i].ProductId">
-                            <i class="bi bi-pencil-fill"></i> View
-                        </a>
+                        <img src="@Url.Content(productList[i].ImageUrl)" class="card-img-top fixed-image-height" alt="@productList[i].Description" />
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                @productList[i].Name 
+                                @if (productList[i].CheapestPrice != 0)
+                                {
+                                    <span class="card-price" data-price="@productList[i].CheapestPrice"></span>
+                                }
+                            </h5>
+                            <p class="card-text">@productList[i].Description</p>
+                            <a class="btn btn-info" asp-controller="Product" asp-action="ViewProduct" asp-route-id="@productList[i].ProductId">
+                                <i class="bi bi-pencil-fill"></i> View
+                            </a>
+                        </div>
                     </div>
-                </div>
                 </div>
             }
         </div>
