@@ -402,49 +402,52 @@ body::before {
 
 /* Modal Styling */
 .modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: transparent !important;
+    display: none !important;
+}
+
+.modal.show {
     display: flex !important;
-    align-items: flex-start !important;
+    align-items: center !important;
     justify-content: center !important;
-    padding-top: 5vh !important;
-    z-index: 1050 !important;
-    overflow: hidden !important;
-    transition: opacity 0.15s linear !important;
-}
-
-.modal.fade {
-    transition: opacity 0.15s linear !important;
-}
-
-.modal.fade .modal-dialog {
-    transform: none !important;
-    transition: none !important;
-}
-
-.modal.show .modal-dialog {
-    transform: none !important;
 }
 
 .modal-dialog {
-    margin: 0 auto !important;
+    margin: 1.75rem auto !important;
     max-width: 500px;
     width: 95%;
-    transform: none !important;
 }
 
 .modal-content {
     position: relative;
     border: none;
     border-radius: 15px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
 }
+
+/* Remove all backdrop related elements */
+.modal-backdrop,
+.modal-backdrop.show,
+.modal-backdrop.fade {
+    display: none !important;
+    opacity: 0 !important;
+}
+
+/* Prevent body scroll when modal is open */
 body.modal-open {
     overflow: hidden;
     padding-right: 0 !important;
+}
+
+.modal:not(.show) {
+    display: none !important;
+}
+
+.modal.fade:not(.show) {
+    opacity: 0;
+    display: none !important;
+}
+
+.modal-open .modal {
+    display: flex !important;
 }
