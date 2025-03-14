@@ -172,5 +172,32 @@ namespace Price_Comparison_Website.Services
                 await userNotifications.AddAsync(userNotification);
             }
         }
+
+        public async Task CreateGlobalNotification(string message)
+        {
+            var notification = new Notification
+            {
+                Message = NotificationMessages.GlobalAnnouncement(message),
+                IsGlobal = true
+            };
+
+            await notifications.AddAsync(notification);
+
+            // Get all users
+            var allUsers = await users.GetAllAsync();
+
+            foreach (var user in allUsers)
+            {
+                var userNotification = new UserNotification
+                {
+                    UserId = user.Id,
+                    NotificationId = notification.Id,
+                    IsRead = false
+                };
+
+                await userNotifications.AddAsync(userNotification);
+            }
+        }
+        
     }
 }

@@ -1,0 +1,109 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#notifications" data-bs-toggle="tab">
+                            <i class="bi bi-bell"></i> Notifications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#statistics" data-bs-toggle="tab">
+                            <i class="bi bi-graph-up"></i> Statistics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="tab-content" id="adminContent">
+                <!-- Notifications Panel -->
+                <div class="tab-pane fade show active" id="notifications">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Global Notifications</h1>
+                    </div>
+                    
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="card">
+                        <div class="card-body">
+                            <form asp-action="SendGlobalNotification" method="post">
+                                @Html.AntiForgeryToken()
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Notification Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                                    <div class="form-text">This message will be sent to all users.</div>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary">Send Global Notification</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Panel -->
+                <div class="tab-pane fade" id="statistics">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Statistics</h1>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-body">
+                                    <h5 class="stat-card-title">Total Products</h5>
+                                    <p class="stat-card-number">@ViewBag.TotalProducts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-body">
+                                    <h5 class="stat-card-title">Total Users</h5>
+                                    <p class="stat-card-number">@ViewBag.TotalUsers</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-body">
+                                    <h5 class="stat-card-title">Price Listings</h5>
+                                    <p class="stat-card-number">@ViewBag.TotalListings</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="stat-card">
+                                <div class="stat-card-body">
+                                    <h5 class="stat-card-title">Total Vendors</h5>
+                                    <p class="stat-card-number">@ViewBag.TotalVendors</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

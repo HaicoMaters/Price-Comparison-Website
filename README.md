@@ -8,18 +8,31 @@ This project was built to help me learn **ASP.NET MVC** and enhance my **C# prog
 - **Search Functionality**: Users can search for products by keywords in their description or title, and filter by categories. Pagination has been added to allow for better navigation of large product listings.
 - **User Accounts and Roles**:
   - **Admin**: Admin users can add, edit, and delete vendors, products, and listings.
-  - **Basic User**: Regular users can create wishlists and view their browsing history. Wishlisted items are visually distinguished with a yellow shade, a gold star, and a tooltip indicating that the item is on the wishlist.
+  - **Basic User**: Regular users can create wishlists, view their browsing history, and receive notifications. Wishlisted items are visually distinguished yellow star icon
 
 ## Key Features
 
 - **Wishlist & Viewing History**: 
-  - Users can add items to their wishlist and track their browsing history. Items that are on the wishlist are visually highlighted with changes and tooltips.
+  - Users can add items to their wishlist and track their browsing history
+  - Items on the wishlist are visually highlighted
+  - Price drop notifications for wishlisted items
+  
+- **Notification System**:
+  - Real-time price drop alerts for wishlisted items
+  - Read/Unread status tracking
+  - Dismissible notifications
+  - Notification counter badge
+  - Automated notifications when prices decrease
   
 - **Admin Capabilities**: 
-  - Admin users have full control over product data, such as adding, editing, and deleting product listings. Each product listing also includes a "last updated" timestamp for transparency.
+  - Full control over product data (add, edit, delete)
+  - Last updated timestamps for transparency
+  - Price history tracking
+  - Admin Panel for sending global notifications and viewing website statistics
   
 - **Manual Updates**: 
-  - Currently, all updates to products, vendors, and listings must be performed manually by an admin. Ideally, an API integration would be introduced to automate these updates.
+  - Currently, all updates to products, vendors, and listings must be performed manually by an admin
+  - Future plans for API integration to automate updates
 
 ## Admin Login
 
@@ -32,15 +45,24 @@ These credentials are also available in the `Program.cs` file for convenience.
 
 ## TODO
 
-While there are areas for potential improvement (outlined in the "TODO" section on the homepage of the website), I have largely ceased work on this project. The features mentioned in the TODO section are mostly repetitive or outside the scope of my current learning focus. For example, enhancing the visual appeal of the website is not my priority, as my primary goal was to improve my back-end development skills, specifically with ASP.NET and C#.
+While the core functionality is complete, potential future improvements could include:
+
+- Adding price history charts and analytics
+- Expanding the notification system to include email alerts
+- Adding user preferences for notification settings
+- Adding social features like product reviews and ratings
 
 ## Test Data
 
-Please note that much of the test data on the website is fictional. If you wish to experience the full functionality (e.g., viewing actual product listings or interacting with real websites), you can create your own data. This will give you access to the complete set of features.
+The website includes some real product data with actual prices from various vendors to demonstrate the functionality. While this data is sufficient for basic testing, you're welcome to add your own data to:
+- Test pagination with larger datasets
+- Create more complex price comparisons
+- Experiment with different product categories
+- Test the notification system with custom price changes
 
 ## Database Relationships
 
-Here’s an overview of the key relationships in the database:
+Here's an overview of the key relationships in the database:
 
 1. **Category and Product**:
    - **One-to-Many**: A **Category** can have multiple **Products**, but each **Product** belongs to exactly one **Category**.
@@ -56,4 +78,8 @@ Here’s an overview of the key relationships in the database:
 
 5. **ApplicationUser and Product (ViewingHistory)**:
    - **Many-to-Many**: A **User** can view many **Products**, and a **Product** can be viewed by many **Users**.
+
+6. **ApplicationUser and Notification**:
+   - **Many-to-Many**: A **User** can have many **Notifications**, and a **Notification** can be sent to many **Users** through the **UserNotification** join table.
+   - The **UserNotification** table tracks read status and allows for individual notification management.
 

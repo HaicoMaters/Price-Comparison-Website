@@ -451,3 +451,38 @@ body.modal-open {
 .modal-open .modal {
     display: flex !important;
 }
+
+/* Admin Dashboard Stats */
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card-body {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-card-title {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+
+.stat-card-number {
+    color: #2c3e50;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
