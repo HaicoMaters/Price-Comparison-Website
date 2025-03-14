@@ -34,15 +34,21 @@ namespace Price_Comparison_Website.Controllers
 		{
 			try
 			{
+				// Get product first
 				var product = await products.GetByIdAsync(prodId, new QueryOptions<Product>
 				{
 					Where = p => p.ProductId == prodId
 				});
-				if (product == null)
-					return NotFound(new { error = "Product not found" });
 
+				// Always set ViewBag.Product, even if null
 				ViewBag.Product = product;
 				ViewBag.Vendors = await vendors.GetAllAsync();
+
+				if (product == null)
+				{
+					ModelState.AddModelError("", "Product not found");
+					return View();
+				}
 
 				if (id == 0)
 				{
@@ -55,15 +61,20 @@ namespace Price_Comparison_Website.Controllers
 					Includes = "Product",
 					Where = pl => pl.PriceListingId == id
 				});
+
 				if (priceListing == null)
-					return NotFound(new { error = "Price listing not found" });
+				{
+					ModelState.AddModelError("", "Price listing not found");
+					return View();
+				}
 
 				ViewBag.Operation = "Edit";
 				return View(priceListing);
 			}
 			catch (Exception ex)
 			{
-				return StatusCode(500, new { error = "An error occurred while loading the price listing", details = ex.Message });
+				ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+				return View();
 			}
 		}
 
@@ -87,11 +98,10 @@ namespace Price_Comparison_Website.Controllers
 					}
 
 					await RecalculateCheapestPrice(priceListing.ProductId); // Update cheapest price before adding/editing in case of price change in other parts of the system for notifs
-
+					priceListing.DateListed = DateTime.Now;
 					// Add Operation
 					if (priceListing.PriceListingId == 0)
 					{
-						priceListing.DateListed = DateTime.Now;
 						await priceListings.AddAsync(priceListing);
 					}
 					else // Edit Operation
@@ -187,7 +197,8 @@ namespace Price_Comparison_Website.Controllers
 			}
 		}
 
-		public async Task RecalculateCheapestPrice(int productId){
+		public async Task RecalculateCheapestPrice(int productId)
+		{
 			try
 			{
 				var product = await products.GetByIdAsync(productId, new QueryOptions<Product>());
@@ -195,8 +206,14 @@ namespace Price_Comparison_Website.Controllers
 					throw new InvalidOperationException("Product not found");
 
 				var listings = await priceListings.GetAllByIdAsync(productId, "ProductId", new QueryOptions<PriceListing>());
-				if (listings == null)
-					throw new InvalidOperationException("No listings found for product");
+				
+				// If no listings exist, set cheapest price to 0
+				if (!listings.Any())
+				{
+					product.CheapestPrice = 0;
+					await products.UpdateAsync(product);
+					return;
+				}
 
 				decimal cheapestPrice = listings.Min(l => l.DiscountedPrice);
 				product.CheapestPrice = cheapestPrice;

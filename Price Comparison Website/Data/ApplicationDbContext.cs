@@ -114,25 +114,102 @@ namespace Price_Comparison_Website.Data
 
 			// Products
 			builder.Entity<Product>().HasData(
-				new Product { ProductId = 1, Name = "Turtle Beach Stealth 600 Gen 3 Wireless Multiplatform Amplified Gaming Headset", Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions", ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg", CategoryId = 1 ,CheapestPrice = 99.00m }
-		);
+				new Product { 
+					ProductId = 81, 
+					Name = "Pepsi Max No Sugar Cola Cans 24 x 330ml", 
+					Description = "Diet type: VegetarianIngredients:Carbonated Water, Colour (E150d), Sweeteners (Aspartame, Acesulfame K), Acids (Phosphoric Acid, Citric Acid), Flavourings (Including Caffeine), Preservative (Potassium Sorbate). Contains a Source of Phenylalanin.", 
+					ImageUrl = "https://m.media-amazon.com/images/I/61zIvU-0TDL.__AC_SX300_SY300_QL70_ML2_.jpg", 
+					CategoryId = 4, 
+					CheapestPrice = 7.50m
+				},
+				new Product { 
+					ProductId = 82, 
+					Name = "Gorilla Super Glue, 15g", 
+					Description = "IMPACT TOUGH Formulated for impact resistance and strength. FAST SETTING Dries in just 10 - 45 seconds, with no gripping required. ANTI-CLOG CAP Keeps Super Glue from drying out. BONDS Metal, wood, ceramic, paper, rubber & plastics (not PP or PE) and more! FILL LINE Bottle is not full, it is filled to 15g fill line to allow liquid to flow. PREPARATION Protect work area from spills. Clean and dry the surfaces to be bonded. To puncture seal on tube, tighten white nozzle firmly. APPLY Apply a small amount of Gorilla Super Glue to one surface. Only one drop per 6.5cm2 recommended. Set time can vary based on amount of glue and type of surface glued. Excess glue can cause delayed or failed bond. PRESS Press the two surfaces together between 10-45 seconds. Wait 24 hours for full cure", 
+					ImageUrl = "https://m.media-amazon.com/images/I/81GVBVWnryS._AC_SX679_.jpg", 
+					CategoryId = 2, 
+					CheapestPrice = 4.87m
+				},
+				new Product { 
+					ProductId = 83, 
+					Name = "UNO", 
+					Description = "The classic card game of matching colors and numbers. Special Action Cards and Wild Cards for unexpected excitement and game-changing fun. Use the Swap Hands cards to change hands with any other opponent. Write your own rules for game play with the Customizable Wild cards. Players take turns matching a card in their hand with the color or number of the card shown on the top of the deck. Special graphic symbols have been added to each card to help identify the color(s) on that card. This will allow players with ANY form of color blindness to easily play! Don't forget to shout \"UNO\" when you only have one card remaining!", 
+					ImageUrl = "https://m.media-amazon.com/images/I/71MrrNB7jCL._AC_SX679_.jpg", 
+					CategoryId = 9, 
+					CheapestPrice = 3.85m
+				}
+			);
+
 			// Vendors
 			builder.Entity<Vendor>().HasData(
-				new Vendor { VendorId = 1, Name = "Amazon", VendorUrl = "https://www.amazon.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
-				new Vendor { VendorId = 2, Name = "eBay", VendorUrl = "https://www.ebay.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg" },
-				new Vendor { VendorId = 3, Name = "Best Buy", VendorUrl = "https://www.bestbuy.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/2f/Best_Buy_Logo.svg" },
-				new Vendor { VendorId = 4, Name = "Target", VendorUrl = "https://www.target.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/9/9a/Target_logo.svg" },
-				new Vendor { VendorId = 5, Name = "Home Depot", VendorUrl = "https://www.homedepot.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5f/TheHomeDepot.svg" },
-				new Vendor { VendorId = 6, Name = "Ikea", VendorUrl = "https://www.ikea.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/8b/Ikea_logo.svg" },
-				new Vendor { VendorId = 7, Name = "AliExpress", VendorUrl = "https://www.aliexpress.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/f9/AliExpress_logo.svg" },
-				new Vendor { VendorId = 8, Name = "Etsy", VendorUrl = "https://www.etsy.com", VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/82/Etsy_logo.svg" }
-		);
+				new Vendor { 
+					VendorId = 1, 
+					Name = "Amazon", 
+					VendorUrl = "https://www.amazon.com", 
+					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg"
+				},
+				new Vendor { 
+					VendorId = 2, 
+					Name = "eBay", 
+					VendorUrl = "https://www.ebay.com", 
+					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg"
+				},
+				new Vendor { 
+					VendorId = 11, 
+					Name = "Tesco", 
+					VendorUrl = "https://www.tesco.com/", 
+					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/en/thumb/b/b0/Tesco_Logo.svg/2560px-Tesco_Logo.svg.png"
+				}
+			);
 
 			// Price Listings
 			builder.Entity<PriceListing>().HasData(
-				new PriceListing { PriceListingId = 1, VendorId = 1, ProductId = 1, PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9/ref=sr_1_5?_encoding=UTF8&content-id=amzn1.sym.12129333-2117-4490-9c17-6d31baf0582a&dib=eyJ2IjoiMSJ9.VGoru17L34M5u4AqX0EqqypmcGNBhQxULfjaHbYVNmd0PXtUKoq0IryVhEe8Avp17c7W4F1avbJAkvdvMH3jBAvS1y-h85YgufTd1_YFIBFyMR3ugPGW3V_AdDjgteUFyhz_Eez0nfm7auWFQlzkPy2RTQwsDVHjaVrtwgAkM3xC_LGBLXpf8WBiOQfNuzqJezm6DyoWKDfnAMQK88unx_KwWs3-xqdFcuBtzcNb5QU.kSL29Wzha8iyoHFr3XL-ZPQOSlLNXOyLBsq88fLMoBg&dib_tag=se&keywords=gaming+headsets&pd_rd_r=2d291fd7-dfbe-4e94-a175-382f3c52d742&pd_rd_w=WK5FS&pd_rd_wg=SgrUc&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=K2AVFG3GKGVRSJCX847Q&qid=1737064698&sr=8-5&th=1", Price = 99.00m, DiscountedPrice = 99.00m, DateListed = DateTime.Now },
-				new PriceListing { PriceListingId = 2, VendorId = 2, ProductId = 1, PurchaseUrl = "https://www.ebay.co.uk/itm/286226735878", Price = 190.36m, DiscountedPrice = 110.21m, DateListed = DateTime.Now }
-		);
+				new PriceListing { 
+					PriceListingId = 35, 
+					ProductId = 81, 
+					VendorId = 1, 
+					Price = 15.60m, 
+					PurchaseUrl = "https://www.amazon.co.uk/Pepsi-Max-Cans-330ml-Pack/dp/B017NVHSF8/259-3693489-2210466",
+					DateListed = DateTime.Parse("2025-03-14 14:52:37.4133597"),
+					DiscountedPrice = 7.50m
+				},
+				new PriceListing { 
+					PriceListingId = 36, 
+					ProductId = 82, 
+					VendorId = 1, 
+					Price = 10.79m, 
+					PurchaseUrl = "https://www.amazon.co.uk/Gorilla-4044205-Superglue-15g/dp/B003CT4XT0/259-3693489-2210466",
+					DateListed = DateTime.Parse("2025-03-14 14:52:45.2833811"),
+					DiscountedPrice = 4.87m
+				},
+				new PriceListing { 
+					PriceListingId = 37, 
+					ProductId = 81, 
+					VendorId = 11, 
+					Price = 11.50m, 
+					PurchaseUrl = "https://www.tesco.com/groceries/en-GB/products/282774907",
+					DateListed = DateTime.Parse("2025-03-14 14:52:39.7688507"),
+					DiscountedPrice = 11.50m
+				},
+				new PriceListing { 
+					PriceListingId = 38, 
+					ProductId = 83, 
+					VendorId = 1, 
+					Price = 12.85m, 
+					PurchaseUrl = "https://www.amazon.co.uk/UNO-W2087-Card-Game-European/dp/B005I5M2F8",
+					DateListed = DateTime.Parse("2025-03-14 14:52:51.8122214"),
+					DiscountedPrice = 5.03m
+				},
+				new PriceListing { 
+					PriceListingId = 39, 
+					ProductId = 83, 
+					VendorId = 2, 
+					Price = 3.85m, 
+					PurchaseUrl = "https://www.ebay.co.uk/itm/175594341144",
+					DateListed = DateTime.Parse("2025-03-14 14:52:49.6649873"),
+					DiscountedPrice = 3.85m
+				}
+			);
 		}
 	}
 }
