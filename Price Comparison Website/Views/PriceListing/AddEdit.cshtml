@@ -23,7 +23,7 @@ else
 
         <div class="form-group">
             <label asp-for="PurchaseUrl"></label>
-            <input asp-for="PurchaseUrl" class="form-control" />
+            <input asp-for="PurchaseUrl" class="form-control" id="PurchaseUrl" />
             <span asp-validation-for="PurchaseUrl" class="text-danger"></span>
         </div>
 
@@ -76,18 +76,62 @@ else
 }
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        document.getElementById('isDiscounted').addEventListener('change', function () {
-            var discountedPriceGroup = document.getElementById('discountedPriceGroup');
-            var discountedPriceInput = document.getElementById('DiscountedPrice');
-            var originalPriceInput = document.getElementById('Price');
-
-            if (this.checked) {
-                discountedPriceGroup.style.display = 'block';
-            } else {
-                discountedPriceGroup.style.display = 'none';
-                discountedPriceInput.value = originalPriceInput.value;
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                initializeFormValidation();
+            }, 100);
         });
+
+        function initializeFormValidation() {
+            // Get form elements
+            const form = document.querySelector('form');
+            const isDiscountedCheckbox = document.getElementById('isDiscounted');
+            const discountedPriceGroup = document.getElementById('discountedPriceGroup');
+            const discountedPriceInput = document.getElementById('DiscountedPrice');
+            const originalPriceInput = document.getElementById('Price');
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            // Initialize discounted price field based on checkbox state
+            if (isDiscountedCheckbox.checked) {
+                discountedPriceGroup.style.display = 'block';
+            }
+
+            function showError(element, message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger validation-message';
+                errorDiv.textContent = message;
+                element.parentNode.appendChild(errorDiv);
+            }
+
+            // Handle checkbox change
+            isDiscountedCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    discountedPriceGroup.style.display = 'block';
+                    discountedPriceInput.value = '';
+                } else {
+                    discountedPriceGroup.style.display = 'none';
+                    discountedPriceInput.value = originalPriceInput.value;
+                    discountedPriceGroup.querySelectorAll('.validation-message').forEach(el => el.remove());
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+
+                // Clear previous errors
+                document.querySelectorAll('.validation-message').forEach(el => el.remove());
+
+                if (!validateSelection('VendorId', 'Please select a vendor')) {
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        }
     </script>
 }

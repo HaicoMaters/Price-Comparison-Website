@@ -153,9 +153,9 @@ function updateNotificationUI(data) {
 }
 
 function formatTimestamp(timestamp) {
-    // Parse the timestamp string into a Date object
-    // Example format: "3/13/2024 2:30 PM" (general format)
-    const date = new Date(Date.parse(timestamp));
+    const [datePart, timePart] = timestamp.split(' ');
+    const [day, month, year] = datePart.split('/');
+    const date = new Date(`${year}-${month}-${day} ${timePart}`);
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -184,7 +184,7 @@ function formatTimestamp(timestamp) {
     } 
     else {
         // For timestamps older than a week, return the formatted date
-        return date.toLocaleDateString('en-UK', {
+        return date.toLocaleDateString('en-GB', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -235,6 +235,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function formatPrice(price) {
     return window.currencyFormatter.format(price);
+}
+
+// Form Validation
+function validateUrl(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function validatePrice(price, discountedPrice = null) {
+    const priceValue = parseFloat(price);
+    
+    // Validate regular price
+    if (isNaN(priceValue) || priceValue <= 0) {
+        throw new Error('Price must be greater than 0');
+    }
+    
+    // Validate discounted price if provided
+    if (discountedPrice !== null) {
+        const discountValue = parseFloat(discountedPrice);
+        if (isNaN(discountValue)) {
+            throw new Error('Invalid discounted price format');
+        }
+        if (discountValue <= 0) {
+            throw new Error('Discounted price must be greater than 0');
+        }
+        if (discountValue >= priceValue) {
+            throw new Error('Discounted price must be less than regular price');
+        }
+    }
+    
+    return true;
+}
+
+function validateSelection(name, errorMessage) {
+    const selected = document.querySelector(`input[name="${name}"]:checked`);
+    if (!selected) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger validation-message';
+        errorDiv.textContent = errorMessage;
+        
+        // Find the container for this radio group
+        const container = document.querySelector(`input[name="${name}"]`).closest('.row');
+        // Remove any existing error messages
+        container.querySelectorAll('.validation-message').forEach(el => el.remove());
+        // Add the new error message
+        container.appendChild(errorDiv);
+        return false;
+    }
+    return true;
+}
+
+function validateVendorSelection() {
+    return validateSelection('VendorId', 'Please select a vendor');
+}
+
+function validateCategorySelection() {
+    return validateSelection('catId', 'Please select a category');
 }
 
 //---------------------------------------------------------------------------------------

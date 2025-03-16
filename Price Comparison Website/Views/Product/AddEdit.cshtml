@@ -57,3 +57,50 @@
 	<button type="submit" class="btn btn-primary">Save Changes</button>
 	<a asp-action="Index" asp-controller="Product" class="btn btn-outline-dark">Cancel</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Clear any existing validation messages
+            document.querySelectorAll('.validation-message').forEach(el => el.remove());
+            
+            let isValid = true;
+            const imageUrl = document.querySelector('input[name="ImageUrl"]').value;
+            const description = document.querySelector('textarea[name="Description"]').value;
+            
+            try {
+                if (!validateUrl(imageUrl)) {
+                    e.preventDefault();
+                    const urlError = document.createElement('div');
+                    urlError.className = 'text-danger validation-message';
+                    urlError.textContent = 'Please enter a valid image URL';
+                    document.querySelector('input[name="ImageUrl"]').parentNode.appendChild(urlError);
+                    isValid = false;
+                }
+
+                if (description.length < 5) {
+                    e.preventDefault();
+                    const descError = document.createElement('div');
+                    descError.className = 'text-danger validation-message';
+                    descError.textContent = 'Description must be at least 5 characters long';
+                    document.querySelector('textarea[name="Description"]').parentNode.appendChild(descError);
+                    isValid = false;
+                }
+
+                if (!validateSelection('catId', 'Please select a category')) {
+                    e.preventDefault();
+                    isValid = false;
+                }
+            } catch (error) {
+                e.preventDefault();
+                alert(error.message);
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+}
