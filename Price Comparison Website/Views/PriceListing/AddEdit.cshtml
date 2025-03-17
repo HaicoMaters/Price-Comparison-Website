@@ -48,27 +48,35 @@ else
 
         <div class="row">
             <h4 class="mb-3">Select a Vendor</h4>
-            @for (int i = 0; i < ViewBag.Vendors.Count; i++)
-            {
-                var vendor = ViewBag.Vendors[i];
-                var isChecked = Model.VendorId == vendor.VendorId;
-                if (i % 3 == 0)
+            <div class="form-group">
+                @for (int i = 0; i < ViewBag.Vendors.Count; i++)
                 {
-                    @:<div class="row mb-2">
-                }
-                <div class="col-md-4">
-                    <div class="form-check">
-                        <input type="radio" class="form-check-input" id="vendor-@vendor.VendorId" name="VendorId" value="@vendor.VendorId" @(isChecked ? "checked" : "") />
-                        <label class="form-check-label" for="vendor-@vendor.VendorId">
-                            @vendor.Name
-                        </label>
+                    var vendor = ViewBag.Vendors[i];
+                    var isChecked = Model.VendorId == vendor.VendorId;
+                    if (i % 3 == 0)
+                    {
+                        @:<div class="row mb-2">
+                    }
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input type="radio" 
+                                   class="form-check-input" 
+                                   id="vendor-@vendor.VendorId" 
+                                   name="VendorId" 
+                                   value="@vendor.VendorId" 
+                                   @(isChecked ? "checked" : "") />
+                            <label class="form-check-label" for="vendor-@vendor.VendorId">
+                                @vendor.Name
+                            </label>
+                        </div>
                     </div>
-                </div>
-                if ((i + 1) % 3 == 0 || i == ViewBag.Vendors.Count - 1)
-                {
-                    @:</div>
+                    if ((i + 1) % 3 == 0 || i == ViewBag.Vendors.Count - 1)
+                    {
+                        @:</div>
+                    }
                 }
-            }
+                <span asp-validation-for="VendorId" class="text-danger"></span>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -78,60 +86,32 @@ else
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                initializeFormValidation();
-            }, 100);
+        $(document).ready(function() {
+            const $form = $('form');
+            const $isDiscountedCheckbox = $('#isDiscounted');
+            const $discountedPriceGroup = $('#discountedPriceGroup');
+            const $discountedPriceInput = $('#DiscountedPrice');
+            const $priceInput = $('#Price');
+
+            $isDiscountedCheckbox.change(function() {
+                $discountedPriceGroup.toggle(this.checked);
+                if (!this.checked) {
+                    $discountedPriceInput.val($priceInput.val());
+                }
+            });
+
+            // Initialize form validation with price checks
+            initializeFormValidation('form');
+
+            // Additional validation for discounted price
+            $discountedPriceInput.on('change', function() {
+                try {
+                    validatePrice($priceInput.val(), $(this).val());
+                    $(this).siblings('.text-danger').text('');
+                } catch (error) {
+                    $(this).siblings('.text-danger').text(error.message);
+                }
+            });
         });
-
-        function initializeFormValidation() {
-            // Get form elements
-            const form = document.querySelector('form');
-            const isDiscountedCheckbox = document.getElementById('isDiscounted');
-            const discountedPriceGroup = document.getElementById('discountedPriceGroup');
-            const discountedPriceInput = document.getElementById('DiscountedPrice');
-            const originalPriceInput = document.getElementById('Price');
-            const submitButton = form.querySelector('button[type="submit"]');
-
-            // Initialize discounted price field based on checkbox state
-            if (isDiscountedCheckbox.checked) {
-                discountedPriceGroup.style.display = 'block';
-            }
-
-            function showError(element, message) {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'text-danger validation-message';
-                errorDiv.textContent = message;
-                element.parentNode.appendChild(errorDiv);
-            }
-
-            // Handle checkbox change
-            isDiscountedCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    discountedPriceGroup.style.display = 'block';
-                    discountedPriceInput.value = '';
-                } else {
-                    discountedPriceGroup.style.display = 'none';
-                    discountedPriceInput.value = originalPriceInput.value;
-                    discountedPriceGroup.querySelectorAll('.validation-message').forEach(el => el.remove());
-                }
-            });
-
-            // Form submission
-            form.addEventListener('submit', function(e) {
-                let isValid = true;
-
-                // Clear previous errors
-                document.querySelectorAll('.validation-message').forEach(el => el.remove());
-
-                if (!validateSelection('VendorId', 'Please select a vendor')) {
-                    isValid = false;
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                }
-            });
-        }
     </script>
 }

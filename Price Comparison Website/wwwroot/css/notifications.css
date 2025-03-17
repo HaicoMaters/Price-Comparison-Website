@@ -1,0 +1,77 @@
+/* Badge and Notification System */
+.badge.bg-danger {
+    background: #e74c3c !important;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+}
+
+.notification-menu {
+    position: absolute;
+    z-index: 1050;
+    right: 0;
+    left: auto;
+    min-width: 300px;
+    max-width: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.notification-wrapper {
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+
+.notification-item {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-text {
+    flex: 1;
+    margin-right: 0.5rem;
+    display: inline-block;
+    padding-right: 16px;
+}
+
+.notification-unread {
+    background-color: #f0f7ff;
+    transition: background-color 0.2s ease;
+}
+
+.notification-unread:hover {
+    background-color: #e3f2fd;
+}
+
+/* Scrollbar Styling */
+.notification-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.notification-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.notification-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.notification-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.notification-menu::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}

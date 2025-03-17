@@ -30,20 +30,8 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const vendorUrl = document.querySelector('input[name="VendorUrl"]').value;
-            const logoUrl = document.querySelector('input[name="VendorLogoUrl"]').value;
-            
-            if (!validateUrl(vendorUrl)) {
-                e.preventDefault();
-                alert('Please enter a valid vendor URL');
-                return;
-            }
-
-            if (!validateUrl(logoUrl)) {
-                e.preventDefault();
-                alert('Please enter a valid logo URL');
-            }
+        $(document).ready(function() {
+            initializeFormValidation('form');
         });
     </script>
 }

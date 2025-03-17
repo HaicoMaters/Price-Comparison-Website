@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
+using Price_Comparison_Website.Validation;
 
 namespace Price_Comparison_Website.Models
 {
@@ -23,6 +24,8 @@ namespace Price_Comparison_Website.Models
 		[DataType(DataType.Currency)]
 		public decimal Price { get; set; }
 		
+		[LessThan("Price", ErrorMessage = "Discounted price must be less than regular price")]
+		[Range(0, double.MaxValue, ErrorMessage = "Discounted price cannot be negative")]
 		public decimal DiscountedPrice { get; set; } // For discounts, default to Price if no discount
 		
 		[Required]
@@ -32,14 +35,4 @@ namespace Price_Comparison_Website.Models
 		
 		public DateTime DateListed { get; set; } // When the listing was last updated
 	}
-
-    public class LessThanAttribute : ValidationAttribute
-    {
-        private readonly string _comparisonProperty;
-
-        public LessThanAttribute(string comparisonProperty)
-        {
-            _comparisonProperty = comparisonProperty;
-        }
-    }
 }

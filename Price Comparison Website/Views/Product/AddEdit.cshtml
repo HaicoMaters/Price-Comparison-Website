@@ -27,32 +27,35 @@
 	</div>
 	<div class="row">
         <h4 class="mb-3">Select a Category</h4>
-        @for (int i = 0; i < ViewBag.Categories.Count; i++)
-        {
-            var category = ViewBag.Categories[i];
-            var isChecked = Model.CategoryId == category.CategoryId;
-            if (i % 3 == 0)
+        <div class="form-group">
+            @for (int i = 0; i < ViewBag.Categories.Count; i++)
             {
-                @:<div class="row mb-2">
-            }
-            <div class="col-md-4">
-                <div class="form-check">
-                    <input type="radio"
-                           class="form-check-input"
-                           id="category-@category.CategoryId"
-                           name="catId"
-                           value="@category.CategoryId"
-                           @(isChecked ? "checked" : "") />
-                    <label class="form-check-label" for="category-@category.CategoryId">
-                        @category.Name
-                    </label>
+                var category = ViewBag.Categories[i];
+                var isChecked = Model.CategoryId == category.CategoryId;
+                if (i % 3 == 0)
+                {
+                    @:<div class="row mb-2">
+                }
+                <div class="col-md-4">
+                    <div class="form-check">
+                        <input type="radio"
+                               class="form-check-input"
+                               id="category-@category.CategoryId"
+                               name="CategoryId"
+                               value="@category.CategoryId"
+                               @(isChecked ? "checked" : "") />
+                        <label class="form-check-label" for="category-@category.CategoryId">
+                            @category.Name
+                        </label>
+                    </div>
                 </div>
-            </div>
-            if ((i + 1) % 3 == 0 || i == ViewBag.Categories.Count - 1)
-            {
-                @:</div>
+                if ((i + 1) % 3 == 0 || i == ViewBag.Categories.Count - 1)
+                {
+                    @:</div>
+                }
             }
-        }
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
     </div>
 	<button type="submit" class="btn btn-primary">Save Changes</button>
 	<a asp-action="Index" asp-controller="Product" class="btn btn-outline-dark">Cancel</a>
@@ -61,46 +64,8 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // Clear any existing validation messages
-            document.querySelectorAll('.validation-message').forEach(el => el.remove());
-            
-            let isValid = true;
-            const imageUrl = document.querySelector('input[name="ImageUrl"]').value;
-            const description = document.querySelector('textarea[name="Description"]').value;
-            
-            try {
-                if (!validateUrl(imageUrl)) {
-                    e.preventDefault();
-                    const urlError = document.createElement('div');
-                    urlError.className = 'text-danger validation-message';
-                    urlError.textContent = 'Please enter a valid image URL';
-                    document.querySelector('input[name="ImageUrl"]').parentNode.appendChild(urlError);
-                    isValid = false;
-                }
-
-                if (description.length < 5) {
-                    e.preventDefault();
-                    const descError = document.createElement('div');
-                    descError.className = 'text-danger validation-message';
-                    descError.textContent = 'Description must be at least 5 characters long';
-                    document.querySelector('textarea[name="Description"]').parentNode.appendChild(descError);
-                    isValid = false;
-                }
-
-                if (!validateSelection('catId', 'Please select a category')) {
-                    e.preventDefault();
-                    isValid = false;
-                }
-            } catch (error) {
-                e.preventDefault();
-                alert(error.message);
-                isValid = false;
-            }
-
-            if (!isValid) {
-                e.preventDefault();
-            }
+        $(document).ready(function() {
+            initializeFormValidation('form');
         });
     </script>
 }

@@ -28,7 +28,8 @@ namespace Price_Comparison_Website.Models
 		[Display(Name = "Image URL")]
 		public string ImageUrl { get; set; }
 		
-		[Required]
+		[Required(ErrorMessage = "Please select a category")]
+		[Range(1, int.MaxValue, ErrorMessage = "Please select a valid category")]
 		public int CategoryId { get; set; } // Foreign Key
 		
 		public decimal CheapestPrice { get; set; }
