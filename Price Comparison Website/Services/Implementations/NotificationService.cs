@@ -6,18 +6,22 @@ namespace Price_Comparison_Website.Services
 {
     public class NotificationService : INotificationService
     {
-        private Repository<UserNotification> userNotifications;
-        private Repository<Notification> notifications;
-        private Repository<ApplicationUser> users;
-        private Repository<UserWishList> wishLists;
+        private readonly IRepository<UserNotification> _userNotifications;
+        private readonly IRepository<Notification> _notifications;
+        private readonly IRepository<ApplicationUser> _users;
+        private readonly IRepository<UserWishList> _wishLists;
         private readonly ILogger<NotificationService> _logger;
 
-        public NotificationService(ApplicationDbContext context, ILogger<NotificationService> logger)
+        public NotificationService(IRepository<UserNotification> userNotifications,
+            IRepository<Notification> notifications,
+            IRepository<ApplicationUser> users,
+            IRepository<UserWishList> wishLists,
+            ILogger<NotificationService> logger)
         {
-            userNotifications = new Repository<UserNotification>(context);
-            notifications = new Repository<Notification>(context);
-            users = new Repository<ApplicationUser>(context);
-            wishLists = new Repository<UserWishList>(context);
+            _userNotifications = userNotifications;
+            _notifications = notifications;
+            _users = users;
+            _wishLists = wishLists;
             _logger = logger;
         }
 
@@ -26,7 +30,7 @@ namespace Price_Comparison_Website.Services
             try
             {
                 // Get all notifications for a user (both read and unread)
-                var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
+                var userNotifs = await _userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
                 {
                     Includes = "Notification",
                     OrderBy = n => n.Notification.CreatedAt
@@ -36,7 +40,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
                     if (notification != null)
                     {
                         notificationList.Add(notification);
@@ -57,7 +61,7 @@ namespace Price_Comparison_Website.Services
             try
             {
                 // Get all unread notifications for a user
-                var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
+                var userNotifs = await _userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
                 {
                     Includes = "Notification",
                     Where = n => !n.IsRead,
@@ -68,7 +72,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
                     if (notification != null)
                     {
                         notificationList.Add(notification);
@@ -90,7 +94,7 @@ namespace Price_Comparison_Website.Services
             try
             {
                 // Get all read notifications for a user
-                var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
+                var userNotifs = await _userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
                 {
                     Includes = "Notification",
                     Where = n => n.IsRead,
@@ -101,7 +105,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
                     if (notification != null)
                     {
                         notificationList.Add(notification);
@@ -123,7 +127,7 @@ namespace Price_Comparison_Website.Services
             try
             {
                 // Get all unread notifications for a user
-                var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
+                var userNotifs = await _userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
                 {
                     Where = n => !n.IsRead
                 });
@@ -136,7 +140,7 @@ namespace Price_Comparison_Website.Services
                         try
                         {
                             userNotif.IsRead = true;
-                            await userNotifications.UpdateAsync(userNotif);
+                            await _userNotifications.UpdateAsync(userNotif);
                         }
                         catch (Exception ex)
                         {
@@ -158,7 +162,7 @@ namespace Price_Comparison_Website.Services
             try
             {
                 // Get all notifications for the user with the specified ID
-                var userNotifs = await userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
+                var userNotifs = await _userNotifications.GetAllByIdAsync(userId, "UserId", new QueryOptions<UserNotification>
                 {
                     Where = n => n.NotificationId == notificationId
                 });
@@ -168,7 +172,7 @@ namespace Price_Comparison_Website.Services
                 {
                     try
                     {
-                        await userNotifications.DeleteAsync(notificationToDelete);
+                        await _userNotifications.DeleteAsync(notificationToDelete);
                         _logger.LogInformation("Successfully deleted notification {NotificationId} for user {UserId}", 
                             notificationId, userId);
                     }
@@ -204,9 +208,9 @@ namespace Price_Comparison_Website.Services
                     IsGlobal = false // Mark as a product price drop notification
                 };
 
-                await notifications.AddAsync(notification);
+                await _notifications.AddAsync(notification);
 
-                var wishlistItems = await wishLists.GetAllByIdAsync(productId, "ProductId", new QueryOptions<UserWishList>());
+                var wishlistItems = await _wishLists.GetAllByIdAsync(productId, "ProductId", new QueryOptions<UserWishList>());
 
                 foreach (var wishlistItem in wishlistItems)
                 {
@@ -217,7 +221,7 @@ namespace Price_Comparison_Website.Services
                         IsRead = false
                     };
 
-                    await userNotifications.AddAsync(userNotification);
+                    await _userNotifications.AddAsync(userNotification);
                 }
 
                 _logger.LogInformation("Created price drop notification for product {ProductName}. Old price: {OldPrice}, New price: {NewPrice}",
@@ -240,10 +244,10 @@ namespace Price_Comparison_Website.Services
                     IsGlobal = true
                 };
 
-                await notifications.AddAsync(notification);
+                await _notifications.AddAsync(notification);
 
                 // Get all users
-                var allUsers = await users.GetAllAsync();
+                var allUsers = await _users.GetAllAsync();
 
                 foreach (var user in allUsers)
                 {
@@ -254,7 +258,7 @@ namespace Price_Comparison_Website.Services
                         IsRead = false
                     };
 
-                    await userNotifications.AddAsync(userNotification);
+                    await _userNotifications.AddAsync(userNotification);
                 }
 
                 _logger.LogInformation("Created global notification: {Message}", message);

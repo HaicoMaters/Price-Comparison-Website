@@ -8,30 +8,37 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
+using Price_Comparison_Website.Services.Implementations;
+using Price_Comparison_Website.Services.Interfaces;
 
 namespace Price_Comparison_Website.Controllers
 {
     public class ProductController : Controller
     {
-        private Repository<Product> products;
-        private Repository<Category> categories;
-        private Repository<PriceListing> priceListings;
-        private Repository<Vendor> vendors;
-        private Repository<UserViewingHistory> userViewingHistory;
-        private Repository<UserWishList> userWishlists;
+        private readonly ICategoryService _categoryService;
+        private readonly IProductService _productService;
+        private readonly IVendorService _vendorService;
+        private readonly IPriceListingService _priceListingService;
+        private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ProductController> _logger;
 
-        public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment,
-            UserManager<ApplicationUser> userManager, ILogger<ProductController> logger)
+        public ProductController(
+            ICategoryService categoryService,
+            IProductService productService,
+            IVendorService vendorService,
+            IUserService userService,
+            IPriceListingService priceListingService,
+            IWebHostEnvironment webHostEnvironment,
+            UserManager<ApplicationUser> userManager, 
+            ILogger<ProductController> logger)
         {
-            products = new Repository<Product>(context);
-            categories = new Repository<Category>(context);
-            priceListings = new Repository<PriceListing>(context);
-            vendors = new Repository<Vendor>(context);
-            userViewingHistory = new Repository<UserViewingHistory>(context);
-            userWishlists = new Repository<UserWishList>(context);
+            _categoryService = categoryService;
+            _productService = productService;
+            _vendorService = vendorService;
+            _userService = userService;
+            _priceListingService = priceListingService;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
@@ -42,7 +49,7 @@ namespace Price_Comparison_Website.Controllers
             try
             {
                 // Get categories for filtering
-                ViewBag.Categories = await categories.GetAllAsync();
+                ViewBag.Categories = await _categoryService.GetAllCategories();
                 IEnumerable<Product> allProducts;
 
                 try
@@ -50,15 +57,11 @@ namespace Price_Comparison_Website.Controllers
                     // Search All Categories or by CategoryId
                     if (catId == 0)
                     {
-                        allProducts = await products.GetAllAsync();
+                        allProducts = await _productService.GetAllProducts();
                     }
                     else
                     {
-                        allProducts = await products.GetAllByIdAsync(catId, "CategoryId", new QueryOptions<Product>
-                        {
-                            Includes = "Category",
-                            Where = p => p.CategoryId == catId
-                        });
+                        allProducts = await _productService.GetProductsByCategoryId(catId);
                     }
 
                     // Apply search filter if provided
@@ -82,7 +85,7 @@ namespace Price_Comparison_Website.Controllers
                             List<bool> onWishlist = new List<bool>();
                             foreach (var product in pagedProducts)
                             {
-                                var existingEntity = await userWishlists.GetByIdAsync(user.Id, product.ProductId, new QueryOptions<UserWishList>());
+                                var existingEntity = await _userService.GetUserWishListItems(user.Id);
                                 onWishlist.Add(existingEntity != null);
                             }
                             ViewBag.OnWishlist = onWishlist;
@@ -115,7 +118,7 @@ namespace Price_Comparison_Website.Controllers
         {
             try
             {
-                ViewBag.Categories = await categories.GetAllAsync();
+                ViewBag.Categories = await _categoryService.GetAllCategories();
 
                 if (id == 0)
                 {
@@ -123,7 +126,7 @@ namespace Price_Comparison_Website.Controllers
                     return View(new Product());
                 }
 
-                var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                var product = await _productService.GetProductById(id);
                 if (product == null)
                     return NotFound(new { error = "Product not found" });
 
@@ -153,7 +156,7 @@ namespace Price_Comparison_Website.Controllers
                     try
                     {
                         product.CategoryId = catId;
-                        await products.AddAsync(product);
+                        await _productService.AddProduct(product);
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
@@ -164,18 +167,11 @@ namespace Price_Comparison_Website.Controllers
                 }
 
                 // Edit Operation
-                var existingProduct = await products.GetByIdAsync(product.ProductId, new QueryOptions<Product>());
-                if (existingProduct == null)
-                    return NotFound(new { error = "Product not found" });
 
                 try
                 {
-                    existingProduct.Name = product.Name;
-                    existingProduct.Description = product.Description;
-                    existingProduct.CategoryId = catId;
-
-                    await products.UpdateAsync(existingProduct);
-                    return RedirectToAction("ViewProduct", new { id = existingProduct.ProductId });
+                    var prod = await _productService.UpdateProduct(product, catId);
+                    return RedirectToAction("ViewProduct", new { id = prod.ProductId });
                 }
                 catch (Exception ex)
                 {
@@ -198,7 +194,7 @@ namespace Price_Comparison_Website.Controllers
             // Delete Product
             try
             {
-                await products.DeleteAsync(id);
+                await _productService.DeleteProduct(id);
             }
             catch (InvalidOperationException ex)
             {
@@ -222,21 +218,19 @@ namespace Price_Comparison_Website.Controllers
                 if (id == 0)
                     return RedirectToAction("Index", "Product");
 
-                var product = await products.GetByIdAsync(id, new QueryOptions<Product>());
+                var product = await _productService.GetProductById(id);
                 if (product == null)
                     return NotFound(new { error = "Product not found" });
 
                 try
                 {
                     // Get price listings
-                    ViewBag.Listings = await priceListings.GetAllByIdAsync<int>(id, "ProductId", new QueryOptions<PriceListing>
-                    {
-                        OrderBy = listing => listing.DiscountedPrice // Order by Price in ascending order (cheapest first) discounted price is set to price if not discounted
-                    });
+                    var listings = await _priceListingService.GetPriceListingsByProductId(id);
+                    ViewBag.Listings = listings.OrderBy(listing => listing.DiscountedPrice);
 
                     foreach (var listing in ViewBag.Listings)
                     {
-                        listing.Vendor = await vendors.GetByIdAsync(listing.VendorId, new QueryOptions<Vendor>());
+                        listing.Vendor = await _vendorService.GetVendorByIdAsync(listing.VendorId);
                     }
 
                     if (User.Identity.IsAuthenticated)
@@ -247,8 +241,8 @@ namespace Price_Comparison_Website.Controllers
                             // Update Viewing Histories
                             try
                             {
-                                await UpdateViewingHistory(user.Id, id);
-                                await CleanupViewingHistory(user.Id);
+                                await _userService.UpdateViewingHistory(user.Id, id);
+                                await _userService.CleanupViewingHistory(user.Id);
                             }
                             catch (Exception ex)
                             {
@@ -258,7 +252,7 @@ namespace Price_Comparison_Website.Controllers
                             // Check if on Wishlist
                             try
                             {
-                                var existingWishlistItem = await userWishlists.GetByIdAsync(user.Id, id, new QueryOptions<UserWishList>());
+                                var existingWishlistItem = await _userService.GetUserWishListItems(user.Id);
                                 ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
                             }
                             catch (Exception ex)
@@ -297,14 +291,14 @@ namespace Price_Comparison_Website.Controllers
             try
             {
                 // Find if product is in wishlist
-                var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
+                var existingEntity = await _userService.GetUserWishListItemById(user.Id, prodId);
 
                 if (existingEntity != null)
                 {
                     // Exists so delete from wishlist
                     try
                     {
-                        await userWishlists.DeleteAsync(existingEntity);
+                        await _userService.RemoveFromWishlist(prodId, user.Id);
                     }
                     catch (Exception ex)
                     {
@@ -315,7 +309,7 @@ namespace Price_Comparison_Website.Controllers
                 else
                 {
                     // Add to wishlist
-                    var existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
+                    var existingProd = await _productService.GetProductById(prodId);
                     if (existingProd == null)
                         return NotFound(new { error = "Product not found" });
 
@@ -327,7 +321,7 @@ namespace Price_Comparison_Website.Controllers
                             UserId = user.Id,
                             LastCheapestPrice = existingProd.CheapestPrice
                         };
-                        await userWishlists.AddAsync(newWishlistItem);
+                        await _userService.AddWishlistItem(newWishlistItem);
                     }
                     catch (Exception ex)
                     {
@@ -346,40 +340,6 @@ namespace Price_Comparison_Website.Controllers
         }
 
         //  Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
-        private async Task UpdateViewingHistory(string userId, int productId)
-        {
-            var existingEntity = await userViewingHistory.GetByIdAsync(userId, productId, new QueryOptions<UserViewingHistory>());
-            if (existingEntity != null)
-            {
-                existingEntity.LastViewed = DateTime.Now;
-                await userViewingHistory.UpdateAsync(existingEntity);
-            }
-            else
-            {
-                var newEntity = new UserViewingHistory
-                {
-                    ProductId = productId,
-                    LastViewed = DateTime.Now,
-                    UserId = userId
-                };
-                await userViewingHistory.AddAsync(newEntity);
-            }
-        }
-
-        private async Task CleanupViewingHistory(string userId)
-        {
-            var viewingHistories = await userViewingHistory.GetAllByIdAsync(userId, "UserId",
-                new QueryOptions<UserViewingHistory> { OrderBy = e => e.LastViewed });
-            var viewingHistoriesList = viewingHistories.ToList();
-
-            while (viewingHistoriesList.Count > 20)
-            {
-                var entityToDelete = viewingHistoriesList[0];
-                await userViewingHistory.DeleteAsync(entityToDelete);
-                viewingHistoriesList.RemoveAt(0);
-            }
-        }
-
         public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber)
         {
             int pageSize = 12; // Number of products per page

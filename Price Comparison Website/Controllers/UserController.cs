@@ -8,27 +8,27 @@ using NuGet.Packaging.Signing;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services;
+using Price_Comparison_Website.Services.Interfaces;
 
 namespace Price_Comparison_Website.Controllers
 {
-    [Authorize(Roles = "Admin,User")] // Not Currently Needed For Admin Roles But Can Be Changed If Needed Later
+    [Authorize(Roles = "Admin,User")] 
     public class UserController : Controller
     {
-        private Repository<Product> products;
-        private Repository<UserViewingHistory> userViewingHistory;
-        private Repository<UserWishList> userWishlists;
-        private UserManager<ApplicationUser> _userManager;
-        private IWebHostEnvironment _webHostEnvironment;
-        private INotificationService _notificationService;
+        public readonly IUserService _userService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly INotificationService _notificationService;
         private readonly ILogger<UserController> _logger;
 
-        public UserController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, 
-            UserManager<ApplicationUser> userManager, INotificationService notificationService,
-            ILogger<UserController> logger)
+        public UserController(
+            IWebHostEnvironment webHostEnvironment, 
+            UserManager<ApplicationUser> userManager,
+            INotificationService notificationService,
+            ILogger<UserController> logger,
+            IUserService userService)
         {
-            products = new Repository<Product>(context);
-            userViewingHistory = new Repository<UserViewingHistory>(context);
-            userWishlists = new Repository<UserWishList>(context);
+            _userService = userService;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
             _notificationService = notificationService;
@@ -46,18 +46,9 @@ namespace Price_Comparison_Website.Controllers
                 try
                 {
                     // Get all wishlist
-                    var wishlist = await userWishlists.GetAllByIdAsync(user.Id, "UserId", new QueryOptions<UserWishList>());
-                    List<Product> productList = new List<Product>();
-
+                    var wishlist = await _userService.GetUserWishListItems(user.Id);
                     // Add the associated products
-                    foreach (var wishlistItem in wishlist)
-                    {
-                        var product = await products.GetByIdAsync(wishlistItem.ProductId, new QueryOptions<Product>());
-                        if (product != null)
-                        {
-                            productList.Add(product);
-                        }
-                    }
+                    var productList = await _userService.GetProductsFromWishList(wishlist);
 
                     return View(productList);
                 }
@@ -84,25 +75,10 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    // Get all viewing histories
-                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", 
-                        new QueryOptions<UserViewingHistory>());
-                    List<Product> productList = new List<Product>();
-                    
-                    // Order by most recents first
-                    viewingHistories = viewingHistories.OrderByDescending(e => e.LastViewed);
+                    // Get all viewing histories ordered by most recent
+                    var viewingHistories = await _userService.GetUserViewingHistory(user.Id);
 
-                    // Add the associated products to the viewbag
-                    foreach (var history in viewingHistories)
-                    {
-                        var product = await products.GetByIdAsync(history.ProductId, new QueryOptions<Product>());
-                        if (product != null)
-                        {
-                            productList.Add(product);
-                        }
-                    }
-
-                    ViewBag.Products = productList;
+                    ViewBag.Products = await _userService.GetProductsFromViewingHistory(viewingHistories);
                     return View(viewingHistories);
                 }
                 catch (InvalidOperationException ex)
@@ -130,11 +106,7 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
-                    if (existingEntity == null)
-                        return NotFound(new { error = "Wishlist item not found" });
-
-                    await userWishlists.DeleteAsync(existingEntity);
+                    await _userService.RemoveFromWishlist(prodId, user.Id);
                     return RedirectToAction("Wishlist");
                 }
                 catch (InvalidOperationException ex)
@@ -162,15 +134,7 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    // Get all viewing histories
-                    var viewingHistories = await userViewingHistory.GetAllByIdAsync(user.Id, "UserId", 
-                        new QueryOptions<UserViewingHistory>());
-
-                    foreach (var history in viewingHistories)
-                    {
-                        await userViewingHistory.DeleteAsync(history);
-                    }
-
+                    _userService.DeleteViewingHistory(user.Id);
                     return RedirectToAction("ViewingHistory");
                 }
                 catch (InvalidOperationException ex)

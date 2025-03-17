@@ -19,19 +19,19 @@ namespace Price_Comparison_Website.Controllers
     {
         private readonly INotificationService _notificationService;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly Repository<Product> products;
-        private readonly Repository<PriceListing> priceListings;
-        private readonly Repository<Vendor> vendors;
         private readonly ILogger<AdminController> _logger;
         private readonly ILoginActivityService _loginActivityService;
+        private readonly IAdminService _adminService;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, 
-            INotificationService notificationService, ILogger<AdminController> logger, ILoginActivityService loginActivityService)
+        public AdminController(
+            IAdminService adminService,
+            UserManager<ApplicationUser> userManager, 
+            INotificationService notificationService,
+            ILogger<AdminController> logger,
+            ILoginActivityService loginActivityService)
         {
             _userManager = userManager;
-            products = new Repository<Product>(context);
-            priceListings = new Repository<PriceListing>(context);
-            vendors = new Repository<Vendor>(context);
+            _adminService = adminService;
             _notificationService = notificationService;
             _logger = logger;
             _loginActivityService = loginActivityService;
@@ -39,16 +39,16 @@ namespace Price_Comparison_Website.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var prods = await products.GetAllAsync();
+            var prods = await _adminService.GetAllProductsAsync();
             ViewBag.TotalProducts = prods.Count();
 
             var users = await _userManager.Users.ToListAsync();
             ViewBag.TotalUsers = users.Count();
 
-            var listings = await priceListings.GetAllAsync();
+            var listings = await _adminService.GetAllPriceListingsAsync();
             ViewBag.TotalListings = listings.Count();
 
-            var vends = await vendors.GetAllAsync();
+            var vends = await _adminService.GetAllVendorsAsync();
             ViewBag.TotalVendors = vends.Count();
 
             // Get 10 most recent login activities

@@ -11,12 +11,12 @@ namespace Price_Comparison_Website.Services
 {
     public class LoginActivityService : ILoginActivityService
     {
-        private Repository<LoginActivity> loginActivities;
+        private IRepository<LoginActivity> _loginActivities;
         private readonly ILogger<LoginActivityService> _logger;
 
-        public LoginActivityService(ApplicationDbContext context, ILogger<LoginActivityService> logger)
+        public LoginActivityService(IRepository<LoginActivity> loginActivites, ILogger<LoginActivityService> logger)
         {
-            loginActivities = new Repository<LoginActivity>(context);
+            _loginActivities = loginActivites;
             _logger = logger;
         }
 
@@ -24,7 +24,7 @@ namespace Price_Comparison_Website.Services
         {
             try
             {
-                return await loginActivities.GetAllAsync();
+                return await _loginActivities.GetAllAsync();
             }
             catch (Exception ex)
             {
@@ -37,7 +37,7 @@ namespace Price_Comparison_Website.Services
         {
             try
             {
-                await loginActivities.AddAsync(activity);
+                await _loginActivities.AddAsync(activity);
                 _logger.LogInformation("Login activity recorded for user {UserId}. Success: {IsSuccessful}", 
                     activity.UserId, activity.IsSuccessful);
             }
@@ -52,7 +52,7 @@ namespace Price_Comparison_Website.Services
         {
             try
             {
-                return await loginActivities.GetAllByIdAsync(userId, "UserId", new QueryOptions<LoginActivity>());
+                return await _loginActivities.GetAllByIdAsync(userId, "UserId", new QueryOptions<LoginActivity>());
             }
             catch (Exception ex)
             {

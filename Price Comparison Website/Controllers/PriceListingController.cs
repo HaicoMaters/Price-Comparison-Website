@@ -3,29 +3,34 @@ using Microsoft.AspNetCore.Mvc;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services;
+using Price_Comparison_Website.Services.Interfaces;
 
 namespace Price_Comparison_Website.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class PriceListingController : Controller
 	{
-		private Repository<PriceListing> priceListings;
-		private Repository<Vendor> vendors;
-		private Repository<Product> products;
-		private INotificationService _notificationService;
-		private readonly IWebHostEnvironment _webHostEnvironment;
-		private readonly ILogger<PriceListingController> _logger;
+		private readonly IPriceListingService _priceListingService;
+        private readonly IVendorService _vendorService;
+        private readonly IProductService _productService;
+        private readonly INotificationService _notificationService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<PriceListingController> _logger;
 
-		public PriceListingController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, 
-			INotificationService notificationService, ILogger<PriceListingController> logger)
-		{
-			priceListings = new Repository<PriceListing>(context);
-			vendors = new Repository<Vendor>(context);
-			products = new Repository<Product>(context);
-			_notificationService = notificationService;
-			_webHostEnvironment = webHostEnvironment;
-			_logger = logger;
-		}
+        public PriceListingController(IPriceListingService priceListingService,
+            IVendorService vendorService,
+            IProductService productService,
+            IWebHostEnvironment webHostEnvironment, 
+            INotificationService notificationService,
+            ILogger<PriceListingController> logger)
+        {
+            _priceListingService = priceListingService;
+            _vendorService = vendorService;
+            _productService = productService;
+            _notificationService = notificationService;
+            _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
+        }
 
 		public IActionResult Index()
 		{
@@ -38,14 +43,10 @@ namespace Price_Comparison_Website.Controllers
 			try
 			{
 				// Get product first
-				var product = await products.GetByIdAsync(prodId, new QueryOptions<Product>
-				{
-					Where = p => p.ProductId == prodId
-				});
+				var product = await _productService.GetProductById(prodId);
 
-				// Always set ViewBag.Product, even if null
 				ViewBag.Product = product;
-				ViewBag.Vendors = await vendors.GetAllAsync();
+				ViewBag.Vendors = await _vendorService.GetAllVendorsAsync();
 
 				if (product == null)
 				{
@@ -59,11 +60,7 @@ namespace Price_Comparison_Website.Controllers
 					return View(new PriceListing() { ProductId = prodId });
 				}
 				
-				var priceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>
-				{
-					Includes = "Product",
-					Where = pl => pl.PriceListingId == id
-				});
+				var priceListing = await _priceListingService.GetPriceListingById(id);
 
 				if (priceListing == null)
 				{
@@ -89,7 +86,7 @@ namespace Price_Comparison_Website.Controllers
 		{
 			try
 			{
-				ViewBag.Vendors = await vendors.GetAllAsync();
+				ViewBag.Vendors = await _vendorService.GetAllVendorsAsync();
 
 				if (!ModelState.IsValid)
 					return View(priceListing);
@@ -102,16 +99,16 @@ namespace Price_Comparison_Website.Controllers
 						priceListing.DiscountedPrice = priceListing.Price;
 					}
 
-					await RecalculateCheapestPrice(priceListing.ProductId); // Update cheapest price before adding/editing in case of price change in other parts of the system for notifs
+					await _productService.RecalculateCheapestPrice(priceListing.ProductId); // Update cheapest price before adding/editing in case of price change in other parts of the system for notifs
 					priceListing.DateListed = DateTime.Now;
 					// Add Operation
 					if (priceListing.PriceListingId == 0)
 					{
-						await priceListings.AddAsync(priceListing);
+						await _priceListingService.AddPriceListing(priceListing);
 					}
 					else // Edit Operation
 					{
-						await HandleExistingPriceListing(priceListing);
+						await _priceListingService.UpdatePriceListing(priceListing);
 					}
 
 					await UpdateCheapestPrice(priceListing.ProductId, priceListing.DiscountedPrice); // Update cheapest price after adding/editing to send notifications if price drops
@@ -142,7 +139,7 @@ namespace Price_Comparison_Website.Controllers
         {
             try
             {
-                var existingPriceListing = await priceListings.GetByIdAsync(id, new QueryOptions<PriceListing>());
+                var existingPriceListing = await _priceListingService.GetPriceListingById(id);
                 if (existingPriceListing == null)
                     return NotFound(new { error = "Price listing not found" });
 				
@@ -150,8 +147,8 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    await priceListings.DeleteAsync(id);
-					await RecalculateCheapestPrice(prodId); // Update cheapest price after deletion
+                    await _priceListingService.DeletePriceListing(id);
+					await _productService.RecalculateCheapestPrice(prodId); // Update cheapest price after deletion
                     return RedirectToAction("ViewProduct", "Product", new { id = existingPriceListing.ProductId });
                 }
                 catch (InvalidOperationException ex)
@@ -169,35 +166,11 @@ namespace Price_Comparison_Website.Controllers
 
 
 		// Helper Methods -------------------------------------------------------
-		private async Task HandleExistingPriceListing(PriceListing priceListing)
-		{
-			try
-			{
-				var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
-				if (existingPriceListing == null)
-					throw new InvalidOperationException("Listing not found");
-
-				existingPriceListing.Price = priceListing.Price;
-				existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
-				existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
-				existingPriceListing.VendorId = priceListing.VendorId;
-				existingPriceListing.DateListed = DateTime.Now;
-
-				await priceListings.UpdateAsync(existingPriceListing);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to handle existing price listing. ListingId: {ListingId}", 
-					priceListing.PriceListingId);
-				throw new InvalidOperationException("Failed to handle existing listing", ex);
-			}
-		}
-
 		public async Task UpdateCheapestPrice(int productId, decimal newPrice)
 		{
 			try
 			{
-				var existingProduct = await products.GetByIdAsync(productId, new QueryOptions<Product>());
+				var existingProduct = await _productService.GetProductById(productId);
 				if (existingProduct == null)
 					throw new InvalidOperationException("Product not found");
 
@@ -207,7 +180,7 @@ namespace Price_Comparison_Website.Controllers
 					// Send Notification to Users with item on wishlist if price drops
 					await _notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
 				}
-				await RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
+				await _productService.RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
 			}
 			catch (Exception ex)
 			{
@@ -215,35 +188,5 @@ namespace Price_Comparison_Website.Controllers
 				throw new InvalidOperationException("Failed to update cheapest price", ex);
 			}
 		}
-
-		public async Task RecalculateCheapestPrice(int productId)
-		{
-			try
-			{
-				var product = await products.GetByIdAsync(productId, new QueryOptions<Product>());
-				if (product == null)
-					throw new InvalidOperationException("Product not found");
-
-				var listings = await priceListings.GetAllByIdAsync(productId, "ProductId", new QueryOptions<PriceListing>());
-				
-				// If no listings exist, set cheapest price to 0
-				if (!listings.Any())
-				{
-					product.CheapestPrice = 0;
-					await products.UpdateAsync(product);
-					return;
-				}
-
-				decimal cheapestPrice = listings.Min(l => l.DiscountedPrice);
-				product.CheapestPrice = cheapestPrice;
-				await products.UpdateAsync(product);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to recalculate cheapest price. ProductId: {ProductId}", productId);
-				throw new InvalidOperationException("Failed to recalculate cheapest price", ex);
-			}
-		}
-
     }
 }
