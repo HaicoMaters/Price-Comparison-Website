@@ -13,16 +13,18 @@ namespace Price_Comparison_Website.Controllers
 {
     public class ProductController : Controller
     {
-		private Repository<Product> products;
-		private Repository<Category> categories;
+        private Repository<Product> products;
+        private Repository<Category> categories;
         private Repository<PriceListing> priceListings;
         private Repository<Vendor> vendors;
         private Repository<UserViewingHistory> userViewingHistory;
         private Repository<UserWishList> userWishlists;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<ProductController> _logger;
 
-        public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<ApplicationUser> userManager)
+        public ProductController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment,
+            UserManager<ApplicationUser> userManager, ILogger<ProductController> logger)
         {
             products = new Repository<Product>(context);
             categories = new Repository<Category>(context);
@@ -32,6 +34,7 @@ namespace Price_Comparison_Website.Controllers
             userWishlists = new Repository<UserWishList>(context);
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0, string searchQuery = "")
@@ -61,7 +64,7 @@ namespace Price_Comparison_Website.Controllers
                     // Apply search filter if provided
                     if (!string.IsNullOrEmpty(searchQuery))
                     {
-                        allProducts = allProducts.Where(p => 
+                        allProducts = allProducts.Where(p =>
                             (p.Name != null && p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
                             (p.Description != null && p.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)))
                             .ToList();
@@ -93,11 +96,15 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Invalid operation while fetching products. CategoryId: {CategoryId}, SearchQuery: {SearchQuery}",
+                        catId, searchQuery);
                     return BadRequest(new { error = "Invalid operation while fetching products", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while fetching products. CategoryId: {CategoryId}, SearchQuery: {SearchQuery}",
+                    catId, searchQuery);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -125,6 +132,7 @@ namespace Price_Comparison_Website.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while loading product. ProductId: {ProductId}", id);
                 return StatusCode(500, new { error = "An error occurred while loading product", details = ex.Message });
             }
         }
@@ -150,6 +158,7 @@ namespace Price_Comparison_Website.Controllers
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex, "Failed to add product. Product: {Product}", product);
                         return BadRequest(new { error = "Failed to add product", details = ex.Message });
                     }
                 }
@@ -170,11 +179,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Failed to update product. Product: {Product}", product);
                     return BadRequest(new { error = "Failed to update product", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An unexpected error occurred while adding/editing product. Product: {Product}", product);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -191,10 +202,12 @@ namespace Price_Comparison_Website.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex, "Invalid operation while deleting product. ProductId: {ProductId}", id);
                 ModelState.AddModelError("", ex.Message);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while deleting product. ProductId: {ProductId}", id);
                 ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
             }
 
@@ -239,8 +252,7 @@ namespace Price_Comparison_Website.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Log but don't fail the request
-                                Console.WriteLine($"Error managing viewing history: {ex.Message}");
+                                _logger.LogError(ex, "Error managing viewing history. UserId: {UserId}, ProductId: {ProductId}", user.Id, id);
                             }
 
                             // Check if on Wishlist
@@ -251,8 +263,7 @@ namespace Price_Comparison_Website.Controllers
                             }
                             catch (Exception ex)
                             {
-                                // Log but don't fail the request
-                                Console.WriteLine($"Error checking wishlist status: {ex.Message}");
+                                _logger.LogError(ex, "Error checking wishlist status. UserId: {UserId}, ProductId: {ProductId}", user.Id, id);
                                 ViewData["OnWishlist"] = "False";
                             }
                         }
@@ -262,11 +273,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Invalid operation while loading product details. ProductId: {ProductId}", id);
                     return BadRequest(new { error = "Invalid operation while loading product details", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while loading product details. ProductId: {ProductId}", id);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -276,62 +289,59 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateWishList(int prodId)
         {
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized(new { error = "User not authenticated" });
+
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null)
-                    return Unauthorized(new { error = "User not authenticated" });
+                // Find if product is in wishlist
+                var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
 
-                try
+                if (existingEntity != null)
                 {
-                    // Find if product is in wishlist
-                    var existingEntity = await userWishlists.GetByIdAsync(user.Id, prodId, new QueryOptions<UserWishList>());
-                                
-                    if (existingEntity != null)
+                    // Exists so delete from wishlist
+                    try
                     {
-                        // Exists so delete from wishlist
-                        try
-                        {
-                            await userWishlists.DeleteAsync(existingEntity);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
-                        }
+                        await userWishlists.DeleteAsync(existingEntity);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // Add to wishlist
-                        var existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
-                        if (existingProd == null)
-                            return NotFound(new { error = "Product not found" });
-
-                        try
-                        {
-                            var newWishlistItem = new UserWishList
-                            { 
-                                ProductId = prodId,
-                                UserId = user.Id,
-                                LastCheapestPrice = existingProd.CheapestPrice
-                            };
-                            await userWishlists.AddAsync(newWishlistItem);
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest(new { error = "Failed to add to wishlist", details = ex.Message });
-                        }
+                        _logger.LogError(ex, "Failed to remove from wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
+                        return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
                     }
-
-                    return RedirectToAction("ViewProduct", "Product", new { id = prodId });
                 }
-                catch (InvalidOperationException ex)
+                else
                 {
-                    return BadRequest(new { error = "Invalid operation while updating wishlist", details = ex.Message });
+                    // Add to wishlist
+                    var existingProd = await products.GetByIdAsync(prodId, new QueryOptions<Product>());
+                    if (existingProd == null)
+                        return NotFound(new { error = "Product not found" });
+
+                    try
+                    {
+                        var newWishlistItem = new UserWishList
+                        {
+                            ProductId = prodId,
+                            UserId = user.Id,
+                            LastCheapestPrice = existingProd.CheapestPrice
+                        };
+                        await userWishlists.AddAsync(newWishlistItem);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to add to wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
+                        return BadRequest(new { error = "Failed to add to wishlist", details = ex.Message });
+                    }
                 }
+
+                return RedirectToAction("ViewProduct", "Product", new { id = prodId });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                _logger.LogWarning(ex, "Invalid operation while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
+                return BadRequest(new { error = "Invalid operation while updating wishlist", details = ex.Message });
             }
         }
 
@@ -358,7 +368,7 @@ namespace Price_Comparison_Website.Controllers
 
         private async Task CleanupViewingHistory(string userId)
         {
-            var viewingHistories = await userViewingHistory.GetAllByIdAsync(userId, "UserId", 
+            var viewingHistories = await userViewingHistory.GetAllByIdAsync(userId, "UserId",
                 new QueryOptions<UserViewingHistory> { OrderBy = e => e.LastViewed });
             var viewingHistoriesList = viewingHistories.ToList();
 

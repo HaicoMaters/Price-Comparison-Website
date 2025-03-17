@@ -1,11 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Price_Comparison_Website.Models
 {
-	public class ApplicationUser : IdentityUser
-	{
-		public ICollection<UserWishList>? WishList { get; set; }
-		public ICollection<UserViewingHistory>? ViewingHistory { get; set; } // The last viewed items
-		public ICollection<UserNotification> UserNotifications { get; set; }
-	}
+    public class ApplicationUser : IdentityUser
+    {
+        [ValidateNever]
+        public ICollection<UserWishList> WishList { get; set; } = new List<UserWishList>();
+
+        [ValidateNever]
+        public ICollection<UserViewingHistory> ViewingHistory { get; set; } = new List<UserViewingHistory>();
+
+        [ValidateNever]
+        public ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();
+    }
 }

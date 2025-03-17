@@ -17,18 +17,24 @@ namespace Price_Comparison_Website.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
-        private readonly NotificationService notificationService;
+        private readonly INotificationService _notificationService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly Repository<Product> products;
         private readonly Repository<PriceListing> priceListings;
         private readonly Repository<Vendor> vendors;
+        private readonly ILogger<AdminController> _logger;
+        private readonly ILoginActivityService _loginActivityService;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager){
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, 
+            INotificationService notificationService, ILogger<AdminController> logger, ILoginActivityService loginActivityService)
+        {
             _userManager = userManager;
             products = new Repository<Product>(context);
             priceListings = new Repository<PriceListing>(context);
             vendors = new Repository<Vendor>(context);
-            notificationService = new NotificationService(context);
+            _notificationService = notificationService;
+            _logger = logger;
+            _loginActivityService = loginActivityService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -45,6 +51,10 @@ namespace Price_Comparison_Website.Controllers
             var vends = await vendors.GetAllAsync();
             ViewBag.TotalVendors = vends.Count();
 
+            // Get 10 most recent login activities
+            var recentActivities = await _loginActivityService.GetNMostRecentActivities(10);
+            ViewBag.RecentLoginActivities = recentActivities;
+
             return View();
         }
 
@@ -60,7 +70,7 @@ namespace Price_Comparison_Website.Controllers
 
             try
             {
-                await notificationService.CreateGlobalNotification(message);
+                await _notificationService.CreateGlobalNotification(message);
                 TempData["SuccessMessage"] = "Global notification sent successfully!";
             }
             catch (Exception ex)

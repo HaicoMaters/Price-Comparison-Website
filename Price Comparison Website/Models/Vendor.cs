@@ -14,6 +14,7 @@ namespace Price_Comparison_Website.Models
 			PriceListings = new List<PriceListing>();
 		}
 
+		[Key]
 		public int VendorId { get; set; } // PK
 		
 		[Required(ErrorMessage = "Vendor name is required")]
@@ -32,6 +33,6 @@ namespace Price_Comparison_Website.Models
 		
 		[ValidateNever]
 		// Navigation Property for PriceListings
-		public ICollection<PriceListing>? PriceListings { get; set; }  // One Vendor can have many PriceListings
+		public ICollection<PriceListing> PriceListings { get; set; } = new List<PriceListing>();  // One Vendor can have many PriceListings
 	}
 }

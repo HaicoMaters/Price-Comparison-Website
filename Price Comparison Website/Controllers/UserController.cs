@@ -19,16 +19,20 @@ namespace Price_Comparison_Website.Controllers
         private Repository<UserWishList> userWishlists;
         private UserManager<ApplicationUser> _userManager;
         private IWebHostEnvironment _webHostEnvironment;
-        private NotificationService notificationService;
+        private INotificationService _notificationService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<ApplicationUser> userManager)
+        public UserController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, 
+            UserManager<ApplicationUser> userManager, INotificationService notificationService,
+            ILogger<UserController> logger)
         {
             products = new Repository<Product>(context);
             userViewingHistory = new Repository<UserViewingHistory>(context);
             userWishlists = new Repository<UserWishList>(context);
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
-            notificationService = new NotificationService(context);
+            _notificationService = notificationService;
+            _logger = logger;
         }
 
         [Authorize(Roles = "User")]
@@ -59,11 +63,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to load wishlist for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to load wishlist", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while loading wishlist for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -101,11 +107,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to load viewing history for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to load viewing history", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while loading viewing history for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -131,11 +139,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to remove from wishlist for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while removing from wishlist for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -165,11 +175,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to delete viewing history for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to delete viewing history", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while deleting viewing history for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -186,8 +198,8 @@ namespace Price_Comparison_Website.Controllers
                 {
                     // This is a pretty bad solution but it works for now
                     // Get both read and unread notifications
-                    var readNotifications = await notificationService.GetReadUserNotifications(user.Id);
-                    var unreadNotifications = await notificationService.GetUnreadUserNotifications(user.Id);
+                    var readNotifications = await _notificationService.GetReadUserNotifications(user.Id);
+                    var unreadNotifications = await _notificationService.GetUnreadUserNotifications(user.Id);
                     
                     // Merge both lists and remove duplicates
                     var allNotifications = readNotifications.Concat(unreadNotifications)
@@ -207,11 +219,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to fetch notifications for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to fetch notifications", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while fetching notifications for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -227,16 +241,18 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    await notificationService.MarkNotificationsAsRead(user.Id);
+                    await _notificationService.MarkNotificationsAsRead(user.Id);
                     return Ok(new { success = true });
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to mark notifications as read for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to mark notifications as read", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while marking notifications as read for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -253,16 +269,18 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    await notificationService.DeleteUserNotification(notificationId, user.Id);
+                    await _notificationService.DeleteUserNotification(notificationId, user.Id);
                     return Ok(new { success = true });
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogWarning(ex, "Failed to dismiss notification for user {UserId}", User.Identity.Name);
                     return BadRequest(new { error = "Failed to dismiss notification", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while dismissing notification for user {UserId}", User.Identity.Name);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }

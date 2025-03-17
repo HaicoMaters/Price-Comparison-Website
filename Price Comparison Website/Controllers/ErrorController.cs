@@ -7,10 +7,20 @@ namespace Price_Comparison_Website.Controllers
 {
     public class ErrorController : Controller
     {
+        private readonly ILogger<ErrorController> _logger;
+
+        public ErrorController(ILogger<ErrorController> logger)
+        {
+            _logger = logger;
+        }
+
         [Route("Error/{statusCode}")]
         public IActionResult HttpStatusCodeHandler(int statusCode)
         {
             var statusCodeResult = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+
+            _logger.LogWarning("HTTP {StatusCode} error occurred. Path: {Path}",
+                statusCode, statusCodeResult?.OriginalPath);
 
             switch (statusCode)
             {
@@ -39,7 +49,11 @@ namespace Price_Comparison_Website.Controllers
         public IActionResult Error()
         {
             var exceptionDetails = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
-            
+
+            _logger.LogError(exceptionDetails?.Error,
+                "An unhandled exception occurred. Path: {Path}",
+                exceptionDetails?.Path);
+
             ViewData["ErrorCode"] = "Error";
             ViewData["ErrorMessage"] = "An unexpected error occurred. Please try again later.";
 

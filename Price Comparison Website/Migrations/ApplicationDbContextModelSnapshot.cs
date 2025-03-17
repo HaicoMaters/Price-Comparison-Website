@@ -3,24 +3,21 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Price_Comparison_Website.Data;
 
 #nullable disable
 
-namespace Price_Comparison_Website.Data.Migrations
+namespace Price_Comparison_Website.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250116230016_Seed")]
-    partial class Seed
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -236,7 +233,9 @@ namespace Price_Comparison_Website.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("CategoryId");
 
@@ -335,6 +334,64 @@ namespace Price_Comparison_Website.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Price_Comparison_Website.Models.LoginActivity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<bool>("IsSuccessful")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LoginTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("LoginActivities");
+                });
+
+            modelBuilder.Entity("Price_Comparison_Website.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsGlobal")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("Price_Comparison_Website.Models.PriceListing", b =>
                 {
                     b.Property<int>("PriceListingId")
@@ -343,8 +400,11 @@ namespace Price_Comparison_Website.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PriceListingId"));
 
-                    b.Property<DateTime?>("DateListed")
+                    b.Property<DateTime>("DateListed")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscountedPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -353,6 +413,7 @@ namespace Price_Comparison_Website.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PurchaseUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VendorId")
@@ -370,19 +431,51 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             PriceListingId = 1,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3661),
-                            Price = 99.00m,
+                            DateListed = new DateTime(2025, 3, 14, 14, 52, 37, 413, DateTimeKind.Unspecified).AddTicks(3597),
+                            DiscountedPrice = 7.50m,
+                            Price = 15.60m,
                             ProductId = 1,
-                            PurchaseUrl = "https://www.amazon.com/Stealth-Wireless-Multiplatform-Amplified-Headset-Nintendo/dp/B0CYWFH5Y9/ref=sr_1_5?_encoding=UTF8&content-id=amzn1.sym.12129333-2117-4490-9c17-6d31baf0582a&dib=eyJ2IjoiMSJ9.VGoru17L34M5u4AqX0EqqypmcGNBhQxULfjaHbYVNmd0PXtUKoq0IryVhEe8Avp17c7W4F1avbJAkvdvMH3jBAvS1y-h85YgufTd1_YFIBFyMR3ugPGW3V_AdDjgteUFyhz_Eez0nfm7auWFQlzkPy2RTQwsDVHjaVrtwgAkM3xC_LGBLXpf8WBiOQfNuzqJezm6DyoWKDfnAMQK88unx_KwWs3-xqdFcuBtzcNb5QU.kSL29Wzha8iyoHFr3XL-ZPQOSlLNXOyLBsq88fLMoBg&dib_tag=se&keywords=gaming+headsets&pd_rd_r=2d291fd7-dfbe-4e94-a175-382f3c52d742&pd_rd_w=WK5FS&pd_rd_wg=SgrUc&pf_rd_p=12129333-2117-4490-9c17-6d31baf0582a&pf_rd_r=K2AVFG3GKGVRSJCX847Q&qid=1737064698&sr=8-5&th=1",
+                            PurchaseUrl = "https://www.amazon.co.uk/Pepsi-Max-Cans-330ml-Pack/dp/B017NVHSF8/259-3693489-2210466",
                             VendorId = 1
                         },
                         new
                         {
                             PriceListingId = 2,
-                            DateListed = new DateTime(2025, 1, 16, 23, 0, 16, 366, DateTimeKind.Local).AddTicks(3702),
-                            Price = 190.36m,
+                            DateListed = new DateTime(2025, 3, 14, 14, 52, 45, 283, DateTimeKind.Unspecified).AddTicks(3811),
+                            DiscountedPrice = 4.87m,
+                            Price = 10.79m,
+                            ProductId = 2,
+                            PurchaseUrl = "https://www.amazon.co.uk/Gorilla-4044205-Superglue-15g/dp/B003CT4XT0/259-3693489-2210466",
+                            VendorId = 1
+                        },
+                        new
+                        {
+                            PriceListingId = 3,
+                            DateListed = new DateTime(2025, 3, 14, 14, 52, 39, 768, DateTimeKind.Unspecified).AddTicks(8507),
+                            DiscountedPrice = 11.50m,
+                            Price = 11.50m,
                             ProductId = 1,
-                            PurchaseUrl = "https://www.ebay.co.uk/itm/286226735878",
+                            PurchaseUrl = "https://www.tesco.com/groceries/en-GB/products/282774907",
+                            VendorId = 11
+                        },
+                        new
+                        {
+                            PriceListingId = 4,
+                            DateListed = new DateTime(2025, 3, 14, 14, 52, 51, 812, DateTimeKind.Unspecified).AddTicks(2214),
+                            DiscountedPrice = 5.03m,
+                            Price = 12.85m,
+                            ProductId = 3,
+                            PurchaseUrl = "https://www.amazon.co.uk/UNO-W2087-Card-Game-European/dp/B005I5M2F8",
+                            VendorId = 1
+                        },
+                        new
+                        {
+                            PriceListingId = 5,
+                            DateListed = new DateTime(2025, 3, 14, 14, 52, 49, 664, DateTimeKind.Unspecified).AddTicks(9873),
+                            DiscountedPrice = 3.85m,
+                            Price = 3.85m,
+                            ProductId = 3,
+                            PurchaseUrl = "https://www.ebay.co.uk/itm/175594341144",
                             VendorId = 2
                         });
                 });
@@ -398,14 +491,21 @@ namespace Price_Comparison_Website.Data.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CheapestPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("ProductId");
 
@@ -417,20 +517,64 @@ namespace Price_Comparison_Website.Data.Migrations
                         new
                         {
                             ProductId = 1,
-                            CategoryId = 1,
-                            Description = "Multiplatform, Low-latency 2.4GHz Wireless + Bluetooth 5.2\r\nBest-in-Class 80-Hour Battery Life with Quick Charge\r\nQuickSwitch Button for Seamless Wireless to Bluetooth switching\r\nFlip-to-Mute Mic with A.I.-Based Noise Reduction\r\nPowerful, 50mm Nanoclear Drivers for Vibrant Spatial Audio\r\nSwarm II Desktop & Mobile App with Advanced 10-Band EQ\r\nMappable Wheel & Mode Button for Customizable Functions",
-                            ImageUrl = "https://m.media-amazon.com/images/I/71kECPK7CXL._AC_SL1500_.jpg",
-                            Name = "Turtle Beach Stealth 600 Gen 3 Wireless Multiplatform Amplified Gaming Headset"
+                            CategoryId = 4,
+                            CheapestPrice = 7.50m,
+                            Description = "Diet type: VegetarianIngredients:Carbonated Water, Colour (E150d), Sweeteners (Aspartame, Acesulfame K), Acids (Phosphoric Acid, Citric Acid), Flavourings (Including Caffeine), Preservative (Potassium Sorbate). Contains a Source of Phenylalanin.",
+                            ImageUrl = "https://m.media-amazon.com/images/I/61zIvU-0TDL.__AC_SX300_SY300_QL70_ML2_.jpg",
+                            Name = "Pepsi Max No Sugar Cola Cans 24 x 330ml"
+                        },
+                        new
+                        {
+                            ProductId = 2,
+                            CategoryId = 2,
+                            CheapestPrice = 4.87m,
+                            Description = "IMPACT TOUGH Formulated for impact resistance and strength. FAST SETTING Dries in just 10 - 45 seconds, with no gripping required. ANTI-CLOG CAP Keeps Super Glue from drying out. BONDS Metal, wood, ceramic, paper, rubber & plastics (not PP or PE) and more! FILL LINE Bottle is not full, it is filled to 15g fill line to allow liquid to flow. PREPARATION Protect work area from spills. Clean and dry the surfaces to be bonded. To puncture seal on tube, tighten white nozzle firmly. APPLY Apply a small amount of Gorilla Super Glue to one surface. Only one drop per 6.5cm2 recommended. Set time can vary based on amount of glue and type of surface glued. Excess glue can cause delayed or failed bond. PRESS Press the two surfaces together between 10-45 seconds. Wait 24 hours for full cure",
+                            ImageUrl = "https://m.media-amazon.com/images/I/81GVBVWnryS._AC_SX679_.jpg",
+                            Name = "Gorilla Super Glue, 15g"
+                        },
+                        new
+                        {
+                            ProductId = 3,
+                            CategoryId = 9,
+                            CheapestPrice = 3.85m,
+                            Description = "The classic card game of matching colors and numbers. Special Action Cards and Wild Cards for unexpected excitement and game-changing fun. Use the Swap Hands cards to change hands with any other opponent. Write your own rules for game play with the Customizable Wild cards. Players take turns matching a card in their hand with the color or number of the card shown on the top of the deck. Special graphic symbols have been added to each card to help identify the color(s) on that card. This will allow players with ANY form of color blindness to easily play! Don't forget to shout \"UNO\" when you only have one card remaining!",
+                            ImageUrl = "https://m.media-amazon.com/images/I/71MrrNB7jCL._AC_SX679_.jpg",
+                            Name = "UNO"
                         });
+                });
+
+            modelBuilder.Entity("Price_Comparison_Website.Models.UserNotification", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("NotificationId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserId", "NotificationId");
+
+                    b.HasIndex("NotificationId");
+
+                    b.ToTable("UserNotifications");
                 });
 
             modelBuilder.Entity("Price_Comparison_Website.Models.UserViewingHistory", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnOrder(0);
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime>("LastViewed")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("UserId", "ProductId");
 
@@ -442,10 +586,15 @@ namespace Price_Comparison_Website.Data.Migrations
             modelBuilder.Entity("Price_Comparison_Website.Models.UserWishList", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnOrder(0);
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<decimal>("LastCheapestPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("UserId", "ProductId");
 
@@ -463,12 +612,16 @@ namespace Price_Comparison_Website.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VendorId"));
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("VendorLogoUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VendorUrl")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("VendorId");
@@ -492,45 +645,10 @@ namespace Price_Comparison_Website.Data.Migrations
                         },
                         new
                         {
-                            VendorId = 3,
-                            Name = "Best Buy",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/2f/Best_Buy_Logo.svg",
-                            VendorUrl = "https://www.bestbuy.com"
-                        },
-                        new
-                        {
-                            VendorId = 4,
-                            Name = "Target",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/9/9a/Target_logo.svg",
-                            VendorUrl = "https://www.target.com"
-                        },
-                        new
-                        {
-                            VendorId = 5,
-                            Name = "Home Depot",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5f/TheHomeDepot.svg",
-                            VendorUrl = "https://www.homedepot.com"
-                        },
-                        new
-                        {
-                            VendorId = 6,
-                            Name = "Ikea",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/8b/Ikea_logo.svg",
-                            VendorUrl = "https://www.ikea.com"
-                        },
-                        new
-                        {
-                            VendorId = 7,
-                            Name = "AliExpress",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/f9/AliExpress_logo.svg",
-                            VendorUrl = "https://www.aliexpress.com"
-                        },
-                        new
-                        {
-                            VendorId = 8,
-                            Name = "Etsy",
-                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/8/82/Etsy_logo.svg",
-                            VendorUrl = "https://www.etsy.com"
+                            VendorId = 11,
+                            Name = "Tesco",
+                            VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/en/thumb/b/b0/Tesco_Logo.svg/2560px-Tesco_Logo.svg.png",
+                            VendorUrl = "https://www.tesco.com/"
                         });
                 });
 
@@ -585,6 +703,17 @@ namespace Price_Comparison_Website.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Price_Comparison_Website.Models.LoginActivity", b =>
+                {
+                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Price_Comparison_Website.Models.PriceListing", b =>
                 {
                     b.HasOne("Price_Comparison_Website.Models.Product", "Product")
@@ -613,6 +742,25 @@ namespace Price_Comparison_Website.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Price_Comparison_Website.Models.UserNotification", b =>
+                {
+                    b.HasOne("Price_Comparison_Website.Models.Notification", "Notification")
+                        .WithMany("UserNotifications")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Price_Comparison_Website.Models.ApplicationUser", "User")
+                        .WithMany("UserNotifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notification");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Price_Comparison_Website.Models.UserViewingHistory", b =>
@@ -655,6 +803,8 @@ namespace Price_Comparison_Website.Data.Migrations
 
             modelBuilder.Entity("Price_Comparison_Website.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("UserNotifications");
+
                     b.Navigation("ViewingHistory");
 
                     b.Navigation("WishList");
@@ -663,6 +813,11 @@ namespace Price_Comparison_Website.Data.Migrations
             modelBuilder.Entity("Price_Comparison_Website.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Price_Comparison_Website.Models.Notification", b =>
+                {
+                    b.Navigation("UserNotifications");
                 });
 
             modelBuilder.Entity("Price_Comparison_Website.Models.Product", b =>

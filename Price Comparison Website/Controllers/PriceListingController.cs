@@ -12,16 +12,19 @@ namespace Price_Comparison_Website.Controllers
 		private Repository<PriceListing> priceListings;
 		private Repository<Vendor> vendors;
 		private Repository<Product> products;
-		private NotificationService notificationService;
+		private INotificationService _notificationService;
 		private readonly IWebHostEnvironment _webHostEnvironment;
+		private readonly ILogger<PriceListingController> _logger;
 
-		public PriceListingController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+		public PriceListingController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, 
+			INotificationService notificationService, ILogger<PriceListingController> logger)
 		{
 			priceListings = new Repository<PriceListing>(context);
 			vendors = new Repository<Vendor>(context);
 			products = new Repository<Product>(context);
-			notificationService = new NotificationService(context);
+			_notificationService = notificationService;
 			_webHostEnvironment = webHostEnvironment;
+			_logger = logger;
 		}
 
 		public IActionResult Index()
@@ -73,6 +76,8 @@ namespace Price_Comparison_Website.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "Error occurred while loading price listing. ListingId: {ListingId}, ProductId: {ProductId}", 
+					id, prodId);
 				ModelState.AddModelError("", $"An error occurred: {ex.Message}");
 				return View();
 			}
@@ -125,6 +130,8 @@ namespace Price_Comparison_Website.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "Error occurred while adding/editing price listing. ListingId: {ListingId}, ProductId: {ProductId}", 
+					priceListing.PriceListingId, priceListing.ProductId);
 				return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
 			}
 		}
@@ -149,11 +156,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+					_logger.LogError(ex, "Failed to delete price listing. ListingId: {ListingId}", id);
                     return BadRequest(new { error = "Failed to delete price listing", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+				_logger.LogError(ex, "Error occurred while deleting price listing. ListingId: {ListingId}", id);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -162,17 +171,26 @@ namespace Price_Comparison_Website.Controllers
 		// Helper Methods -------------------------------------------------------
 		private async Task HandleExistingPriceListing(PriceListing priceListing)
 		{
-			var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
-			if (existingPriceListing == null)
-				throw new InvalidOperationException("Listing not found");
+			try
+			{
+				var existingPriceListing = await priceListings.GetByIdAsync(priceListing.PriceListingId, new QueryOptions<PriceListing>());
+				if (existingPriceListing == null)
+					throw new InvalidOperationException("Listing not found");
 
-			existingPriceListing.Price = priceListing.Price;
-			existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
-			existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
-			existingPriceListing.VendorId = priceListing.VendorId;
-			existingPriceListing.DateListed = DateTime.Now;
+				existingPriceListing.Price = priceListing.Price;
+				existingPriceListing.DiscountedPrice = priceListing.DiscountedPrice;
+				existingPriceListing.PurchaseUrl = priceListing.PurchaseUrl;
+				existingPriceListing.VendorId = priceListing.VendorId;
+				existingPriceListing.DateListed = DateTime.Now;
 
-			await priceListings.UpdateAsync(existingPriceListing);
+				await priceListings.UpdateAsync(existingPriceListing);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Failed to handle existing price listing. ListingId: {ListingId}", 
+					priceListing.PriceListingId);
+				throw new InvalidOperationException("Failed to handle existing listing", ex);
+			}
 		}
 
 		public async Task UpdateCheapestPrice(int productId, decimal newPrice)
@@ -187,12 +205,13 @@ namespace Price_Comparison_Website.Controllers
 				if (newPrice < existingProduct.CheapestPrice || existingProduct.CheapestPrice == 0)
 				{
 					// Send Notification to Users with item on wishlist if price drops
-					await notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
+					await _notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
 				}
 				await RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "Failed to update cheapest price. ProductId: {ProductId}", productId);
 				throw new InvalidOperationException("Failed to update cheapest price", ex);
 			}
 		}
@@ -221,6 +240,7 @@ namespace Price_Comparison_Website.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError(ex, "Failed to recalculate cheapest price. ProductId: {ProductId}", productId);
 				throw new InvalidOperationException("Failed to recalculate cheapest price", ex);
 			}
 		}

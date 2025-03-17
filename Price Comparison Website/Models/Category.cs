@@ -1,14 +1,23 @@
-﻿namespace Price_Comparison_Website.Models
-{
-	public class Category
-	{
-		public Category()
-		{
-			Products = new List<Product>();
-		}
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-		public int CategoryId { get; set; }  // PK
-		public string Name { get; set; }
-		public ICollection<Product>? Products { get; set; }
-	}
+namespace Price_Comparison_Website.Models
+{
+    public class Category
+    {
+        public Category()
+        {
+            Products = new List<Product>();
+        }
+
+        [Key]
+        public int CategoryId { get; set; }
+
+        [Required]
+        [StringLength(50, MinimumLength = 2)]
+        public string Name { get; set; }
+
+        [ValidateNever]
+        public ICollection<Product> Products { get; set; }
+    }
 }

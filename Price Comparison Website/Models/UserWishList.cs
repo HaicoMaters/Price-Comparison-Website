@@ -1,18 +1,31 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Price_Comparison_Website.Models
 {
-	// Join Table
-	public class UserWishList
-	{
-		public string? UserId { get; set; } // FK
-		public int ProductId { get; set; } // FK
-										  
-		// Navigation Properties
-		[ValidateNever]
-		public ApplicationUser User { get; set; }
-		[ValidateNever]
-		public Product Product { get; set; }
-		public decimal LastCheapestPrice { get; set; } // For Notifiation System
-	}
+    public class UserWishList
+    {
+        [Key]
+        [Column(Order = 0)]
+        [Required]
+        public string UserId { get; set; }
+
+        [Key]
+        [Column(Order = 1)]
+        [Required]
+        public int ProductId { get; set; }
+
+        [ValidateNever]
+        [ForeignKey("UserId")]
+        public ApplicationUser User { get; set; }
+
+        [ValidateNever]
+        [ForeignKey("ProductId")]
+        public Product Product { get; set; }
+
+        [Required]
+        [DataType(DataType.Currency)]
+        public decimal LastCheapestPrice { get; set; }
+    }
 }

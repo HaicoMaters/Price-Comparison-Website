@@ -12,13 +12,16 @@ namespace Price_Comparison_Website.Controllers
         private Repository<PriceListing> priceListings;
         private Repository<Product> products;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly ILogger<VendorController> _logger;
 
-        public VendorController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public VendorController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment,
+            ILogger<VendorController> logger)
         {
             vendors = new Repository<Vendor>(context);
             priceListings = new Repository<PriceListing>(context);
             products = new Repository<Product>(context);
             _webHostEnvironment = webHostEnvironment;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
@@ -44,6 +47,8 @@ namespace Price_Comparison_Website.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while fetching vendors. PageNumber: {PageNumber}, SearchQuery: {SearchQuery}", 
+                    pageNumber, searchQuery);
                 return StatusCode(500, new { error = "An error occurred while fetching vendors", details = ex.Message });
             }
         }
@@ -69,6 +74,7 @@ namespace Price_Comparison_Website.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error occurred while loading vendor for editing. VendorId: {VendorId}", id);
                 return StatusCode(500, new { error = "An error occurred while loading vendor", details = ex.Message });
             }
         }
@@ -93,6 +99,7 @@ namespace Price_Comparison_Website.Controllers
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex, "Error occurred while adding vendor. Vendor: {@Vendor}", vendor);
                         return BadRequest(new { error = "Failed to add vendor", details = ex.Message });
                     }
                 }
@@ -113,11 +120,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "Error occurred while updating vendor. Vendor: {@Vendor}", vendor);
                     return BadRequest(new { error = "Failed to update vendor", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while adding or editing vendor. Vendor: {@Vendor}", vendor);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -147,11 +156,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogError(ex, "Error occurred while loading vendor details. VendorId: {VendorId}", id);
                     return BadRequest(new { error = "Failed to load vendor details", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while viewing vendor. VendorId: {VendorId}", id);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
@@ -174,11 +185,13 @@ namespace Price_Comparison_Website.Controllers
                 }
                 catch (InvalidOperationException ex)
                 {
+                    _logger.LogError(ex, "Error occurred while deleting vendor. VendorId: {VendorId}", id);
                     return BadRequest(new { error = "Failed to delete vendor", details = ex.Message });
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unexpected error occurred while deleting vendor. VendorId: {VendorId}", id);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
         }
