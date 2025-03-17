@@ -26,6 +26,27 @@
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
+/* Navbar items spacing and hover effects */
+.navbar-nav .nav-link,
+.navbar-brand {
+    padding: 0.5rem 1rem;
+    margin: 0 0.2rem;
+    border-radius: 6px;
+    position: relative;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-brand:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Add transition for smooth hover effects */
+.navbar-nav .nav-item .nav-link,
+.navbar-brand {
+    transition: all 0.2s ease-in-out;
+}
+
 @media (max-width: 768px) {
     .navbar {
         background: #2c3e50 !important;
