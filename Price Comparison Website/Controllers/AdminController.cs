@@ -52,7 +52,7 @@ namespace Price_Comparison_Website.Controllers
             ViewBag.TotalVendors = vends.Count();
 
             // Get 10 most recent login activities
-            var recentActivities = await _loginActivityService.GetNMostRecentActivities(10);
+            var recentActivities = await _loginActivityService.GetNMostRecentActivities(50);
             ViewBag.RecentLoginActivities = recentActivities;
 
             return View();

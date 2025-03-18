@@ -85,7 +85,7 @@ namespace Price_Comparison_Website.Controllers
                             List<bool> onWishlist = new List<bool>();
                             foreach (var product in pagedProducts)
                             {
-                                var existingEntity = await _userService.GetUserWishListItems(user.Id);
+                                var existingEntity = await _userService.GetUserWishListItemById(user.Id, product.ProductId);
                                 onWishlist.Add(existingEntity != null);
                             }
                             ViewBag.OnWishlist = onWishlist;
@@ -143,19 +143,30 @@ namespace Price_Comparison_Website.Controllers
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         [HttpPost]
-        public async Task<IActionResult> AddEdit(Product product, int catId)
+        public async Task<IActionResult> AddEdit(Product product)
         {
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(new { error = "Invalid model state", details = ModelState });
+                {
+                    _logger.LogWarning("Model state is invalid:");
+                    foreach (var modelState in ModelState.Values)
+                    {
+                        foreach (var error in modelState.Errors)
+                        {
+                            _logger.LogWarning($"Error: {error.ErrorMessage}");
+                        }
+                    }
+                    ViewBag.Categories = await _categoryService.GetAllCategories();
+                    ViewBag.Operation = product.ProductId == 0 ? "Add" : "Edit";
+                    return View(product);
+                }
 
                 // Add Operation
                 if (product.ProductId == 0)
                 {
                     try
                     {
-                        product.CategoryId = catId;
                         await _productService.AddProduct(product);
                         return RedirectToAction("Index");
                     }
@@ -170,7 +181,7 @@ namespace Price_Comparison_Website.Controllers
 
                 try
                 {
-                    var prod = await _productService.UpdateProduct(product, catId);
+                    var prod = await _productService.UpdateProduct(product, product.CategoryId);
                     return RedirectToAction("ViewProduct", new { id = prod.ProductId });
                 }
                 catch (Exception ex)
@@ -252,7 +263,7 @@ namespace Price_Comparison_Website.Controllers
                             // Check if on Wishlist
                             try
                             {
-                                var existingWishlistItem = await _userService.GetUserWishListItems(user.Id);
+                                var existingWishlistItem = await _userService.GetUserWishListItemById(user.Id, id);
                                 ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
                             }
                             catch (Exception ex)
