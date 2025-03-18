@@ -43,7 +43,7 @@ namespace Price_Comparison_Website.Controllers
 			try
 			{
 				// Get product first
-				var product = await _productService.GetProductById(prodId);
+				var product = await _productService.GetProductById(prodId, new QueryOptions<Product>());
 
 				ViewBag.Product = product;
 				ViewBag.Vendors = await _vendorService.GetAllVendorsAsync();
@@ -60,7 +60,7 @@ namespace Price_Comparison_Website.Controllers
 					return View(new PriceListing() { ProductId = prodId });
 				}
 				
-				var priceListing = await _priceListingService.GetPriceListingById(id);
+				var priceListing = await _priceListingService.GetPriceListingById(id, new QueryOptions<PriceListing>());
 
 				if (priceListing == null)
 				{
@@ -139,7 +139,7 @@ namespace Price_Comparison_Website.Controllers
         {
             try
             {
-                var existingPriceListing = await _priceListingService.GetPriceListingById(id);
+                var existingPriceListing = await _priceListingService.GetPriceListingById(id, new QueryOptions<PriceListing>());
                 if (existingPriceListing == null)
                     return NotFound(new { error = "Price listing not found" });
 				
@@ -170,7 +170,7 @@ namespace Price_Comparison_Website.Controllers
 		{
 			try
 			{
-				var existingProduct = await _productService.GetProductById(productId);
+				var existingProduct = await _productService.GetProductById(productId, new QueryOptions<Product>());
 				if (existingProduct == null)
 					throw new InvalidOperationException("Product not found");
 

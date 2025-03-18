@@ -9,6 +9,7 @@ namespace Price_Comparison_Website.Services.Interfaces
     public interface IVendorService
     {
         Task<IEnumerable<Vendor>> GetAllVendorsAsync();
+        Task<IEnumerable<Vendor>> GetAllVendorsAsync(QueryOptions<Vendor> queryOptions);
         Task<Vendor> GetVendorByIdAsync(int vendorId);
         Task AddVendorAsync(Vendor vendor);
         Task UpdateVendorAsync(Vendor vendor);

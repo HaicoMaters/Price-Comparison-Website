@@ -9,6 +9,6 @@ namespace Price_Comparison_Website.Services.Interfaces
     public interface ICategoryService
     {
         Task<IEnumerable<Category>> GetAllCategories();
-        Task<Category> GetCategoryById(int categoryId);
+        Task<Category> GetCategoryById(int categoryId, QueryOptions<Category> queryOptions);
     }
 }

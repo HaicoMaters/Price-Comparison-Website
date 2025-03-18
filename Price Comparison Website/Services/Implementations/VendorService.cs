@@ -60,6 +60,19 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
+        public async Task<IEnumerable<Vendor>> GetAllVendorsAsync(QueryOptions<Vendor> queryOptions)
+        {
+            try
+            {
+                return await _vendorRepository.GetAllAsync(queryOptions);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting all vendors");
+                throw;
+            }
+        }
+
         public async Task<Vendor> GetVendorByIdAsync(int vendorId)
         {
             try{

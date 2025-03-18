@@ -56,10 +56,21 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
-        public async Task<Product> GetProductById(int productId)
+        public async Task<IEnumerable<Product>> GetAllProducts(QueryOptions<Product> queryOptions)
         {
             try{
-                return await _products.GetByIdAsync(productId, new QueryOptions<Product>());
+                return await _products.GetAllAsync(queryOptions);
+            }
+            catch(Exception ex){
+                _logger.LogError(ex, "Error in ProductService.GetAllProducts()");
+                throw;
+            }
+        }
+
+        public async Task<Product> GetProductById(int productId, QueryOptions<Product> queryOptions)
+        {
+            try{
+                return await _products.GetByIdAsync(productId, queryOptions);
             }
             catch(Exception ex){
                 _logger.LogError(ex, "Error in ProductService.GetProductById()");
@@ -67,10 +78,10 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<Product>> GetProductsByCategoryId(int categoryId)
+        public async Task<IEnumerable<Product>> GetProductsByCategoryId(int categoryId, QueryOptions<Product> queryOptions)
         {
             try{
-                return await _products.GetAllByIdAsync(categoryId, "CategoryId", new QueryOptions<Product>());
+                return await _products.GetAllByIdAsync(categoryId, "CategoryId", queryOptions);
             }
             catch(Exception ex){
                 _logger.LogError(ex, "Error in ProductService.GetProductsByCategoryId()");

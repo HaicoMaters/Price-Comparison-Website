@@ -61,7 +61,7 @@ namespace Price_Comparison_Website.Controllers
                     }
                     else
                     {
-                        allProducts = await _productService.GetProductsByCategoryId(catId);
+                        allProducts = await _productService.GetProductsByCategoryId(catId, new QueryOptions<Product>());
                     }
 
                     // Apply search filter if provided
@@ -126,7 +126,7 @@ namespace Price_Comparison_Website.Controllers
                     return View(new Product());
                 }
 
-                var product = await _productService.GetProductById(id);
+                var product = await _productService.GetProductById(id, new QueryOptions<Product>());
                 if (product == null)
                     return NotFound(new { error = "Product not found" });
 
@@ -229,14 +229,14 @@ namespace Price_Comparison_Website.Controllers
                 if (id == 0)
                     return RedirectToAction("Index", "Product");
 
-                var product = await _productService.GetProductById(id);
+                var product = await _productService.GetProductById(id, new QueryOptions<Product>());
                 if (product == null)
                     return NotFound(new { error = "Product not found" });
 
                 try
                 {
                     // Get price listings
-                    var listings = await _priceListingService.GetPriceListingsByProductId(id);
+                    var listings = await _priceListingService.GetPriceListingsByProductId(id, new QueryOptions<PriceListing>());
                     ViewBag.Listings = listings.OrderBy(listing => listing.DiscountedPrice);
 
                     foreach (var listing in ViewBag.Listings)
@@ -320,7 +320,7 @@ namespace Price_Comparison_Website.Controllers
                 else
                 {
                     // Add to wishlist
-                    var existingProd = await _productService.GetProductById(prodId);
+                    var existingProd = await _productService.GetProductById(prodId, new QueryOptions<Product>());
                     if (existingProd == null)
                         return NotFound(new { error = "Product not found" });
 

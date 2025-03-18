@@ -6,7 +6,7 @@ namespace Price_Comparison_Website.Services
     {
         Task<IEnumerable<LoginActivity>> GetAllActivitiesAsync();
         Task AddActivityAsync(LoginActivity activity);
-        Task<IEnumerable<LoginActivity>> GetActivitiesByUserId(string userId);
+        Task<IEnumerable<LoginActivity>> GetActivitiesByUserId(string userId, QueryOptions<LoginActivity> queryOptions);
         Task<IEnumerable<LoginActivity>> GetNMostRecentActivities(int n);
     }
 }

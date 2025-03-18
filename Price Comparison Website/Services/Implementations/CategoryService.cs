@@ -29,10 +29,10 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
-        public async Task<Category> GetCategoryById(int categoryId)
+        public async Task<Category> GetCategoryById(int categoryId, QueryOptions<Category> queryOptions)
         {
             try{
-                return await _categoryRepository.GetByIdAsync(categoryId, new QueryOptions<Category>());
+                return await _categoryRepository.GetByIdAsync(categoryId,queryOptions);
             }
             catch(Exception ex){
                 _logger.LogError(ex, "Error in CategoryService.GetCategoryById()");

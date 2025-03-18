@@ -48,11 +48,11 @@ namespace Price_Comparison_Website.Services
             }
         }
 
-        public async Task<IEnumerable<LoginActivity>> GetActivitiesByUserId(string userId)
+        public async Task<IEnumerable<LoginActivity>> GetActivitiesByUserId(string userId, QueryOptions<LoginActivity> queryOptions)
         {
             try
             {
-                return await _loginActivities.GetAllByIdAsync(userId, "UserId", new QueryOptions<LoginActivity>());
+                return await _loginActivities.GetAllByIdAsync(userId, "UserId", queryOptions);
             }
             catch (Exception ex)
             {

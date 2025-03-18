@@ -51,6 +51,24 @@ namespace Price_Comparison_Website.Models
 			return await _dbSet.ToListAsync();
 		}
 
+        public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T> options){
+            IQueryable<T> query = _dbSet;
+            if (options.HasWhere)
+			{
+				query = query.Where(options.Where);
+			}
+			if (options.HasOrderBy)
+			{
+                query = query.OrderBy(options.OrderBy);
+			}
+			foreach (string includes in options.GetIncludes())
+			{
+				query = query.Include(includes);
+			}
+
+            return await query.ToListAsync();
+        }
+
 		public async Task<IEnumerable<T>> GetAllByIdAsync<TKey>(TKey id, string propertyName, QueryOptions<T> options)
 		{
 			IQueryable<T> query = _dbSet;
@@ -64,7 +82,7 @@ namespace Price_Comparison_Website.Models
 			}
 			foreach (string includes in options.GetIncludes())
 			{
-				query.Include(includes);
+				query = query.Include(includes);
 			}
 
 			query = query.Where(e => EF.Property<TKey>(e, propertyName).Equals(id));
@@ -85,7 +103,7 @@ namespace Price_Comparison_Website.Models
 			}
 			foreach (string includes in options.GetIncludes())
 			{
-				query.Include(includes);
+				query = query.Include(includes);
 			}
 
 			var key = _context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties.FirstOrDefault();

@@ -46,6 +46,18 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
+        public async Task<IEnumerable<PriceListing>> GetAllPriceListings(QueryOptions<PriceListing> queryOptions)
+        {
+            try{
+                return await _priceListings.GetAllAsync(queryOptions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get pricelistings");
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<PriceListing>> GetAllPriceListings()
         {
             try{
@@ -58,10 +70,10 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
-        public async Task<PriceListing> GetPriceListingById(int priceListingId)
+        public async Task<PriceListing> GetPriceListingById(int priceListingId, QueryOptions<PriceListing> queryOptions)
         {
            try{
-                return await _priceListings.GetByIdAsync(priceListingId, new QueryOptions<PriceListing>());
+                return await _priceListings.GetByIdAsync(priceListingId, queryOptions);
            }
            catch (Exception ex)
             {
@@ -70,10 +82,10 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
-        public async Task<IEnumerable<PriceListing>> GetPriceListingsByProductId(int productId)
+        public async Task<IEnumerable<PriceListing>> GetPriceListingsByProductId(int productId, QueryOptions<PriceListing> queryOptions)
         {
             try{
-                return await _priceListings.GetAllByIdAsync(productId, "ProductId", new QueryOptions<PriceListing>());
+                return await _priceListings.GetAllByIdAsync(productId, "ProductId", queryOptions);
             }
             catch (Exception ex)
             {
@@ -86,7 +98,7 @@ namespace Price_Comparison_Website.Services.Implementations
         {
             try
             {
-                var existingListing = await GetPriceListingById(priceListing.PriceListingId);
+                var existingListing = await GetPriceListingById(priceListing.PriceListingId , new QueryOptions<PriceListing>());
                 
                 existingListing.PurchaseUrl = priceListing.PurchaseUrl;
                 existingListing.Price = priceListing.Price;
