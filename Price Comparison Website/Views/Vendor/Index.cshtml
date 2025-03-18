@@ -3,6 +3,10 @@
 @inject UserManager<ApplicationUser> UserManager
 @model IEnumerable<Vendor>
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-cards.css" asp-append-version="true" />
+}
+
 @{
 	ViewBag.Title = "View All Vendors";
     List<Vendor> vendorList = Model?.ToList() ?? new List<Vendor>();

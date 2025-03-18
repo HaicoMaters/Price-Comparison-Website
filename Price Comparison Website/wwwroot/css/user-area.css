@@ -1,0 +1,44 @@
+/* List View Image Styling */
+.wishlist-item img,
+.history-item img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.wishlist-item:hover img,
+.history-item:hover img {
+    transform: scale(1.05) rotate(-2deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #dee2e6;
+}
+
+/* Adjust spacing for list items */
+.wishlist-item,
+.history-item {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.wishlist-item:hover,
+.history-item:hover {
+    background: linear-gradient(to right, #fff, #f8f9fa);
+    border-color: #dee2e6;
+    transform: translateX(5px);
+}
+
+/* Add space between image and content */
+.wishlist-item .d-flex.flex-column,
+.history-item .d-flex.flex-column {
+    margin-left: 1.5rem;
+}
