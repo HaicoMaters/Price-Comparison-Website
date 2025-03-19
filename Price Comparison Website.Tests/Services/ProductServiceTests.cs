@@ -79,12 +79,10 @@ namespace Price_Comparison_Website.Tests.Services
             _productRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>())).ReturnsAsync((Product)null); // Explicitly should be null
             
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await _productService.RecalculateCheapestPrice(1));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await _productService.RecalculateCheapestPrice(1));
 
             // Verify that GetByIdAsync was called once with the correct parameters
-            _productRepoMock.Verify(
-                r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>()), Times.Once);
+            _productRepoMock.Verify( r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>()), Times.Once);
         }
     }
 }

@@ -65,12 +65,9 @@ namespace Price_Comparison_Website.Services
         {
             try
             {
-                var queryOptions = new QueryOptions<LoginActivity>{
-                    OrderBy = l => -l.LoginTime.Ticks,
-                };
+                var activities = await _loginActivities.GetAllAsync();
 
-                var activities = await _loginActivities.GetAllAsync(queryOptions);
-                return activities.Take(n);
+                return activities.OrderByDescending(l => l.LoginTime).Take(n);  // Sort by most recent first
             }
             catch (Exception ex)
             {

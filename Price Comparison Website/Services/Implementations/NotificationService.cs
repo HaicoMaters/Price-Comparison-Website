@@ -40,7 +40,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = userNotif.Notification;
                     if (notification != null)
                     {
                         notificationList.Add(notification);
@@ -72,7 +72,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = userNotif.Notification;
                     if (notification != null)
                     {
                         notificationList.Add(notification);
@@ -105,7 +105,7 @@ namespace Price_Comparison_Website.Services
 
                 foreach (var userNotif in userNotifs) // Not a great solution but it works `¯\_(ツ)_/¯`
                 {
-                    var notification = await _notifications.GetByIdAsync(userNotif.NotificationId, new QueryOptions<Notification>());
+                    var notification = userNotif.Notification;
                     if (notification != null)
                     {
                         notificationList.Add(notification);

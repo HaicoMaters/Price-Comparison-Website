@@ -34,11 +34,7 @@ namespace Price_Comparison_Website.Tests.Services
                 new LoginActivity { Id = 4, UserId = "4", IpAddress = "4", IsSuccessful = false, LoginTime = DateTime.Now.AddMinutes(-30) }
             };
 
-            _loginActivityRepoMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<LoginActivity>>())).ReturnsAsync((QueryOptions<LoginActivity> opts) =>
-            {
-                var sorted = loginActivities.OrderBy(opts.OrderBy.Compile()).ToList();
-             return sorted;
-             });
+            _loginActivityRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(loginActivities.OrderByDescending(la => la.LoginTime));
 
             // Act
             var activities = await _loginActivityService.GetNMostRecentActivities(n);
@@ -66,11 +62,7 @@ namespace Price_Comparison_Website.Tests.Services
                 new LoginActivity { Id = 5, UserId = "5", IpAddress = "5", IsSuccessful = false, LoginTime = DateTime.Now.AddMinutes(-5) }
             };
 
-            _loginActivityRepoMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<LoginActivity>>())).ReturnsAsync((QueryOptions<LoginActivity> opts) =>
-            {
-                var sorted = loginActivities.OrderBy(opts.OrderBy.Compile()).ToList();
-                return sorted;
-             });
+            _loginActivityRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(loginActivities.OrderByDescending(la => la.LoginTime));
 
             // Act
             var activities = await _loginActivityService.GetNMostRecentActivities(n);
@@ -97,11 +89,7 @@ namespace Price_Comparison_Website.Tests.Services
                 new LoginActivity { Id = 4, UserId = "4", IpAddress = "4", IsSuccessful = false, LoginTime = DateTime.Now.AddMinutes(-30) }
             };
 
-            _loginActivityRepoMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<LoginActivity>>())).ReturnsAsync((QueryOptions<LoginActivity> opts) =>
-            {
-                var sorted = loginActivities.OrderBy(opts.OrderBy.Compile()).ToList();
-             return sorted;
-             });
+            _loginActivityRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(loginActivities.OrderByDescending(la => la.LoginTime));
 
             // Act
             var activities = await _loginActivityService.GetNMostRecentActivities(n);
@@ -120,9 +108,7 @@ namespace Price_Comparison_Website.Tests.Services
                 // Arrange
                 int n = 4;
 
-                _loginActivityRepoMock
-                    .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<LoginActivity>>()))
-                    .ReturnsAsync(new List<LoginActivity>());
+                _loginActivityRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<LoginActivity>());
 
                 // Act
                 var activities = await _loginActivityService.GetNMostRecentActivities(n);
