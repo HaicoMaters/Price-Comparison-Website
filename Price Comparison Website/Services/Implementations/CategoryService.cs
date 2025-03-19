@@ -24,7 +24,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _categoryRepository.GetAllAsync();
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in CategoryService.GetAllCategories()");
+                _logger.LogError(ex, "Failed to get categories");
                 throw;
             }
         }
@@ -35,7 +35,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _categoryRepository.GetByIdAsync(categoryId,queryOptions);
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in CategoryService.GetCategoryById()");
+                _logger.LogError(ex, "Failed to get category by id");
                 throw;
             }
         }

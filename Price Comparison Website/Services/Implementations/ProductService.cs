@@ -28,7 +28,7 @@ namespace Price_Comparison_Website.Services.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ProductService.AddProduct()");
+                _logger.LogError(ex, "Failed to add product");
                 throw;
             }
         }
@@ -40,7 +40,7 @@ namespace Price_Comparison_Website.Services.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ProductService.DeleteProduct()");
+                _logger.LogError(ex, "Failed to delete product");
                 throw;
             }
         }
@@ -51,7 +51,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _products.GetAllAsync();
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in ProductService.GetAllProducts()");
+                _logger.LogError(ex, "Failed to get products");
                 throw;
             }
         }
@@ -62,7 +62,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _products.GetAllAsync(queryOptions);
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in ProductService.GetAllProducts()");
+                _logger.LogError(ex, "Failed to get products");
                 throw;
             }
         }
@@ -73,7 +73,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _products.GetByIdAsync(productId, queryOptions);
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in ProductService.GetProductById()");
+                _logger.LogError(ex, "Failed to get products by id");
                 throw;
             }
         }
@@ -84,7 +84,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return await _products.GetAllByIdAsync(categoryId, "CategoryId", queryOptions);
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in ProductService.GetProductsByCategoryId()");
+                _logger.LogError(ex, "Failed to get products by category id");
                 throw;
             }
         }
@@ -130,7 +130,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 return exsistingProduct;
             }
             catch(Exception ex){
-                _logger.LogError(ex, "Error in ProductService.UpdateProduct()");
+                _logger.LogError(ex, "Failed to update product, ProductId: {ProductId}", product.ProductId);
                 throw;
             }
         }
