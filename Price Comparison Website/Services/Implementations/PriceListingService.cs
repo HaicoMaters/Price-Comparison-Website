@@ -94,6 +94,18 @@ namespace Price_Comparison_Website.Services.Implementations
             }
         }
 
+        public async Task<IEnumerable<PriceListing>> GetPriceListingsByVendorId(int vendorId, QueryOptions<PriceListing> queryOptions)
+        {
+            try{
+                return await _priceListings.GetAllByIdAsync(vendorId, "ProductId", queryOptions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get pricelistings with prodId");
+                throw;
+            }
+        }
+
         public async Task UpdatePriceListing(PriceListing priceListing)
         {
             try

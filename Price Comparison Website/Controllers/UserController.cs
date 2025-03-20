@@ -17,12 +17,10 @@ namespace Price_Comparison_Website.Controllers
     {
         public readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly INotificationService _notificationService;
         private readonly ILogger<UserController> _logger;
 
         public UserController(
-            IWebHostEnvironment webHostEnvironment, 
             UserManager<ApplicationUser> userManager,
             INotificationService notificationService,
             ILogger<UserController> logger,
@@ -30,7 +28,6 @@ namespace Price_Comparison_Website.Controllers
         {
             _userService = userService;
             _userManager = userManager;
-            _webHostEnvironment = webHostEnvironment;
             _notificationService = notificationService;
             _logger = logger;
         }

@@ -21,7 +21,6 @@ namespace Price_Comparison_Website.Controllers
         private readonly IPriceListingService _priceListingService;
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ProductController> _logger;
 
         public ProductController(
@@ -30,7 +29,6 @@ namespace Price_Comparison_Website.Controllers
             IVendorService vendorService,
             IUserService userService,
             IPriceListingService priceListingService,
-            IWebHostEnvironment webHostEnvironment,
             UserManager<ApplicationUser> userManager, 
             ILogger<ProductController> logger)
         {
@@ -40,7 +38,6 @@ namespace Price_Comparison_Website.Controllers
             _userService = userService;
             _priceListingService = priceListingService;
             _userManager = userManager;
-            _webHostEnvironment = webHostEnvironment;
             _logger = logger;
         }
 

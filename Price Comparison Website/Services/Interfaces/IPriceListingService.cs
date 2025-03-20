@@ -9,6 +9,7 @@ namespace Price_Comparison_Website.Services.Interfaces
     public interface IPriceListingService
     {
         Task<IEnumerable<PriceListing>> GetPriceListingsByProductId(int productId, QueryOptions<PriceListing> queryOptions);
+        Task<IEnumerable<PriceListing>> GetPriceListingsByVendorId(int vendorId, QueryOptions<PriceListing> queryOptions);
         Task<IEnumerable<PriceListing>> GetAllPriceListings(QueryOptions<PriceListing> queryOptions);
         Task<IEnumerable<PriceListing>> GetAllPriceListings();
         Task<PriceListing> GetPriceListingById(int priceListingId, QueryOptions<PriceListing> queryOptions);

@@ -1,27 +1,26 @@
 ﻿using System.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Extensions;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
+using Price_Comparison_Website.Services.Interfaces;
 
 namespace Price_Comparison_Website.Controllers
 {
     public class VendorController : Controller
     {
-        private Repository<Vendor> vendors;
-        private Repository<PriceListing> priceListings;
-        private Repository<Product> products;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IVendorService _vendorService;
+        private readonly IProductService _productService;
+        private readonly IPriceListingService _priceListingService;
         private readonly ILogger<VendorController> _logger;
 
-        public VendorController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment,
-            ILogger<VendorController> logger)
+        public VendorController(IVendorService vendorService, IProductService productService, IPriceListingService priceListingService, ILogger<VendorController> logger)
         {
-            vendors = new Repository<Vendor>(context);
-            priceListings = new Repository<PriceListing>(context);
-            products = new Repository<Product>(context);
-            _webHostEnvironment = webHostEnvironment;
             _logger = logger;
+            _vendorService = vendorService;
+            _priceListingService = priceListingService;
+            _productService = productService;
         }
 
         public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
@@ -29,7 +28,7 @@ namespace Price_Comparison_Website.Controllers
             try
             {
                 int pageSize = 20; // Number of products per page
-                var allVendors = await vendors.GetAllAsync();
+                var allVendors = await _vendorService.GetAllVendorsAsync();
 
                 if (!string.IsNullOrEmpty(searchQuery)) // Search functionality
                 {
@@ -65,7 +64,7 @@ namespace Price_Comparison_Website.Controllers
                     return View(new Vendor());
                 }
 
-                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                var vendor = await _vendorService.GetVendorByIdAsync(id);
                 if (vendor == null)
                     return NotFound(new { error = "Vendor not found" });
 
@@ -94,7 +93,7 @@ namespace Price_Comparison_Website.Controllers
                 {
                     try
                     {
-                        await vendors.AddAsync(vendor);
+                        await _vendorService.AddVendorAsync(vendor);
                         return RedirectToAction("Index");
                     }
                     catch (Exception ex)
@@ -105,7 +104,7 @@ namespace Price_Comparison_Website.Controllers
                 }
 
                 // Edit Operation
-                var existingVendor = await vendors.GetByIdAsync(vendor.VendorId, new QueryOptions<Vendor>());
+                var existingVendor = await _vendorService.GetVendorByIdAsync(vendor.VendorId);
                 if (existingVendor == null)
                     return NotFound(new { error = "Vendor not found" });
 
@@ -115,7 +114,7 @@ namespace Price_Comparison_Website.Controllers
                     existingVendor.VendorLogoUrl = vendor.VendorLogoUrl;
                     existingVendor.Name = vendor.Name;
 
-                    await vendors.UpdateAsync(existingVendor);
+                    await _vendorService.UpdateVendorAsync(existingVendor);
                     return RedirectToAction("ViewVendor", new { id = existingVendor.VendorId });
                 }
                 catch (Exception ex)
@@ -138,18 +137,18 @@ namespace Price_Comparison_Website.Controllers
                 if (id == 0)
                     return RedirectToAction("Index");
 
-                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                var vendor = await _vendorService.GetVendorByIdAsync(id);
                 if (vendor == null)
                     return NotFound(new { error = "Vendor not found" });
 
                 try
                 {
-                    var listings = await priceListings.GetAllByIdAsync<int>(id, "VendorId", new QueryOptions<PriceListing>());
+                    var listings = await _priceListingService.GetPriceListingsByVendorId(id, new QueryOptions<PriceListing>());
                     ViewBag.Listings = listings.OrderByDescending(e => e.DateListed);
 
                     foreach (var listing in ViewBag.Listings)
                     {
-                        listing.Product = await products.GetByIdAsync(listing.ProductId, new QueryOptions<Product>());
+                        listing.Product = await _productService.GetProductById(listing.ProductId, new QueryOptions<Product>());
                     }
 
                     return View(vendor);
@@ -174,13 +173,13 @@ namespace Price_Comparison_Website.Controllers
         {
             try
             {
-                var vendor = await vendors.GetByIdAsync(id, new QueryOptions<Vendor>());
+                var vendor = await _vendorService.GetVendorByIdAsync(id);
                 if (vendor == null)
                     return NotFound(new { error = "Vendor not found" });
 
                 try
                 {
-                    await vendors.DeleteAsync(id);
+                    await _vendorService.DeleteVendorAsync(id);
                     return RedirectToAction("Index");
                 }
                 catch (InvalidOperationException ex)

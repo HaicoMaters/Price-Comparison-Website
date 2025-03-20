@@ -14,13 +14,11 @@ namespace Price_Comparison_Website.Controllers
         private readonly IVendorService _vendorService;
         private readonly IProductService _productService;
         private readonly INotificationService _notificationService;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<PriceListingController> _logger;
 
         public PriceListingController(IPriceListingService priceListingService,
             IVendorService vendorService,
             IProductService productService,
-            IWebHostEnvironment webHostEnvironment, 
             INotificationService notificationService,
             ILogger<PriceListingController> logger)
         {
@@ -28,7 +26,6 @@ namespace Price_Comparison_Website.Controllers
             _vendorService = vendorService;
             _productService = productService;
             _notificationService = notificationService;
-            _webHostEnvironment = webHostEnvironment;
             _logger = logger;
         }
 
