@@ -47,8 +47,7 @@ namespace Price_Comparison_Website.Controllers
 
 				if (product == null)
 				{
-					ModelState.AddModelError("", "Product not found");
-					return View();
+					return NotFound();
 				}
 
 				if (id == 0)
@@ -61,8 +60,7 @@ namespace Price_Comparison_Website.Controllers
 
 				if (priceListing == null)
 				{
-					ModelState.AddModelError("", "Price listing not found");
-					return View();
+					return NotFound();
 				}
 
 				ViewBag.Operation = "Edit";
@@ -72,8 +70,7 @@ namespace Price_Comparison_Website.Controllers
 			{
 				_logger.LogError(ex, "Error occurred while loading price listing. ListingId: {ListingId}, ProductId: {ProductId}", 
 					id, prodId);
-				ModelState.AddModelError("", $"An error occurred: {ex.Message}");
-				return View();
+				return StatusCode(500);
 			}
 		}
 
@@ -83,8 +80,6 @@ namespace Price_Comparison_Website.Controllers
 		{
 			try
 			{
-				ViewBag.Vendors = await _vendorService.GetAllVendorsAsync();
-
 				if (!ModelState.IsValid)
 					return View(priceListing);
 
@@ -113,20 +108,14 @@ namespace Price_Comparison_Website.Controllers
 				}
 				catch (InvalidOperationException ex)
 				{
-					ModelState.AddModelError("", ex.Message);
-					return View(priceListing);
-				}
-				catch (Exception ex)
-				{
-					ModelState.AddModelError("", $"Error: {ex.GetBaseException().Message}");
-					return View(priceListing);
+					return BadRequest();
 				}
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Error occurred while adding/editing price listing. ListingId: {ListingId}, ProductId: {ProductId}", 
 					priceListing.PriceListingId, priceListing.ProductId);
-				return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+				return StatusCode(500);
 			}
 		}
 
@@ -138,7 +127,7 @@ namespace Price_Comparison_Website.Controllers
             {
                 var existingPriceListing = await _priceListingService.GetPriceListingById(id, new QueryOptions<PriceListing>());
                 if (existingPriceListing == null)
-                    return NotFound(new { error = "Price listing not found" });
+                    return NotFound();
 				
 				int prodId = existingPriceListing.ProductId;
 
@@ -151,13 +140,13 @@ namespace Price_Comparison_Website.Controllers
                 catch (InvalidOperationException ex)
                 {
 					_logger.LogError(ex, "Failed to delete price listing. ListingId: {ListingId}", id);
-                    return BadRequest(new { error = "Failed to delete price listing", details = ex.Message });
+                    return BadRequest();
                 }
             }
             catch (Exception ex)
             {
 				_logger.LogError(ex, "Error occurred while deleting price listing. ListingId: {ListingId}", id);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                return StatusCode(500);
             }
         }
 

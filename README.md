@@ -65,17 +65,27 @@
    - **Query options** → Sorting, filtering.  
 
    These tests ensure that repository methods behave as expected with real database interactions.
+   
+   ### Unit Tests  
+   Unit tests target the **service layer** and **controller layer**, using **mock repositories and services** to isolate logic.  
 
-
-   ###  Unit Tests  
-   Unit tests target the **service layer**, using **mock repositories** to isolate service logic.  
+   **Service Layer**
    - **Mocks** simulate repository behavior without requiring a database.  
    - This ensures services are tested independently of the data layer.  
 
-
    Some services (**Category**, **Admin**, **PriceListings**, and **Vendor**) do not have unit tests.  
    - These services contain no business logic beyond repository calls.  
-   - Since repository operations are covered by **functional tests**, additional unit tests would be redundant.
+   - Since repository operations are covered by **functional tests**, additional unit tests would be redundant.  
+
+   **Controller Layer**
+   - **Controller tests** isolate and verify the logic within the controllers.  
+   - **Mocks** are used for all dependencies (e.g., services, logger).  
+   - These tests verify:  
+      - Correct **return types** (e.g., `ViewResult`, `BadRequestResult`, `NotFoundResult`).  
+      - Proper handling of **exceptions** and error statuses.  
+      - Interaction with services (e.g., verifying correct calls and times). 
+   
+   For now only the pricelisting controller has unit tests due the the massive amount of code requrired to be written and the associated time investment. Only 3/4 functions have had tests written for them so far and there are ~500 lines of code already, for one of the smaller controllers. **(This will be finished eventually)**
 
    ## Database Relationships
 
