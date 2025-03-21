@@ -14,24 +14,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup .NET environment
+      # Setup .NET environment
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      # Step 3: Restore dependencies
+      # Restore dependencies
       - name: Restore dependencies
         run: dotnet restore
 
-      # Step 4: Build the project in Debug mode
+      # Build the project in Debug mode
       - name: Build project (Debug)
         run: dotnet build --no-restore
 
-      # Step 5: Run all tests (Unit + Integration) in Debug mode
+      # Run all tests (Unit + Integration) with detailed output
       - name: Run All Tests
-        run: dotnet test "Price Comparison Website.Tests/Price Comparison Website.Tests.csproj" --no-build --verbosity normal
+        run: |
+            dotnet test "Price Comparison Website.Tests/Price Comparison Website.Tests.csproj" --no-build --verbosity normal --logger "console;verbosity=detailed" --logger "trx;LogFileName=test-results.trx"
+
+
+      #  Upload test results as an artifact
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test Results
+          path: ./Price Comparison Website.Tests/TestResults/test-results.trx
+
+      # Display test summary in GitHub Actions
+      - name: Generate Test Summary
+        uses: zyborg/dotnet-tests-report@v1
+        with:
+          output: summary.md
