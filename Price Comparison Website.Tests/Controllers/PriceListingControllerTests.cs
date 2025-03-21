@@ -493,5 +493,104 @@ namespace Price_Comparison_Website.Tests.Controllers
         }
 
         // ---------------------------------------------------- Delete ------------------------------------
+        [Fact]
+        public async Task Delete_WhenPricelistingExists_ShouldDeleteListing(){
+            // Arrange
+            var priceListing = new PriceListing{PriceListingId = 1, ProductId = 1};
+
+            _priceListingServiceMock.Setup(r => r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()))
+            .ReturnsAsync(priceListing);
+
+            // Act
+            await _priceListingController.Delete(1);
+
+            // Assert
+            _priceListingServiceMock.Verify(r => r.DeletePriceListing(1), Times.Once);
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task Delete_WhenPricelistingExists_ShouldReturnViewProductViewWithSameProductId(){
+            // Arrange
+            var priceListing = new PriceListing{PriceListingId = 1, ProductId = 1};
+
+            _priceListingServiceMock.Setup(r => r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()))
+            .ReturnsAsync(priceListing);
+
+            // Act
+            var result = await _priceListingController.Delete(1);
+
+            // Assert
+            _priceListingServiceMock.Verify(r =>r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()), Times.Once);
+            _priceListingServiceMock.Verify(r => r.DeletePriceListing(1), Times.Once);
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
+
+            // Redirect checks
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("ViewProduct", redirectResult.ActionName);
+            Assert.Equal("Product", redirectResult.ControllerName);
+            Assert.Equal(priceListing.ProductId, redirectResult.RouteValues["id"]);
+        }
+
+        [Fact]
+        public async Task Delete_WhenNullPricelisting_ShouldReturnNotFound(){
+            // Arrange
+            _priceListingServiceMock.Setup(r => r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()))
+            .ReturnsAsync((PriceListing)null);
+
+            // Act
+            var result = await _priceListingController.Delete(1);
+
+            // Assert
+            _priceListingServiceMock.Verify(r =>r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()), Times.Once);
+            _priceListingServiceMock.Verify(r => r.DeletePriceListing(1), Times.Never);
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Never);
+
+            var notFoundResult = Assert.IsType<NotFoundResult>(result);
+            Assert.Equal(404, notFoundResult.StatusCode);
+            
+        }
+
+        [Fact]
+        public async Task Delete_WhenInvalidOperationException_ShouldReturnBadRequest(){
+             // Arrange
+            var priceListing = new PriceListing{PriceListingId = 1, ProductId = 1};
+
+            _priceListingServiceMock.Setup(r => r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()))
+            .ReturnsAsync(priceListing);
+
+            _priceListingServiceMock.Setup(r => r.DeletePriceListing(1))
+            .ThrowsAsync(new InvalidOperationException("Test exception"));
+
+            // Act
+            var result = await _priceListingController.Delete(1);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestResult = Assert.IsType<BadRequestResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+
+            _priceListingServiceMock.Verify(r =>r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()), Times.Once);
+            _priceListingServiceMock.Verify(r => r.DeletePriceListing(1), Times.Once);
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Never);
+        }   
+
+        [Fact]
+        public async Task Delete_WhenOtherExceptions_ShouldReturnErrorCode500(){
+            // Arrange
+            _priceListingServiceMock.Setup(r => r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()))
+            .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _priceListingController.Delete(1) as StatusCodeResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(500, result.StatusCode);
+            
+            _priceListingServiceMock.Verify(r =>r.GetPriceListingById(1, It.IsAny<QueryOptions<PriceListing>>()), Times.Once);
+            _priceListingServiceMock.Verify(r => r.DeletePriceListing(1), Times.Never);
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Never);
+        }
     }
 }

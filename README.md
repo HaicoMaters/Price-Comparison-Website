@@ -85,7 +85,7 @@
       - Proper handling of **exceptions** and error statuses.  
       - Interaction with services (e.g., verifying correct calls and times). 
    
-   For now only the pricelisting controller has unit tests due the the massive amount of code requrired to be written and the associated time investment. Only 3/4 functions have had tests written for them so far and there are ~500 lines of code already, for one of the smaller controllers. **(This will be finished eventually)**
+   For now only the pricelisting controller has unit tests due the the massive amount of code requrired to be written and the associated time investment ~600 lines of code for pricelisting one of the smaller controllers. (This will slowly be done)
 
    ## Database Relationships
 
