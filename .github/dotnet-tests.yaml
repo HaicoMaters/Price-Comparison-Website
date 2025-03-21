@@ -1,0 +1,37 @@
+name: .NET Tests (Unit + Integration)
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+  pull_request:
+    branches:
+      - main  # Trigger on PRs to main branch
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup .NET environment
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      # Step 3: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Step 4: Build the project in Debug mode
+      - name: Build project (Debug)
+        run: dotnet build --no-restore
+
+      # Step 5: Run all tests (Unit + Integration) in Debug mode
+      - name: Run All Tests
+        run: dotnet test "Price Comparison Website.Tests/Price Comparison Website.Tests.csproj" --no-build --verbosity normal
