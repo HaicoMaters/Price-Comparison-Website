@@ -34,7 +34,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task DeleteVendorAsync(int vendorId)
         {
-            try{
+            try
+            {
                 var vendor = await _vendorRepository.GetByIdAsync(vendorId, new QueryOptions<Vendor>());
                 if (vendor != null)
                 {
@@ -76,7 +77,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<Vendor> GetVendorByIdAsync(int vendorId)
         {
-            try{
+            try
+            {
                 return await _vendorRepository.GetByIdAsync(vendorId, new QueryOptions<Vendor>());
             }
             catch (Exception e)
@@ -90,7 +92,13 @@ namespace Price_Comparison_Website.Services.Implementations
         {
             try
             {
-                await _vendorRepository.UpdateAsync(vendor);
+                var existingVendor = await _vendorRepository.GetByIdAsync(vendor.VendorId, new QueryOptions<Vendor>());
+
+                existingVendor.VendorUrl = vendor.VendorUrl;
+                existingVendor.VendorLogoUrl = vendor.VendorLogoUrl;
+                existingVendor.Name = vendor.Name;
+
+                await _vendorRepository.UpdateAsync(existingVendor);
             }
             catch (Exception e)
             {
@@ -98,6 +106,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 throw;
             }
         }
+        
         public List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber, ViewDataDictionary viewData)
         {
             int pageSize = 12; // Number of products per page

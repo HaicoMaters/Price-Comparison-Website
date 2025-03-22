@@ -119,13 +119,13 @@ namespace Price_Comparison_Website.Services.Implementations
 			}
         }
 
-        public async Task<Product> UpdateProduct(Product product, int catId)
+        public async Task<Product> UpdateProduct(Product product)
         {
             try{
                 var exsistingProduct = await _products.GetByIdAsync(product.ProductId, new QueryOptions<Product>());
                 exsistingProduct.Name = product.Name;
                 exsistingProduct.Description = product.Description;
-                exsistingProduct.CategoryId = catId;
+                exsistingProduct.CategoryId = product.CategoryId;
 
                 await _products.UpdateAsync(exsistingProduct);
                 return exsistingProduct;

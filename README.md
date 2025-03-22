@@ -2,6 +2,8 @@
 
    This project was built to help me learn **ASP.NET MVC** and enhance my **C# programming** skills. It is a simple platform where users can compare prices of a particular item across multiple vendors/websites. The platform includes several key features to facilitate the price comparison process and improve user experience.
 
+   Much of the codebase varies in quality due to my learning process resulting in the earlier code to be significantly worse than the later code. However, much of the earlier code has been rewritten as i learned more about it. For example; early on almost all the buisness logic was in the controllers, whilst as i learnt more about ASP.NET, much of this code was moved to the services and often rewritten to be better.
+
    ## Core Features
 
    - **Product Listings**: Users can view products, vendors, and price listings.
@@ -65,9 +67,11 @@
    - **Query options** → Sorting, filtering.  
 
    These tests ensure that repository methods behave as expected with real database interactions.
+
+   Much of the earlier tests were done while i was for the first time learning how to test for this application. So many of the older service, controller and repository tests may not be as good of some of the more recent ones, i.e. product controller (namely the latter functions) are better written than the tests for some of the earlier ones i.e. price listing controller.
    
    ### Unit Tests  
-   Unit tests target the **service layer** and **controller layer**, using **mock repositories and services** to isolate logic.  
+   Unit tests target the **service layer** and **controller layer**, using **mock repositories and services** to isolate logic.
 
    **Service Layer**
    - **Mocks** simulate repository behavior without requiring a database.  
@@ -109,7 +113,7 @@
    6. **ApplicationUser and Notification**:
       - **Many-to-Many**: A **User** can have many **Notifications**, and a **Notification** can be sent to many **Users** through the **UserNotification** join table.
       - The **UserNotification** table tracks read status and allows for individual notification management.
-
+x
    7. **ApplicationUser and LoginActivity**:
       - **One-to-Many**: A **User** can have many **LoginActivities**, but each **LoginActivity** is associated with exactly one **User**.  
 
@@ -118,6 +122,7 @@
 
    While the core functionality is complete, potential future improvements could include:
 
+   - Finishing the testing of all current existing functions (did not start testing to much later in development) (could consider having tests for each function in own class file using inheritence for better readability)
    - Adding price history charts and analytics
    - Automatic updating of pricelistings - using webscraping or api (ethical considerations exist, robots.txt etc. will have to do some research and only include vendors that will allow for it)
    - Expanding the notification system to include email alerts

@@ -1,6 +1,8 @@
 
+using System.Runtime.Intrinsics.X86;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Identity.Client;
@@ -267,7 +269,7 @@ namespace Price_Comparison_Website.Tests.Controllers
         }
 
         [Fact]
-        public async Task Index_WithAuthenticatedUserWithWishlist_ShouldReturnViewWithWishlistItemsInViewBag()
+        public async Task Index_WithAuthenticatedUserWithWishlist_ShouldReturnViewWithWishlistItemsInViewData()
         {
             // Arrange
             var products = new List<Product>{
@@ -361,7 +363,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             string search = "Test"; // cat id of 2 and searchQuery of "Test" expect only product (id = 1) at the end
 
             _productServiceMock.Setup(ps => ps.GetProductsByCategoryId(categoryId, It.IsAny<QueryOptions<Product>>()))
-                .ReturnsAsync(new List<Product> { products[0], products[4]});
+                .ReturnsAsync(new List<Product> { products[0], products[4] });
 
             _productServiceMock.Setup(ps => ps.SetupPagination(It.IsAny<IEnumerable<Product>>(), 1, It.IsAny<ViewDataDictionary>()))
                 .Returns((IEnumerable<Product> input, int _, ViewDataDictionary _) => input.ToList());
@@ -404,7 +406,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.NotNull(result);
             var badRequestResult = Assert.IsType<BadRequestResult>(result);
             Assert.Equal(400, badRequestResult.StatusCode);
-            
+
             _categoryServiceMock.Verify(cs => cs.GetAllCategories(), Times.Once);
             _productServiceMock.Verify(p => p.GetAllProducts(), Times.Once);
             _productServiceMock.Verify(p => p.SetupPagination(It.IsAny<IEnumerable<Product>>(), It.IsAny<int>(), It.IsAny<ViewDataDictionary>()), Times.Never);
@@ -432,18 +434,342 @@ namespace Price_Comparison_Website.Tests.Controllers
 
         // --------------------------------------------------- Add Edit [HTTP GET] ------------------------------------------
 
+        [Fact]
+        public async Task AddEditGet_WhenIdIsZero_ShouldReturnAddView()
+        {
+            // Arrange
+            var id = 0;
+
+            // Act
+            var result = await _productController.AddEdit(id) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<Product>(result.Model);
+            Assert.Equal("Add", result.ViewData["Operation"]);
+        }
+
+        [Fact]
+        public async Task AddEditGet_WhenIdIsNotZero_ShouldReturnEditView()
+        {
+            // Arrange
+            var id = 1;
+
+            var product = new Product { ProductId = 1 };
+
+            _productServiceMock.Setup(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            // Act
+            var result = await _productController.AddEdit(id) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, result.Model);
+            Assert.Equal("Edit", result.ViewData["Operation"]);
+            _productServiceMock.Verify(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddEditGet_ShouldAddCategoriesToViewData()
+        {
+            // Arrange
+            var id = 0;
+
+            var categories = new List<Category>{
+                new Category {CategoryId = 1},
+                new Category {CategoryId = 2},
+            };
+
+            _categoryServiceMock.Setup(c => c.GetAllCategories())
+                .ReturnsAsync(categories);
+
+            // Act
+            var result = await _productController.AddEdit(id) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<Product>(result.Model);
+            Assert.Equal("Add", result.ViewData["Operation"]);
+
+            Assert.NotNull(result.ViewData["Categories"]);
+            Assert.Equal(categories, (List<Category>)result.ViewData["Categories"]);
+        }
+
+        [Fact]
+        public async Task AddEditGet_WhenEditProductDoesNotExist_ShouldReturnNotFound()
+        {
+            // Arrange
+            var id = 1;
+
+            var product = new Product { ProductId = 1 };
+
+            _productServiceMock.Setup(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync((Product)null);
+
+            // Act
+            var result = await _productController.AddEdit(id) as NotFoundResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(404, result.StatusCode);
+
+            _productServiceMock.Verify(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task AddEditGet_WhenExceptionOccurs_ShouldReturnErrorCode500()
+        {
+            // Arrange
+            var id = 1;
+
+            var product = new Product { ProductId = 1 };
+
+            _productServiceMock.Setup(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()))
+                .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _productController.AddEdit(id) as StatusCodeResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(500, result.StatusCode);
+
+            _productServiceMock.Verify(p => p.GetProductById(id, It.IsAny<QueryOptions<Product>>()), Times.Once);
+
+        }
 
         // -------------------------------------------------- Add Edit [HTTP POST] ------------------------------------------
+        [Fact]
+        public async Task AddEditPost_WhenIdIs0_ShouldAddNewProduct()
+        {
+            // Arrange
+            var product = new Product { ProductId = 0, CategoryId = 1 };
+
+            // Act
+            var result = await _productController.AddEdit(product);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("ViewProduct", redirectResult.ActionName);
+            Assert.Equal(product.ProductId, redirectResult.RouteValues["id"]);
+
+            _productServiceMock.Verify(p => p.AddProduct(product), Times.Once);
+            _productServiceMock.Verify(p => p.UpdateProduct(product), Times.Never);
+        }
+
+        [Fact]
+        public async Task AddEditPost_WhenIdIsNot0_ShouldEditExistingProduct()
+        {
+            // Arrange
+            var product = new Product { ProductId = 2, CategoryId = 1 };
+
+            _productServiceMock.Setup(p => p.UpdateProduct(product))
+                .ReturnsAsync(product);
+
+            // Act
+            var result = await _productController.AddEdit(product);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("ViewProduct", redirectResult.ActionName);
+            Assert.Equal(product.ProductId, redirectResult.RouteValues["id"]);
+
+            _productServiceMock.Verify(p => p.AddProduct(product), Times.Never);
+            _productServiceMock.Verify(p => p.UpdateProduct(product), Times.Once);
+        }
 
 
+        [Fact]
+        public async Task AddEditPost_WhenModelStateIsInValid_ShouldReturnAddEditView()
+        {
+            // Arrange
+            var product = new Product { ProductId = 0, CategoryId = 1 };
+
+            var categories = new List<Category>{
+                new Category {CategoryId = 1},
+                new Category {CategoryId = 2},
+            };
+
+            _categoryServiceMock.Setup(c => c.GetAllCategories())
+                .ReturnsAsync(categories);
+
+
+            _productController.ModelState.AddModelError("Product", "Invalid Product");
+
+            // Act
+            var result = await _productController.AddEdit(product) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.IsType<Product>(result.Model);
+            Assert.Equal("Add", result.ViewData["Operation"]);
+
+            Assert.NotNull(result.ViewData["Categories"]);
+            Assert.Equal(categories, (List<Category>)result.ViewData["Categories"]);
+
+            _productServiceMock.Verify(p => p.AddProduct(product), Times.Never);
+            _productServiceMock.Verify(p => p.UpdateProduct(product), Times.Never);
+
+        }
+
+        [Fact]
+        public async Task AddEditPost_WhenInvalidOperationExceptionOccurs_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var product = new Product { ProductId = 0, CategoryId = 1 };
+
+            _productServiceMock.Setup(p => p.AddProduct(product))
+                .ThrowsAsync(new InvalidOperationException("Test Exception"));
+
+            // Act
+            var result = await _productController.AddEdit(product);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestResult = Assert.IsType<BadRequestResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+
+            _productServiceMock.Verify(p => p.AddProduct(product), Times.Once);
+            _productServiceMock.Verify(p => p.UpdateProduct(product), Times.Never);
+        }
+
+        [Fact]
+        public async Task AddEditPost_WhenOtherExceptionOccurs_ShouldReturnErrorCode500()
+        {
+            // Arrange
+            var product = new Product { ProductId = 0, CategoryId = 1 };
+
+            _productServiceMock.Setup(p => p.AddProduct(product))
+                .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _productController.AddEdit(product);
+
+            // Assert
+            Assert.NotNull(result);
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            _productServiceMock.Verify(p => p.AddProduct(product), Times.Once);
+            _productServiceMock.Verify(p => p.UpdateProduct(product), Times.Never);
+        }
 
         // -------------------------------------------------- Delete --------------------------------------------------------
 
+        [Fact]
+        public async Task Delete_WhenValidId_ShouldDeleteProductAndRedirectToIndexPage()
+        {
+            // Arrange
+            int id = 1;
+
+            // Act
+            var result = await _productController.Delete(id);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
+            Assert.Equal("Product", redirectResult.ControllerName);
+            _productServiceMock.Verify(p => p.DeleteProduct(id), Times.Once);
+        }
+
+        [Fact]
+        public async Task Delete_WhenInvalidOperationExceptionOccurs_ShouldReturnBadRequest()
+        {
+            // Arrange
+            int id = 1;
+
+            _productServiceMock.Setup(p => p.DeleteProduct(id))
+                .ThrowsAsync(new InvalidOperationException("Test Exception"));
+
+            // Act
+            var result = await _productController.Delete(id);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestResult = Assert.IsType<BadRequestResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+            _productServiceMock.Verify(p => p.DeleteProduct(id), Times.Once);
+        }
+
+        [Fact]
+        public async Task Delete_OtherExceptionOccurs_ShouldReturnErrorCode500()
+        {
+            // Arrange
+            int id = 1;
+
+            _productServiceMock.Setup(p => p.DeleteProduct(id))
+                .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _productController.Delete(id);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, redirectResult.StatusCode);
+            _productServiceMock.Verify(p => p.DeleteProduct(id), Times.Once);
+        }
 
 
         // -------------------------------------------------- ViewProduct ----------------------------------------------------
 
 
         // -------------------------------------------------- Update Wishlist ------------------------------------------------
+        [Fact]
+        public async Task UpdateWishlist_WhenSucceeds_ShouldReturnViewProductPage()
+        {
+            // Arrange
+            var user = new ApplicationUser{Id = "Test"};
+            int prodId = 1;
+
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userServiceMock.Setup(u => u.UpdateUserWishlist(user.Id, prodId))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _productController.UpdateWishList(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("ViewProduct", redirectResult.ActionName);
+            Assert.Equal("Product", redirectResult.ControllerName);
+            Assert.Equal(prodId, redirectResult.RouteValues["id"]);
+
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateUserWishlist(user.Id, prodId), Times.Once);
+
+        }
+
+        [Fact]
+        public async Task UpdateWishlist_WhenUserIsNull_ShouldReturnUnauthorized()
+        {
+
+        }
+
+        [Fact]
+        public async Task UpdateWishlist_WhenResultIsNull_ShouldReturnNotFound()
+        {
+
+        }
+
+        [Fact]
+        public async Task UpdateWishlist_WhenFails_ShouldReturnBadRequest()
+        {
+
+        }
+
+        [Fact]
+        public async Task UpdateWishlist_WhenExceptionOccurs_ShouldReturnStatusCode500()
+        {
+
+        }
     }
 }

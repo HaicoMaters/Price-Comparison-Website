@@ -13,7 +13,7 @@ namespace Price_Comparison_Website.Services.Interfaces
         Task<IEnumerable<Product>> GetAllProducts(QueryOptions<Product> queryOptions);
         Task<Product> GetProductById(int productId, QueryOptions<Product> queryOptions);
         Task AddProduct(Product product);
-        Task<Product> UpdateProduct(Product product, int catId);
+        Task<Product> UpdateProduct(Product product);
         Task DeleteProduct(int productId);
         Task<IEnumerable<Product>> GetProductsByCategoryId(int categoryId ,QueryOptions<Product> queryOptions);
         Task RecalculateCheapestPrice(int productId);

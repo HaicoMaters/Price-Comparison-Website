@@ -32,7 +32,7 @@ namespace Price_Comparison_Website.Controllers
 
                 if (!string.IsNullOrEmpty(searchQuery)) // Search functionality
                 {
-                    allVendors = allVendors.Where(p => (p.Name != null && 
+                    allVendors = allVendors.Where(p => (p.Name != null &&
                         p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))).ToList();
                 }
 
@@ -46,7 +46,7 @@ namespace Price_Comparison_Website.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching vendors. PageNumber: {PageNumber}, SearchQuery: {SearchQuery}", 
+                _logger.LogError(ex, "Error occurred while fetching vendors. PageNumber: {PageNumber}, SearchQuery: {SearchQuery}",
                     pageNumber, searchQuery);
                 return StatusCode(500, new { error = "An error occurred while fetching vendors", details = ex.Message });
             }
@@ -58,7 +58,7 @@ namespace Price_Comparison_Website.Controllers
         {
             try
             {
-                if (id == 0)
+                if (id == 0) // Add Operation
                 {
                     ViewBag.Operation = "Add";
                     return View(new Vendor());
@@ -66,15 +66,15 @@ namespace Price_Comparison_Website.Controllers
 
                 var vendor = await _vendorService.GetVendorByIdAsync(id);
                 if (vendor == null)
-                    return NotFound(new { error = "Vendor not found" });
+                    return NotFound();
 
-                ViewBag.Operation = "Edit";
+                ViewBag.Operation = "Edit"; // Edit Operation
                 return View(vendor);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while loading vendor for editing. VendorId: {VendorId}", id);
-                return StatusCode(500, new { error = "An error occurred while loading vendor", details = ex.Message });
+                return StatusCode(500);
             }
         }
 
@@ -86,47 +86,42 @@ namespace Price_Comparison_Website.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(new { error = "Invalid model state", details = ModelState });
-
-                // Add Operation
-                if (vendor.VendorId == 0)
                 {
-                    try
+                    _logger.LogWarning("Model state is invalid:");
+                    foreach (var modelState in ModelState.Values)
                     {
-                        await _vendorService.AddVendorAsync(vendor);
-                        return RedirectToAction("Index");
+                        foreach (var error in modelState.Errors)
+                        {
+                            _logger.LogWarning($"Error: {error.ErrorMessage}");
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error occurred while adding vendor. Vendor: {@Vendor}", vendor);
-                        return BadRequest(new { error = "Failed to add vendor", details = ex.Message });
-                    }
+                    ViewBag.Operation = vendor.VendorId == 0 ? "Add" : "Edit";
+                    return View(vendor);
                 }
-
-                // Edit Operation
-                var existingVendor = await _vendorService.GetVendorByIdAsync(vendor.VendorId);
-                if (existingVendor == null)
-                    return NotFound(new { error = "Vendor not found" });
 
                 try
                 {
-                    existingVendor.VendorUrl = vendor.VendorUrl;
-                    existingVendor.VendorLogoUrl = vendor.VendorLogoUrl;
-                    existingVendor.Name = vendor.Name;
+                    if (vendor.VendorId == 0) // Add Operation
+                    {
+                        await _vendorService.AddVendorAsync(vendor);
+                        return RedirectToAction("ViewVendor", new { id = vendor.VendorId });
+                    }
 
-                    await _vendorService.UpdateVendorAsync(existingVendor);
-                    return RedirectToAction("ViewVendor", new { id = existingVendor.VendorId });
+                    // Edit Operation
+                    await _vendorService.UpdateVendorAsync(vendor);
+                    return RedirectToAction("ViewVendor", new { id = vendor.VendorId });
+
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
                 {
-                    _logger.LogError(ex, "Error occurred while updating vendor. Vendor: {@Vendor}", vendor);
-                    return BadRequest(new { error = "Failed to update vendor", details = ex.Message });
+                    _logger.LogError(ex, "Error occurred while adding vendor. Vendor: {@Vendor}", vendor);
+                    return BadRequest();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error occurred while adding or editing vendor. Vendor: {@Vendor}", vendor);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                return StatusCode(500);
             }
         }
 

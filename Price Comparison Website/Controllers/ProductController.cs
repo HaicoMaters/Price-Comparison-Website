@@ -125,7 +125,7 @@ namespace Price_Comparison_Website.Controllers
 
                 var product = await _productService.GetProductById(id, new QueryOptions<Product>());
                 if (product == null)
-                    return NotFound(new { error = "Product not found" });
+                    return NotFound();
 
                 ViewBag.Operation = "Edit";
                 return View(product);
@@ -133,7 +133,7 @@ namespace Price_Comparison_Website.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while loading product. ProductId: {ProductId}", id);
-                return StatusCode(500, new { error = "An error occurred while loading product", details = ex.Message });
+                return StatusCode(500);
             }
         }
 
@@ -159,38 +159,29 @@ namespace Price_Comparison_Website.Controllers
                     return View(product);
                 }
 
-                // Add Operation
-                if (product.ProductId == 0)
-                {
-                    try
-                    {
-                        await _productService.AddProduct(product);
-                        return RedirectToAction("Index");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to add product. Product: {Product}", product);
-                        return BadRequest(new { error = "Failed to add product", details = ex.Message });
-                    }
-                }
-
-                // Edit Operation
-
                 try
                 {
-                    var prod = await _productService.UpdateProduct(product, product.CategoryId);
-                    return RedirectToAction("ViewProduct", new { id = prod.ProductId });
+                    if (product.ProductId == 0) // Add Operation
+                    {
+                        await _productService.AddProduct(product);
+                        return RedirectToAction("ViewProduct", new { id = product.ProductId });
+                    }
+
+                    // Edit Operation
+                    await _productService.UpdateProduct(product);
+                    return RedirectToAction("ViewProduct", new { id = product.ProductId });
+
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
                 {
-                    _logger.LogError(ex, "Failed to update product. Product: {Product}", product);
-                    return BadRequest(new { error = "Failed to update product", details = ex.Message });
+                    _logger.LogError(ex, "Failed to add product. Product: {Product}", product);
+                    return BadRequest();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unexpected error occurred while adding/editing product. Product: {Product}", product);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                return StatusCode(500);
             }
         }
 
@@ -207,14 +198,13 @@ namespace Price_Comparison_Website.Controllers
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Invalid operation while deleting product. ProductId: {ProductId}", id);
-                ModelState.AddModelError("", ex.Message);
+                return BadRequest();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while deleting product. ProductId: {ProductId}", id);
-                ModelState.AddModelError("", $"Error deleting product: {ex.GetBaseException().Message}");
+                return StatusCode(500);
             }
-
 
             return RedirectToAction("Index", "Product");
         }
@@ -228,7 +218,7 @@ namespace Price_Comparison_Website.Controllers
 
                 var product = await _productService.GetProductById(id, new QueryOptions<Product>());
                 if (product == null)
-                    return NotFound(new { error = "Product not found" });
+                    return NotFound();
 
                 try
                 {
@@ -276,13 +266,13 @@ namespace Price_Comparison_Website.Controllers
                 catch (InvalidOperationException ex)
                 {
                     _logger.LogWarning(ex, "Invalid operation while loading product details. ProductId: {ProductId}", id);
-                    return BadRequest(new { error = "Invalid operation while loading product details", details = ex.Message });
+                    return BadRequest();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while loading product details. ProductId: {ProductId}", id);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                return StatusCode(500);
             }
         }
 
@@ -300,17 +290,17 @@ namespace Price_Comparison_Website.Controllers
                 bool? result = await _userService.UpdateUserWishlist(user.Id, prodId);
 
                 if (result == null)
-                    return NotFound();           // Product not found
+                    return NotFound();   
 
                 if (result == true)
                     return RedirectToAction("ViewProduct", "Product", new { id = prodId });
 
-                return BadRequest();             // Error during update
+                return BadRequest();           
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
-                return StatusCode(500);         // Internal server error
+                return StatusCode(500);     
             }
         }
 
