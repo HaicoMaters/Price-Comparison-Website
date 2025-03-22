@@ -19,5 +19,6 @@ namespace Price_Comparison_Website.Services.Interfaces
         Task DeleteViewingHistory(string userId);
         Task UpdateViewingHistory(string userId, int prodId);
         Task CleanupViewingHistory(string userId);
+        Task<bool?> UpdateUserWishlist(string userId, int prodId);
     }
 }

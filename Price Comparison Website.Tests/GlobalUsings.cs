@@ -9,4 +9,5 @@ global using Price_Comparison_Website.Controllers;
 global using Price_Comparison_Website.Data;
 global using Price_Comparison_Website.Models;
 global using Price_Comparison_Website.Services;
+global using Price_Comparison_Website.Services.Interfaces;
 global using System;

@@ -37,7 +37,7 @@ namespace Price_Comparison_Website.Controllers
                 }
 
                 // Paginate the products
-                var pagedVendors = SetupPagination(allVendors, pageNumber);
+                var pagedVendors = _vendorService.SetupPagination(allVendors, pageNumber, ViewData);
 
                 // Set ViewData
                 ViewData["SearchQuery"] = searchQuery;
@@ -193,20 +193,6 @@ namespace Price_Comparison_Website.Controllers
                 _logger.LogError(ex, "Unexpected error occurred while deleting vendor. VendorId: {VendorId}", id);
                 return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
             }
-        }
-
-        // ------------------------------------------- Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
-        private List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber)
-        {
-            int pageSize = 12; // Number of products per page
-
-            ViewData["PageNumber"] = pageNumber;
-            ViewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
-
-            return allVendors
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
         }
     }
 }

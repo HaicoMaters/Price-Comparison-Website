@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services.Interfaces;
 
@@ -133,6 +134,19 @@ namespace Price_Comparison_Website.Services.Implementations
                 _logger.LogError(ex, "Failed to update product, ProductId: {ProductId}", product.ProductId);
                 throw;
             }
+        }
+
+        public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber, ViewDataDictionary viewData)
+        {
+            int pageSize = 12; // Number of products per page
+
+            viewData["PageNumber"] = pageNumber;
+            viewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
+
+            return allProducts
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
         }
     }
 }

@@ -334,5 +334,18 @@ namespace Price_Comparison_Website.Tests.Services
 
             _userViewingHistoryRepoMock.Verify(r => r.UpdateAsync(oldHistory), Times.Once);
         }
+
+        // ---------------------------------------------------- Update Wishlist ---------------------------------------------
+        [Fact]
+        public async Task UpdateWishlist_WhenIsOnWishlist_ShouldRemoveFromWishlist(){
+
+        }
+         
+        [Fact]
+        public async Task UpdateWishlist_WhenIsOnNotWishlist_ShouldAddToWishlist(){
+
+        }
+
+        // Error checking here ,, all other checks as well
     }
 }

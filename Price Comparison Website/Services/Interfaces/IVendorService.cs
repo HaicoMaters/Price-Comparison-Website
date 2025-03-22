@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Price_Comparison_Website.Models;
 
 namespace Price_Comparison_Website.Services.Interfaces
@@ -14,5 +15,6 @@ namespace Price_Comparison_Website.Services.Interfaces
         Task AddVendorAsync(Vendor vendor);
         Task UpdateVendorAsync(Vendor vendor);
         Task DeleteVendorAsync(int vendorId);
+        List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber, ViewDataDictionary viewData);
     }
 }

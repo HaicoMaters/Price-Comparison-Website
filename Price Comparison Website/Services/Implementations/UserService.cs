@@ -26,7 +26,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task AddWishlistItem(UserWishList item)
         {
-            try{
+            try
+            {
                 await _userWishlists.AddAsync(item);
             }
             catch (Exception ex)
@@ -38,15 +39,17 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task CleanupViewingHistory(string userId)
         {
-            try{
+            try
+            {
                 var viewingHistories = await GetUserViewingHistory(userId);
                 var viewingHistoriesList = viewingHistories.ToList();
-                
-                while (viewingHistoriesList.Count > 20){
+
+                while (viewingHistoriesList.Count > 20)
+                {
                     int count = viewingHistoriesList.Count;
-                    var entityToDelete = viewingHistoriesList[count-1];
+                    var entityToDelete = viewingHistoriesList[count - 1];
                     await _userViewingHistories.DeleteAsync(entityToDelete);
-                    viewingHistoriesList.RemoveAt(count-1);
+                    viewingHistoriesList.RemoveAt(count - 1);
                 }
             }
             catch (Exception ex)
@@ -136,10 +139,12 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<UserWishList> GetUserWishListItemById(string userId, int prodId)
         {
-            try{
+            try
+            {
                 return await _userWishlists.GetByIdAsync(userId, prodId, new QueryOptions<UserWishList>());
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to get wishlist item for user {UserId}", userId);
                 throw;
             }
@@ -176,28 +181,69 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task UpdateViewingHistory(string userId, int prodId)
         {
-            try{
-                    var exsistingEntity = await _userViewingHistories.GetByIdAsync(userId, prodId, new QueryOptions<UserViewingHistory>());
-                    if (exsistingEntity != null)
+            try
+            {
+                var exsistingEntity = await _userViewingHistories.GetByIdAsync(userId, prodId, new QueryOptions<UserViewingHistory>());
+                if (exsistingEntity != null)
+                {
+                    exsistingEntity.LastViewed = DateTime.Now;
+                    await _userViewingHistories.UpdateAsync(exsistingEntity);
+                }
+                else
+                {
+                    var newEntity = new UserViewingHistory
                     {
-                        exsistingEntity.LastViewed = DateTime.Now;
-                        await _userViewingHistories.UpdateAsync(exsistingEntity);
-                    }
-                    else
-                    {
-                        var newEntity = new UserViewingHistory
-                        {
-                            ProductId = prodId,
-                            LastViewed = DateTime.Now,
-                            UserId = userId
-                        };
-                        await _userViewingHistories.AddAsync(newEntity);
-                    }
+                        ProductId = prodId,
+                        LastViewed = DateTime.Now,
+                        UserId = userId
+                    };
+                    await _userViewingHistories.AddAsync(newEntity);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update wishlist");
                 throw;
+            }
+        }
+
+        public async Task<bool?> UpdateUserWishlist(string userId, int prodId)
+        {
+            try
+            {
+                var existingEntity = await GetUserWishListItemById(userId, prodId);
+
+                if (existingEntity != null)
+                {
+                    // Remove from wishlist
+                    await RemoveFromWishlist(prodId, userId);
+                    return true;
+                }
+                else
+                {
+                    // Add to wishlist
+                    var existingProd = await _products.GetByIdAsync(prodId, new QueryOptions<Product>());
+
+                    if (existingProd == null)
+                    {
+                        return null;  // Product not found
+                    }
+
+                    var newWishlistItem = new UserWishList
+                    {
+                        ProductId = prodId,
+                        UserId = userId,
+                        LastCheapestPrice = existingProd.CheapestPrice
+                    };
+
+                    await AddWishlistItem(newWishlistItem);
+                    return true; // Worked
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", userId, prodId);
+                return false;  // Failed
             }
         }
     }

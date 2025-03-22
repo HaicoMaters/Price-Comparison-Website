@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services.Interfaces;
 
@@ -96,6 +97,18 @@ namespace Price_Comparison_Website.Services.Implementations
                 _logger.LogError(e, "Error updating vendor");
                 throw;
             }
+        }
+        public List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber, ViewDataDictionary viewData)
+        {
+            int pageSize = 12; // Number of products per page
+
+            viewData["PageNumber"] = pageNumber;
+            viewData["TotalPages"] = (int)Math.Ceiling(allVendors.Count() / (double)pageSize);
+
+            return allVendors
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
         }
     }
 }

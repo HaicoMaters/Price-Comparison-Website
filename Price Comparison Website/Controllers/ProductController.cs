@@ -29,7 +29,7 @@ namespace Price_Comparison_Website.Controllers
             IVendorService vendorService,
             IUserService userService,
             IPriceListingService priceListingService,
-            UserManager<ApplicationUser> userManager, 
+            UserManager<ApplicationUser> userManager,
             ILogger<ProductController> logger)
         {
             _categoryService = categoryService;
@@ -71,7 +71,7 @@ namespace Price_Comparison_Website.Controllers
                     }
 
                     // Paginate products
-                    var pagedProducts = SetupPagination(allProducts, pageNumber);
+                    var pagedProducts = _productService.SetupPagination(allProducts, pageNumber, ViewData);
 
                     // Handle User Specific Data for wishlist
                     if (User.Identity.IsAuthenticated)
@@ -98,14 +98,14 @@ namespace Price_Comparison_Website.Controllers
                 {
                     _logger.LogWarning(ex, "Invalid operation while fetching products. CategoryId: {CategoryId}, SearchQuery: {SearchQuery}",
                         catId, searchQuery);
-                    return BadRequest(new { error = "Invalid operation while fetching products", details = ex.Message });
+                    return BadRequest();
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching products. CategoryId: {CategoryId}, SearchQuery: {SearchQuery}",
                     catId, searchQuery);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                return StatusCode(500);
             }
         }
 
@@ -291,74 +291,27 @@ namespace Price_Comparison_Website.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateWishList(int prodId)
         {
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-                return Unauthorized(new { error = "User not authenticated" });
+                return Unauthorized();
 
             try
             {
-                // Find if product is in wishlist
-                var existingEntity = await _userService.GetUserWishListItemById(user.Id, prodId);
+                bool? result = await _userService.UpdateUserWishlist(user.Id, prodId);
 
-                if (existingEntity != null)
-                {
-                    // Exists so delete from wishlist
-                    try
-                    {
-                        await _userService.RemoveFromWishlist(prodId, user.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to remove from wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
-                        return BadRequest(new { error = "Failed to remove from wishlist", details = ex.Message });
-                    }
-                }
-                else
-                {
-                    // Add to wishlist
-                    var existingProd = await _productService.GetProductById(prodId, new QueryOptions<Product>());
-                    if (existingProd == null)
-                        return NotFound(new { error = "Product not found" });
+                if (result == null)
+                    return NotFound();           // Product not found
 
-                    try
-                    {
-                        var newWishlistItem = new UserWishList
-                        {
-                            ProductId = prodId,
-                            UserId = user.Id,
-                            LastCheapestPrice = existingProd.CheapestPrice
-                        };
-                        await _userService.AddWishlistItem(newWishlistItem);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Failed to add to wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
-                        return BadRequest(new { error = "Failed to add to wishlist", details = ex.Message });
-                    }
-                }
+                if (result == true)
+                    return RedirectToAction("ViewProduct", "Product", new { id = prodId });
 
-                return RedirectToAction("ViewProduct", "Product", new { id = prodId });
+                return BadRequest();             // Error during update
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Invalid operation while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
-                return BadRequest(new { error = "Invalid operation while updating wishlist", details = ex.Message });
+                _logger.LogError(ex, "Unexpected error while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
+                return StatusCode(500);         // Internal server error
             }
-        }
-
-        //  Helper Methods -------------------------------------------------------------------------------------------------------------------------------------------------------------
-        public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber)
-        {
-            int pageSize = 12; // Number of products per page
-
-            ViewData["PageNumber"] = pageNumber;
-            ViewData["TotalPages"] = (int)Math.Ceiling(allProducts.Count() / (double)pageSize);
-
-            return allProducts
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
         }
 
     }
