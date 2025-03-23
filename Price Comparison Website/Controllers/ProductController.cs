@@ -211,63 +211,42 @@ namespace Price_Comparison_Website.Controllers
 
         public async Task<IActionResult> ViewProduct(int id)
         {
+
+            if (id == 0)
+                return RedirectToAction("Index", "Product");
+
             try
             {
-                if (id == 0)
-                    return RedirectToAction("Index", "Product");
-
                 var product = await _productService.GetProductById(id, new QueryOptions<Product>());
+
                 if (product == null)
                     return NotFound();
 
-                try
+                // Get price listings
+                ViewBag.Listings = await _priceListingService.GetPriceListingsByProductId(id, new QueryOptions<PriceListing> { Includes = "Vendor", OrderBy = l => l.DiscountedPrice });
+
+                if (User.Identity.IsAuthenticated)
                 {
-                    // Get price listings
-                    var listings = await _priceListingService.GetPriceListingsByProductId(id, new QueryOptions<PriceListing>());
-                    ViewBag.Listings = listings.OrderBy(listing => listing.DiscountedPrice);
+                    var user = await _userManager.GetUserAsync(User);
 
-                    foreach (var listing in ViewBag.Listings)
+                    if (user != null && await _userManager.IsInRoleAsync(user, "User"))
                     {
-                        listing.Vendor = await _vendorService.GetVendorByIdAsync(listing.VendorId);
+                        // Update Viewing History and Cleanup
+                        await _userService.UpdateViewingHistory(user.Id, id);
+                        await _userService.CleanupViewingHistory(user.Id);
+
+                        // Check if on Wishlist
+                        var wishlistItem = await _userService.GetUserWishListItemById(user.Id, id);
+                        ViewData["OnWishlist"] = wishlistItem != null;
                     }
-
-                    if (User.Identity.IsAuthenticated)
-                    {
-                        var user = await _userManager.GetUserAsync(User);
-                        if (user != null && await _userManager.IsInRoleAsync(user, "User"))
-                        {
-                            // Update Viewing Histories
-                            try
-                            {
-                                await _userService.UpdateViewingHistory(user.Id, id);
-                                await _userService.CleanupViewingHistory(user.Id);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error managing viewing history. UserId: {UserId}, ProductId: {ProductId}", user.Id, id);
-                            }
-
-                            // Check if on Wishlist
-                            try
-                            {
-                                var existingWishlistItem = await _userService.GetUserWishListItemById(user.Id, id);
-                                ViewData["OnWishlist"] = (existingWishlistItem == null) ? "False" : "True";
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Error checking wishlist status. UserId: {UserId}, ProductId: {ProductId}", user.Id, id);
-                                ViewData["OnWishlist"] = "False";
-                            }
-                        }
-                    }
-
-                    return View(product);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogWarning(ex, "Invalid operation while loading product details. ProductId: {ProductId}", id);
-                    return BadRequest();
-                }
+
+                return View(product);
+            }
+            catch (InvalidOperationException e)
+            {
+                _logger.LogError(e, "Invalid operation while viewing product. ProductId: {ProductId}", id);
+                return BadRequest();
             }
             catch (Exception ex)
             {
@@ -275,6 +254,7 @@ namespace Price_Comparison_Website.Controllers
                 return StatusCode(500);
             }
         }
+
 
         [Authorize(Roles = "User")]
         [ValidateAntiForgeryToken]
@@ -290,17 +270,17 @@ namespace Price_Comparison_Website.Controllers
                 bool? result = await _userService.UpdateUserWishlist(user.Id, prodId);
 
                 if (result == null)
-                    return NotFound();   
+                    return NotFound();
 
                 if (result == true)
                     return RedirectToAction("ViewProduct", "Product", new { id = prodId });
 
-                return BadRequest();           
+                return BadRequest();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error while updating wishlist. UserId: {UserId}, ProductId: {ProductId}", user.Id, prodId);
-                return StatusCode(500);     
+                return StatusCode(500);
             }
         }
 

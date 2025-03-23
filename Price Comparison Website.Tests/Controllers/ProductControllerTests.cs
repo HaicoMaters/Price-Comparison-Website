@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Identity.Client;
 using Moq.Protected;
 
@@ -710,13 +711,321 @@ namespace Price_Comparison_Website.Tests.Controllers
 
             // Assert
             Assert.NotNull(result);
-            var redirectResult = Assert.IsType<StatusCodeResult>(result);
-            Assert.Equal(500, redirectResult.StatusCode);
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
             _productServiceMock.Verify(p => p.DeleteProduct(id), Times.Once);
         }
 
 
         // -------------------------------------------------- ViewProduct ----------------------------------------------------
+        [Fact]
+        public async Task ViewProduct_WhenIdIsNoneZero_ShouldReturnViewOfProductPage()
+        {
+            // Arrange
+            var prodId = 1;
+            var product = new Product { ProductId = prodId, Name = "Test" };
+
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            //  Mock unauthenticated user
+            var user = new ClaimsPrincipal(new ClaimsIdentity());  // No claims, unauthenticated
+            _productController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
+
+            // Act
+            var result = await _productController.ViewProduct(prodId) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            var model = Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, model);
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenIdIsZero_ShouldRedirectToProductIndex()
+        {
+            // Arrange
+            var prodId = 0;
+
+            // Act
+            var result = await _productController.ViewProduct(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirectResult.ActionName);
+            Assert.Equal("Product", redirectResult.ControllerName);
+
+            _productServiceMock.Verify(p => p.GetProductById(It.IsAny<int>(), It.IsAny<QueryOptions<Product>>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenListingsExist_ShouldAddListingsToViewData()
+        {
+            // Arrange
+            var prodId = 1;
+            var product = new Product { ProductId = prodId, Name = "Test" };
+
+            var listings = new List<PriceListing>{
+                new PriceListing{PriceListingId = 4, ProductId = prodId, DiscountedPrice = 2.00m, Price = 2.00m},
+                new PriceListing{PriceListingId = 1, ProductId = prodId, DiscountedPrice = 2.20m, Price = 2.50m},
+                new PriceListing{PriceListingId = 2, ProductId = prodId, DiscountedPrice = 2.60m, Price = 2.80m},
+            };
+
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            _priceListingServiceMock.Setup(l => l.GetPriceListingsByProductId(prodId, It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listings);
+            
+            //  Mock unauthenticated user
+            var user = new ClaimsPrincipal(new ClaimsIdentity());  // No claims, unauthenticated
+            _productController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = user }
+            };
+
+            // Act
+            var result = await _productController.ViewProduct(prodId) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            var model = Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, model);
+
+            Assert.Equal(listings, result.ViewData["Listings"]);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+            _priceListingServiceMock.Verify(l => l.GetPriceListingsByProductId(prodId, It.IsAny<QueryOptions<PriceListing>>()), Times.Once);
+        }
+
+
+        [Fact]
+        public async Task ViewProduct_WhenInUserRole_ShouldUpdateAndCleanupViewingHistory()
+        {
+            // Arrange
+            var userId = "Test User";
+            var prodId = 1;
+            var product = new Product { ProductId = prodId, Name = "Test" };
+            
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            // Mock UserManager and authentication for authenticatedUser
+            var user = new ApplicationUser { Id = userId, UserName = "testuser" };
+
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "testuser"),
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Role, "User")
+                };
+
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userManagerMock.Setup(um => um.IsInRoleAsync(user, "User"))
+                .ReturnsAsync(true);
+
+            _productController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _productController.ViewProduct(prodId) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            var model = Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, model);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userManagerMock.Verify(um => um.IsInRoleAsync(user, "User"), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateViewingHistory(userId, prodId), Times.Once);
+            _userServiceMock.Verify(u => u.CleanupViewingHistory(userId), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenInUserRoleAndProductOnWishlist_ShouldAddOnWishlistToViewDataAsTrue()
+        {
+            // Arrange
+            var userId = "Test User";
+            var prodId = 1;
+            var product = new Product { ProductId = prodId, Name = "Test" };
+            var wishlistItem = new UserWishList { UserId = userId, ProductId = prodId, LastCheapestPrice = 2.45m};
+            
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            _userServiceMock.Setup(u => u.GetUserWishListItemById(userId, prodId))
+                .ReturnsAsync(wishlistItem);
+
+            // Mock UserManager and authentication for authenticatedUser
+            var user = new ApplicationUser { Id = userId, UserName = "testuser" };
+
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "testuser"),
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Role, "User")
+                };
+
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userManagerMock.Setup(um => um.IsInRoleAsync(user, "User"))
+                .ReturnsAsync(true);
+
+            _productController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _productController.ViewProduct(prodId) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            var model = Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, model);
+
+            Assert.NotNull(result.ViewData["OnWishlist"]);
+            Assert.True((bool)result.ViewData["OnWishlist"]);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userManagerMock.Verify(um => um.IsInRoleAsync(user, "User"), Times.Once);
+            _userServiceMock.Verify(u => u.GetUserWishListItemById(userId, prodId), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenInUserRoleAndProductNotOnWishlist_ShouldAddOnWishlistToViewDataAsFalse()
+        {
+            // Arrange
+            var userId = "Test User";
+            var prodId = 1;
+            var product = new Product { ProductId = prodId, Name = "Test" };
+            var wishlistItem = new UserWishList { UserId = userId, ProductId = prodId, LastCheapestPrice = 2.45m};
+            
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+
+            _userServiceMock.Setup(u => u.GetUserWishListItemById(userId, prodId))
+                .ReturnsAsync((UserWishList)null);
+
+            // Mock UserManager and authentication for authenticatedUser
+            var user = new ApplicationUser { Id = userId, UserName = "testuser" };
+
+            var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, "testuser"),
+                    new Claim(ClaimTypes.NameIdentifier, userId),
+                    new Claim(ClaimTypes.Role, "User")
+                };
+
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userManagerMock.Setup(um => um.IsInRoleAsync(user, "User"))
+                .ReturnsAsync(true);
+
+            _productController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+            };
+
+            // Act
+            var result = await _productController.ViewProduct(prodId) as ViewResult;
+
+            // Assert
+            Assert.NotNull(result);
+            var model = Assert.IsType<Product>(result.Model);
+            Assert.Equal(product, model);
+
+            Assert.NotNull(result.ViewData["OnWishlist"]);
+            Assert.False((bool)result.ViewData["OnWishlist"]);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userManagerMock.Verify(um => um.IsInRoleAsync(user, "User"), Times.Once);
+            _userServiceMock.Verify(u => u.GetUserWishListItemById(userId, prodId), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenProductIsNull_ShouldReturnNotFound()
+        {
+            // Arrange
+            var prodId = 1;
+
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync((Product)null);
+
+            // Act
+            var result = await _productController.ViewProduct(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var notFoundResult = Assert.IsType<NotFoundResult>(result);
+            Assert.Equal(404, notFoundResult.StatusCode);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenInvalidOperationExceptionOccurs_ShouldReturnBadRequest()
+        {
+            // Arrange
+            var prodId = 1;
+
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ThrowsAsync(new InvalidOperationException("Test Exception"));
+
+            // Act
+            var result = await _productController.ViewProduct(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestResult = Assert.IsType<BadRequestResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ViewProduct_WhenOtherxceptionOccurs_ShouldReturnErrorCode500()
+        {
+            // Arrange
+            var prodId = 1;
+
+            _productServiceMock.Setup(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()))
+                .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _productController.ViewProduct(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+
+            _productServiceMock.Verify(p => p.GetProductById(prodId, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
 
 
         // -------------------------------------------------- Update Wishlist ------------------------------------------------
@@ -724,7 +1033,7 @@ namespace Price_Comparison_Website.Tests.Controllers
         public async Task UpdateWishlist_WhenSucceeds_ShouldReturnViewProductPage()
         {
             // Arrange
-            var user = new ApplicationUser{Id = "Test"};
+            var user = new ApplicationUser { Id = "Test" };
             int prodId = 1;
 
             _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
@@ -751,25 +1060,93 @@ namespace Price_Comparison_Website.Tests.Controllers
         [Fact]
         public async Task UpdateWishlist_WhenUserIsNull_ShouldReturnUnauthorized()
         {
+            // Arrange
+            int prodId = 1;
 
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync((ApplicationUser)null);
+
+            // Act
+            var result = await _productController.UpdateWishList(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var unauthorizedResult = Assert.IsType<UnauthorizedResult>(result);
+            Assert.Equal(401, unauthorizedResult.StatusCode);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateUserWishlist(It.IsAny<string>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public async Task UpdateWishlist_WhenResultIsNull_ShouldReturnNotFound()
         {
+            // Arrange
+            var user = new ApplicationUser { Id = "Test" };
+            int prodId = 1;
 
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userServiceMock.Setup(u => u.UpdateUserWishlist(user.Id, prodId))
+                .ReturnsAsync((bool?)null);
+
+            // Act
+            var result = await _productController.UpdateWishList(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var notFoundResult = Assert.IsType<NotFoundResult>(result);
+            Assert.Equal(404, notFoundResult.StatusCode);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateUserWishlist(user.Id, prodId), Times.Once);
         }
 
         [Fact]
         public async Task UpdateWishlist_WhenFails_ShouldReturnBadRequest()
         {
+            // Arrange
+            var user = new ApplicationUser { Id = "Test" };
+            int prodId = 1;
 
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userServiceMock.Setup(u => u.UpdateUserWishlist(user.Id, prodId))
+                .ReturnsAsync(false);
+
+            // Act
+            var result = await _productController.UpdateWishList(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestResult = Assert.IsType<BadRequestResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateUserWishlist(user.Id, prodId), Times.Once);
         }
 
         [Fact]
         public async Task UpdateWishlist_WhenExceptionOccurs_ShouldReturnStatusCode500()
         {
+            // Arrange
+            var user = new ApplicationUser { Id = "Test" };
+            int prodId = 1;
 
+            _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+                .ReturnsAsync(user);
+
+            _userServiceMock.Setup(u => u.UpdateUserWishlist(user.Id, prodId))
+                .ThrowsAsync(new Exception("Test Exception"));
+
+            // Act
+            var result = await _productController.UpdateWishList(prodId);
+
+            // Assert
+            Assert.NotNull(result);
+            var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+            Assert.Equal(500, statusCodeResult.StatusCode);
+            _userManagerMock.Verify(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()), Times.Once);
+            _userServiceMock.Verify(u => u.UpdateUserWishlist(user.Id, prodId), Times.Once);
         }
     }
 }

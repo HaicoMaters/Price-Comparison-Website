@@ -31,12 +31,13 @@ namespace Price_Comparison_Website.Services.Implementations
                 _logger.LogError(ex, "Failed to add pricelisting");
                 throw;
             }
-            
+
         }
 
         public async Task DeletePriceListing(int priceListingId)
         {
-            try{
+            try
+            {
                 await _priceListings.DeleteAsync(priceListingId);
             }
             catch (Exception ex)
@@ -48,7 +49,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<IEnumerable<PriceListing>> GetAllPriceListings(QueryOptions<PriceListing> queryOptions)
         {
-            try{
+            try
+            {
                 return await _priceListings.GetAllAsync(queryOptions);
             }
             catch (Exception ex)
@@ -60,7 +62,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<IEnumerable<PriceListing>> GetAllPriceListings()
         {
-            try{
+            try
+            {
                 return await _priceListings.GetAllAsync();
             }
             catch (Exception ex)
@@ -72,10 +75,11 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<PriceListing> GetPriceListingById(int priceListingId, QueryOptions<PriceListing> queryOptions)
         {
-           try{
+            try
+            {
                 return await _priceListings.GetByIdAsync(priceListingId, queryOptions);
-           }
-           catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, $"Failed to get pricelisting with id: {priceListingId}");
                 throw;
@@ -84,7 +88,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<IEnumerable<PriceListing>> GetPriceListingsByProductId(int productId, QueryOptions<PriceListing> queryOptions)
         {
-            try{
+            try
+            {
                 return await _priceListings.GetAllByIdAsync(productId, "ProductId", queryOptions);
             }
             catch (Exception ex)
@@ -96,7 +101,8 @@ namespace Price_Comparison_Website.Services.Implementations
 
         public async Task<IEnumerable<PriceListing>> GetPriceListingsByVendorId(int vendorId, QueryOptions<PriceListing> queryOptions)
         {
-            try{
+            try
+            {
                 return await _priceListings.GetAllByIdAsync(vendorId, "ProductId", queryOptions);
             }
             catch (Exception ex)
@@ -110,8 +116,8 @@ namespace Price_Comparison_Website.Services.Implementations
         {
             try
             {
-                var existingListing = await GetPriceListingById(priceListing.PriceListingId , new QueryOptions<PriceListing>());
-                
+                var existingListing = await GetPriceListingById(priceListing.PriceListingId, new QueryOptions<PriceListing>());
+
                 existingListing.PurchaseUrl = priceListing.PurchaseUrl;
                 existingListing.Price = priceListing.Price;
                 existingListing.DiscountedPrice = priceListing.DiscountedPrice;

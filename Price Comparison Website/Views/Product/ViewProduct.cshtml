@@ -4,7 +4,7 @@
 @model Product
 @{
     ViewBag.Title = $"{Model.Name} Product";
-    bool isOnWishlist = User.IsInRole("User") && ViewData["OnWishlist"]?.ToString() == "True";
+    bool isOnWishlist = User.IsInRole("User") && (bool)ViewData["OnWishlist"];
 }
 
 <h1>
