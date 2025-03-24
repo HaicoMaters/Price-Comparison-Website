@@ -97,6 +97,7 @@ namespace Price_Comparison_Website.Services.Implementations
                 existingVendor.VendorUrl = vendor.VendorUrl;
                 existingVendor.VendorLogoUrl = vendor.VendorLogoUrl;
                 existingVendor.Name = vendor.Name;
+                existingVendor.SupportsAutomaticUpdates = vendor.SupportsAutomaticUpdates;
 
                 await _vendorRepository.UpdateAsync(existingVendor);
             }

@@ -103,11 +103,11 @@ namespace Price_Comparison_Website.Services.Implementations
         {
             try
             {
-                return await _priceListings.GetAllByIdAsync(vendorId, "ProductId", queryOptions);
+                return await _priceListings.GetAllByIdAsync(vendorId, "VendorId", queryOptions);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get pricelistings with prodId");
+                _logger.LogError(ex, "Failed to get pricelistings with vendorId");
                 throw;
             }
         }

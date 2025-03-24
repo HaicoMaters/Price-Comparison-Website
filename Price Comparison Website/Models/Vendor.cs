@@ -12,6 +12,7 @@ namespace Price_Comparison_Website.Models
 			VendorUrl = string.Empty;
 			VendorLogoUrl = string.Empty;
 			PriceListings = new List<PriceListing>();
+			SupportsAutomaticUpdates = false;
 		}
 
 		[Key]
@@ -30,6 +31,8 @@ namespace Price_Comparison_Website.Models
 		[Url(ErrorMessage = "Please enter a valid URL")]
 		[Display(Name = "Logo URL")]
 		public string VendorLogoUrl { get; set; }
+
+		public bool SupportsAutomaticUpdates { get; set; } // Does the vendor support WebScraping
 		
 		[ValidateNever]
 		// Navigation Property for PriceListings
