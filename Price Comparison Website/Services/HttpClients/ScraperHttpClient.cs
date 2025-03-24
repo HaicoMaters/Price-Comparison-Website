@@ -7,6 +7,6 @@ namespace Price_Comparison_Website.Services.HttpClients
 {
     public class ScraperHttpClient
     {
-        
+    
     }
 }
