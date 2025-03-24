@@ -128,3 +128,51 @@ x
    - Expanding the notification system to include email alerts
    - Adding user preferences for notification settings
    - Adding social features like product reviews and ratings
+
+   Web Scraping:
+
+Web scraping updates every 8 hours or manually from the admin panel. Making sure to follow robots.txt. 2s delay for each request, 3 retries
+
+Vendors have a flag for supports web scraping/automatic updates, ones that don't may be due to implementation for them not being complete/implemented or being against the vendor site's terms of service.
+
+For each price listing with a valid url and the vendor support flag.
+
+Current plan for project structure as follows:
+
+/Services
+ ├── Core
+ │      ├── Interfaces                  
+ │      │       ├── IProductService.cs  
+ │      │       └── UserService.cs   etc...
+ │      │  
+ │      ├── ProductService.cs  
+ │      └── UserService.cs  etc...
+ │    
+ │
+ ├── WebScraping  
+ │      ├── PriceScraperService.cs  
+ │      ├── PriceParserFactory.cs  
+ │      └── Parsers/  
+ │              ├── AmazonPriceParser.cs  
+ │              ├── EbayPriceParser.cs  
+ │            	└── etc....
+ │  
+ ├── HttpClients  
+ │      └── ScraperHttpClient.cs  
+ │
+ ├── Utilities  
+ │      ├── RobotsTxtChecker.cs  
+ │      ├── RetryHandler.cs  
+ │      └── RateLimiter.cs  
+
+Main service for price scraping, with unique parsers for logic of how to parse the price from each indivdual website, with a priceparserfactory to handle picking between each parser. Adding new supported websites for each parser written.
+
+ScraperHttpClient for handling http requests.
+
+RobotsTxtChecker for ensuring compliance with robots.txt. Each robots.txt file should be cached after first retrieval. Maybe update every month or so (but this probably does not need to be changed).
+
+Retry Handler, for retrying upon faillure (current plan 3 retries).
+
+Rate Limtier for ratelimiting how fast requests are made (current plan 2s delay).
+
+In controller move notification logic to api and also, create ScrapingControllerApi with functions for mannually scraping for use in admin panel.
