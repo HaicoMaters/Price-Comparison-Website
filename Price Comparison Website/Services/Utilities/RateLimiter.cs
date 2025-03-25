@@ -8,29 +8,43 @@ namespace Price_Comparison_Website.Services.Utilities
 {
     public class RateLimiter : IRateLimiter
     {
-        public Task EnqueueRequest(Func<Task> requestFunc, string domain)
+        private readonly Dictionary<string, DateTime> _cooldowns = new();
+        private readonly TimeSpan _cooldownDuration = TimeSpan.FromSeconds(2);
+
+        public RateLimiter(TimeSpan cooldownDuration)
         {
-            throw new NotImplementedException();
+            _cooldownDuration = cooldownDuration;
         }
 
-        public bool IsOnCooldown(string domain)
+        public async Task EnqueueRequest(Func<Task> requestFunc, string domain)
         {
-            throw new NotImplementedException();
+            while (IsOnCooldown(domain))
+            {
+                await Task.Delay(100);  // Wait if on cooldown
+            }
+
+            try
+            {
+                await requestFunc();
+                SetCooldown(domain, _cooldownDuration);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error for {domain}: {ex.Message}");
+            }
         }
 
         public void SetCooldown(string domain, TimeSpan cooldown)
         {
-            throw new NotImplementedException();
+            _cooldowns[domain] = DateTime.UtcNow.Add(cooldown);
         }
 
-        public Task StartProcessing()
+        public bool IsOnCooldown(string domain)
         {
-            throw new NotImplementedException();
+            return _cooldowns.TryGetValue(domain, out var expiry) && DateTime.UtcNow < expiry;
         }
 
-        public Task StopProcessing()
-        {
-            throw new NotImplementedException();
-        }
+        public Task StartProcessing() => Task.CompletedTask;
+        public Task StopProcessing() => Task.CompletedTask;
     }
 }

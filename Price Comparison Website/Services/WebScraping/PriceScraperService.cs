@@ -105,7 +105,6 @@ namespace Price_Comparison_Website.Services.WebScraping
                 return;
             }
 
-            // Rate limiting, HTTP requests + retry handling, then parsing and updating prices
             var tasks = new List<Task>();
 
             foreach (var kvp in uris)
@@ -114,24 +113,23 @@ namespace Price_Comparison_Website.Services.WebScraping
                 var listingId = kvp.Value;
                 string domain = uri.Host;
 
-                async Task RequestAction()
+                async Task ScrapeAndUpdate()
                 {
                     try
                     {
-                        // Get page content using HTTP client
+                        // Send request using HTTP client
                         var htmlContent = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
 
-                        // Get correct parser
+                        // Get the correct parser
                         var parser = _priceParserFactory.GetParserForDomain(domain);
 
                         if (parser != null)
                         {
-                            // Parse content to get price
+                            // Parse the content to extract prices
                             var (price, discountedPrice) = await parser.ParsePriceAsync(uri);
 
-                            // Update listing with new prices
+                            // Update the listing with new prices
                             var listing = await _priceListingService.GetPriceListingById(listingId, new QueryOptions<PriceListing>());
-                            decimal oldPrice = listing.DiscountedPrice;
 
                             listing.Price = price;
                             listing.DiscountedPrice = discountedPrice;
@@ -140,7 +138,7 @@ namespace Price_Comparison_Website.Services.WebScraping
 
                             _logger.LogInformation($"Updated listing {uri} with Price: {price} and DiscountedPrice: {discountedPrice}");
 
-                            await _priceListingService.UpdateCheapestPrice(listing.ProductId, discountedPrice); // Update after price listing
+                            await _priceListingService.UpdateCheapestPrice(listing.ProductId, discountedPrice);
                         }
                         else
                         {
@@ -153,10 +151,11 @@ namespace Price_Comparison_Website.Services.WebScraping
                     }
                 }
 
-                tasks.Add(_rateLimiter.EnqueueRequest(RequestAction, domain));
+                // Enqueue request through the rate limiter (one per domain at a time)
+                await _rateLimiter.EnqueueRequest(ScrapeAndUpdate, domain);
             }
 
-            await Task.WhenAll(tasks);
+            await _rateLimiter.StopProcessing();
             _logger.LogInformation("All listings have been updated.");
         }
 
@@ -202,12 +201,19 @@ namespace Price_Comparison_Website.Services.WebScraping
 
         public async Task FilterUsingRobotsTxt(Dictionary<Uri, int> uris)
         {
+            var keysToRemove = new List<Uri>();
+
             foreach (var kvp in uris)
             {
                 if (!await _robotsTxtChecker.CheckRobotsTxt(kvp.Key))
                 {
-                    uris.Remove(kvp.Key);
+                    keysToRemove.Add(kvp.Key);
                 }
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                uris.Remove(key);
             }
         }
 
