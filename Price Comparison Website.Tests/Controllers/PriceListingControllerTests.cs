@@ -15,77 +15,18 @@ namespace Price_Comparison_Website.Tests.Controllers
         private readonly Mock<IPriceListingService> _priceListingServiceMock;
         private readonly Mock<IVendorService> _vendorServiceMock;
         private readonly Mock<IProductService> _productServiceMock;
-        private readonly Mock<INotificationService> _notificationServiceMock;
         private readonly Mock<ILogger<PriceListingController>> _loggerMock;
         private readonly PriceListingController _priceListingController;
 
         public PriceListingControllerTests()
         {
-            _notificationServiceMock = new Mock<INotificationService>();
             _priceListingServiceMock = new Mock<IPriceListingService>();
             _productServiceMock = new Mock<IProductService>();
             _vendorServiceMock = new Mock<IVendorService>();
             _loggerMock = new Mock<ILogger<PriceListingController>>();
 
             _priceListingController = new PriceListingController(_priceListingServiceMock.Object, _vendorServiceMock.Object,
-            _productServiceMock.Object, _notificationServiceMock.Object, _loggerMock.Object);
-        }
-
-        // -------------------------------------------------- Update Cheapest Price ---------------------------------------------------------------------
-        [Fact]
-        public async Task UpdateCheapestPrice_WhenPriceIsNowLower_ShouldCreateNewPriceDropNotification()
-        {
-            // Arrange
-
-            var dbProduct = new Product { ProductId = 1, CheapestPrice = 2.00m, Name = "Test" };
-
-            _productServiceMock.Setup(r => r.GetProductById(1, It.IsAny<QueryOptions<Product>>()))
-            .ReturnsAsync(dbProduct);
-
-            // Act
-            await _priceListingController.UpdateCheapestPrice(1, 1.50m);
-
-            // Assert
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
-            _notificationServiceMock.Verify(r => r.CreateProductPriceDropNotifications(1, "Test", 1.50m, 2.00m), Times.Once);
-        }
-
-        [Fact]
-        public async Task UpdateCheapestPrice_WhenPriceIsNotLower_ShouldNotCreateNewPriceDropNotification()
-        {
-            // Arrange
-            var dbProduct = new Product { ProductId = 1, CheapestPrice = 2.00m, Name = "Test" };
-
-            _productServiceMock.Setup(r => r.GetProductById(1, It.IsAny<QueryOptions<Product>>()))
-            .ReturnsAsync(dbProduct);
-
-            // Act
-            await _priceListingController.UpdateCheapestPrice(1, 2.50m);
-
-            // Assert
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
-            _notificationServiceMock.Verify(r => r.CreateProductPriceDropNotifications(
-                It.IsAny<int>(), It.IsAny<string>(), It.IsAny<decimal>(), It.IsAny<decimal>()
-            ), Times.Never);
-
-        }
-
-        [Fact]
-        public async Task UpdateCheapestPrice_WhenProductDoesNotExist_ShouldThrowInvalidOperationException()
-        {
-            // Arrange
-            var dbProduct = new Product { ProductId = 1, CheapestPrice = 2.00m, Name = "Test" };
-
-            _productServiceMock.Setup(r => r.GetProductById(1, It.IsAny<QueryOptions<Product>>()))
-            .ReturnsAsync((Product)null);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _priceListingController.UpdateCheapestPrice(1, 2.50m)
-            );
-
-            Assert.Equal("Failed to update cheapest price", exception.Message);
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(It.IsAny<int>()), Times.Never);
+            _productServiceMock.Object, _loggerMock.Object);
         }
 
         // --------------------------------------------------- AddEdit [HTTP GET] ----------------------------------------------------------
@@ -242,7 +183,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.NotEqual(originalDiscountedPrice, listing.DiscountedPrice);
 
             // Function call verification
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Exactly(2)); // Called once in the method and once from the UpdateCheapestPrice()
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
             _priceListingServiceMock.Verify(r => r.AddPriceListing(It.IsAny<PriceListing>()), Times.Once);
         }
 
@@ -276,7 +217,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.NotEqual(originalDiscountedPrice, listing.DiscountedPrice);
 
             // Function call verification
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Exactly(2)); // Called once in the method and once from the UpdateCheapestPrice()
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
             _priceListingServiceMock.Verify(r => r.UpdatePriceListing(It.IsAny<PriceListing>()), Times.Once);
         }
 
@@ -288,7 +229,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             decimal originalDiscountedPrice = 1.99m;
 
             var listing = new PriceListing { PriceListingId = 0, ProductId = 1, Price = 2.00m, DiscountedPrice = originalDiscountedPrice }; // IsDiscounted is not checked so the added discounted price should = price
-            var product = new Product { ProductId = 1, CheapestPrice = 1.00m, Name = "Test" }; // Cheaper than listing added (not testing UpdateCheapestPrice())
+            var product = new Product { ProductId = 1, CheapestPrice = 1.00m, Name = "Test" }; 
 
             _productServiceMock.Setup(r => r.GetProductById(1, It.IsAny<QueryOptions<Product>>())).ReturnsAsync(product); // For the update cheapest price call
 
@@ -319,7 +260,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.Equal(listing.ProductId, redirectResult.RouteValues["id"]);
 
             // Function call verification
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Exactly(2)); // Called once in the method and once from the UpdateCheapestPrice()
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
             _priceListingServiceMock.Verify(r => r.AddPriceListing(It.IsAny<PriceListing>()), Times.Once);
         }
 
@@ -359,7 +300,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.NotEqual(originalDiscountedPrice, listing.Price);
 
             // Function call verification
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Exactly(2)); // Called once in the method and once from the UpdateCheapestPrice()
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
             _priceListingServiceMock.Verify(r => r.UpdatePriceListing(It.IsAny<PriceListing>()), Times.Once);
         }
 
@@ -399,7 +340,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             Assert.NotEqual(originalDiscountedPrice, listing.Price);
 
             // Function call verification
-            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Exactly(2)); // Called once in the method and once from the UpdateCheapestPrice()
+            _productServiceMock.Verify(r => r.RecalculateCheapestPrice(1), Times.Once);
             _priceListingServiceMock.Verify(r => r.UpdatePriceListing(It.IsAny<PriceListing>()), Times.Once);
         }
 

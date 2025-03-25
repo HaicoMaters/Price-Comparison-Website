@@ -1,4 +1,5 @@
 using Price_Comparison_Website.Services.Utilities;
+using Price_Comparison_Website.Services.Utilities.Interfaces;
 
 namespace Price_Comparison_Website.Tests.Services.Utilities
 {
@@ -6,7 +7,7 @@ namespace Price_Comparison_Website.Tests.Services.Utilities
     {
         private readonly string _testDirectory;
         private readonly string _testFile;
-        private readonly FileSystemWrapper _wrapper;
+        private readonly IFileSystemWrapper _wrapper;
 
         public FileSystemWrapperTests()
         {

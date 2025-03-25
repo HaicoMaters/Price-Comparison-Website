@@ -77,7 +77,7 @@
    - **Mocks** simulate repository behavior without requiring a database.  
    - This ensures services are tested independently of the data layer.  
 
-   Some services (**Category**, **Admin** and **PriceListings**) do not have unit tests.  
+   Some services (**Category**, **Admin** etc.. ) do not have unit tests.  
    - These services contain no business logic beyond repository calls.  
    - Since repository operations are covered by **functional tests**, additional unit tests would be redundant.  
 

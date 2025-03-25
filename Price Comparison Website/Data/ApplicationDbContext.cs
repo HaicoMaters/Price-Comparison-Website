@@ -152,13 +152,13 @@ namespace Price_Comparison_Website.Data
 				new Vendor { 
 					VendorId = 1, 
 					Name = "Amazon", 
-					VendorUrl = "https://www.amazon.com", 
+					VendorUrl = "https://www.amazon.co.uk", 
 					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg"
 				},
 				new Vendor { 
 					VendorId = 2, 
 					Name = "eBay", 
-					VendorUrl = "https://www.ebay.com", 
+					VendorUrl = "https://www.ebay.co.uk", 
 					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1b/EBay_logo.svg"
 				},
 				new Vendor { 

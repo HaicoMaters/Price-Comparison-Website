@@ -16,7 +16,7 @@ namespace Price_Comparison_Website.Tests.Services.Utilities
         private readonly Mock<IFileSystemWrapper> _mockFileSystem;
         private readonly Mock<HttpMessageHandler> _mockHandler;
         private readonly HttpClient _httpClient;
-        private readonly RobotsTxtChecker _robotsChecker;
+        private readonly IRobotsTxtChecker _robotsChecker;
         private const string CacheFolder = "RobotsCache";
 
         public RobotsTxtCheckerTests()

@@ -16,6 +16,7 @@ namespace Price_Comparison_Website.Services.Interfaces
         Task DeletePriceListing(int priceListingId);
         Task AddPriceListing(PriceListing priceListing);
         Task UpdatePriceListing(PriceListing priceListing);
+        Task UpdateCheapestPrice(int productId, decimal newPrice);
       
     }
 }

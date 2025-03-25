@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Formats.Asn1;
 using System.Linq;
 using System.Threading.Tasks;
 using Price_Comparison_Website.Models;
+using Price_Comparison_Website.Services.HttpClients;
+using Price_Comparison_Website.Services.Implementations;
+using Price_Comparison_Website.Services.Interfaces;
 using Price_Comparison_Website.Services.Utilities;
+using Price_Comparison_Website.Services.Utilities.Interfaces;
 using Price_Comparison_Website.Services.WebScraping.Interfaces;
 
 namespace Price_Comparison_Website.Services.WebScraping
@@ -11,7 +16,38 @@ namespace Price_Comparison_Website.Services.WebScraping
     public class PriceScraperService : IPriceScraperService // UPDATE THE INTERFACE BEFORE WORKING ON THIS 
     {
 
-        private readonly RobotsTxtChecker _robotsTxtChecker;
+        private readonly IRobotsTxtChecker _robotsTxtChecker;
+        private readonly IVendorService _vendorService;
+        private readonly IPriceListingService _priceListingService;
+        private readonly IPriceParserFactory _priceParserFactory;
+        private readonly ILogger<PriceScraperService> _logger;
+        private readonly IRateLimiter _rateLimiter;
+        private readonly IScraperHttpClient _scraperHttpClient;
+
+
+        public PriceScraperService(
+            IRobotsTxtChecker robotsTxtChecker,
+            IVendorService vendorService,
+            IPriceListingService priceListingService,
+            ILogger<PriceScraperService> logger,
+            IRateLimiter rateLimiter,
+            IScraperHttpClient scraperHttpClient,
+            IPriceParserFactory priceParserFactory
+        )
+        {
+            _robotsTxtChecker = robotsTxtChecker;
+            _logger = logger;
+            _vendorService = vendorService;
+            _priceListingService = priceListingService;
+            _rateLimiter = rateLimiter;
+            _scraperHttpClient = scraperHttpClient;
+            _priceParserFactory = priceParserFactory;
+        }
+
+        // maybe keep somewhere when the last update  was for the automatic updater
+        // or just do at the same time everyday regardless of if admin requested it
+        //
+
 
         /* Try to do things in order
             Get All interfaces done so know functions that need to build off each other
@@ -22,62 +58,162 @@ namespace Price_Comparison_Website.Services.WebScraping
             RetryHandler - For Fault tolerance
             Parsers - Add parsers for each vendor as available keep note of all currently supported vendors should have one example parser probably amazon for testing earlier on than expected
             Scraper Api Controller (// DONT FORGET TO DO NOTIFICATION API CONTROLLER)
+
+
+            For writing up in readme later robotstxtchecker.cs checks that a uri is valid in terms of the sites rules for robots.txt scraping rule and helps filter which sites allow for what
+            so no requests against policy are made
         */
 
-        public async Task DoAutomaticUpdates()
+        // Should probably have somewhere where listings match their venodr e.g. if tesco is picked as vendor with a link that is amazon.co.uk ; it should automatically be changed to amazon
+
+        public async Task UpdateAllListings()
         {
             var vendorIds = await GetVendorIdsThatSupportScraping();
 
-            // get all pricelistings by vendor id
+            Dictionary<Uri, int> uris = new Dictionary<Uri, int>(); // Uri attached with price listing id
 
-            // get each link as a uri
+            // Get all price listings by vendor id and add those with available parsers
+            foreach (int vendId in vendorIds)
+            {
+                var listings = await _priceListingService.GetPriceListingsByVendorId(vendId, new QueryOptions<PriceListing>());
+                foreach (var listing in listings)
+                {
+                    if (Uri.TryCreate(listing.PurchaseUrl, UriKind.Absolute, out var uri))
+                    {
+                        string domain = uri.Host;
 
-            // Filter out each uri based on if it fits in robots.txt
-            var uris = new List<Uri>();
-            await FilterUsingRobotsTxt(uris);
+                        if (_priceParserFactory.HasParserForDomain(domain))
+                        {
+                            uris[uri] = listing.PriceListingId;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Invalid URL format for listing: {listing.PriceListingId}");
+                    }
+                }
+            }
 
-            // Filter by price parser factory having it in case of vendor and uri not being the same
+            // Filter out each URI based on robots.txt
+            try
+            {
+                await FilterUsingRobotsTxt(uris);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to filter using robots.txt");
+                return;
+            }
 
-            // have scraping http client do all the retrieval
-            // rate limited by ratelimiter.cs keep a that has each uri and cooldown for each website
-            // retries handled by retryhandler.cs
-            // using Price parser factory to parse the page to find price and the discounted price
+            // Rate limiting, HTTP requests + retry handling, then parsing and updating prices
+            var tasks = new List<Task>();
+
+            foreach (var kvp in uris)
+            {
+                var uri = kvp.Key;
+                var listingId = kvp.Value;
+                string domain = uri.Host;
+
+                async Task RequestAction()
+                {
+                    try
+                    {
+                        // Get page content using HTTP client
+                        var htmlContent = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
+
+                        // Get correct parser
+                        var parser = _priceParserFactory.GetParserForDomain(domain);
+
+                        if (parser != null)
+                        {
+                            // Parse content to get price
+                            var (price, discountedPrice) = await parser.ParsePriceAsync(uri);
+
+                            // Update listing with new prices
+                            var listing = await _priceListingService.GetPriceListingById(listingId, new QueryOptions<PriceListing>());
+                            decimal oldPrice = listing.DiscountedPrice;
+
+                            listing.Price = price;
+                            listing.DiscountedPrice = discountedPrice;
+
+                            await _priceListingService.UpdatePriceListing(listing);
+
+                            _logger.LogInformation($"Updated listing {uri} with Price: {price} and DiscountedPrice: {discountedPrice}");
+
+                            await _priceListingService.UpdateCheapestPrice(listing.ProductId, discountedPrice); // Update after price listing
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"No parser found for {domain}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed to scrape or update listing for {uri}");
+                    }
+                }
+
+                tasks.Add(_rateLimiter.EnqueueRequest(RequestAction, domain));
+            }
+
+            await Task.WhenAll(tasks);
+            _logger.LogInformation("All listings have been updated.");
         }
+
 
 
         public async Task<List<int>> GetVendorIdsThatSupportScraping()
         {
-
-            List<Vendor> vendorList = new List<Vendor>();
-
-            // Get all vendors using vendor service
-            // Check that price parser factory includes a valid parser for the vendor
-            // Add a method to priceparserfactory that gets a list of all parsers (we can do by name most likely, or some other way of binding it)
-            // if it doesn't vendor.SuportsAutomaticUpdates = false and push that to database
-            // Otherwise add to vendor list
+            var vendors = await _vendorService.GetAllVendorsAsync(new QueryOptions<Vendor>
+            {
+                Where = v => v.SupportsAutomaticUpdates
+            });
 
             List<int> vendorIds = new List<int>();
 
-            // Add all vendor ids to vendor id list and return it
+            foreach (var vendor in vendors)
+            {
+                // Create Uri and extract the domain
+                if (Uri.TryCreate(vendor.VendorUrl, UriKind.Absolute, out var uri))
+                {
+                    string domain = uri.Host;  // Extract domain from Uri
+
+                    if (_priceParserFactory.HasParserForDomain(domain))
+                    {
+                        vendorIds.Add(vendor.VendorId);
+                    }
+                    else
+                    {
+                        // Vendor does not actually support it, change the flag
+                        vendor.SupportsAutomaticUpdates = false;
+                        await _vendorService.UpdateVendorAsync(vendor);
+                    }
+                }
+                else
+                {
+                    // Log or handle invalid vendor URL
+                    _logger.LogWarning($"Invalid URL format for vendor: {vendor.VendorUrl}");
+                }
+            }
 
             return vendorIds;
         }
 
-        public async Task FilterUsingRobotsTxt(List<Uri> uris)
+
+        public async Task FilterUsingRobotsTxt(Dictionary<Uri, int> uris)
         {
-            foreach (var uri in uris)
+            foreach (var kvp in uris)
             {
-                if (!await _robotsTxtChecker.CheckRobotsTxt(uri))
+                if (!await _robotsTxtChecker.CheckRobotsTxt(kvp.Key))
                 {
-                    uris.Remove(uri);
+                    uris.Remove(kvp.Key);
                 }
             }
         }
 
-        public async Task FilterUsingPriceParserFactory(List<Uri> uris)
+        public Task<bool> UpdateListing(int id) // This Can be added when needed
         {
-            // use price parser factory to remove unsupported uris that have been implemented
+            throw new NotImplementedException();
         }
-
     }
 }

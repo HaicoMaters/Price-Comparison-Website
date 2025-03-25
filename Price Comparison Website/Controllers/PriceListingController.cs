@@ -13,19 +13,16 @@ namespace Price_Comparison_Website.Controllers
 		private readonly IPriceListingService _priceListingService;
         private readonly IVendorService _vendorService;
         private readonly IProductService _productService;
-        private readonly INotificationService _notificationService;
         private readonly ILogger<PriceListingController> _logger;
 
         public PriceListingController(IPriceListingService priceListingService,
             IVendorService vendorService,
             IProductService productService,
-            INotificationService notificationService,
             ILogger<PriceListingController> logger)
         {
             _priceListingService = priceListingService;
             _vendorService = vendorService;
             _productService = productService;
-            _notificationService = notificationService;
             _logger = logger;
         }
 
@@ -103,7 +100,7 @@ namespace Price_Comparison_Website.Controllers
 						await _priceListingService.UpdatePriceListing(priceListing);
 					}
 
-					await UpdateCheapestPrice(priceListing.ProductId, priceListing.DiscountedPrice); // Update cheapest price after adding/editing to send notifications if price drops
+					await _priceListingService.UpdateCheapestPrice(priceListing.ProductId, priceListing.DiscountedPrice); // Update cheapest price after adding/editing to send notifications if price drops
 					return RedirectToAction("ViewProduct", "Product", new { id = priceListing.ProductId });
 				}
 				catch (InvalidOperationException ex)
@@ -149,30 +146,5 @@ namespace Price_Comparison_Website.Controllers
                 return StatusCode(500);
             }
         }
-
-
-		// Helper Methods -------------------------------------------------------
-		public async Task UpdateCheapestPrice(int productId, decimal newPrice)
-		{
-			try
-			{
-				var existingProduct = await _productService.GetProductById(productId, new QueryOptions<Product>());
-				if (existingProduct == null)
-					throw new InvalidOperationException("Product not found");
-
-				decimal oldPrice = existingProduct.CheapestPrice;
-				if (newPrice < existingProduct.CheapestPrice || existingProduct.CheapestPrice == 0)
-				{
-					// Send Notification to Users with item on wishlist if price drops
-					await _notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
-				}
-				await _productService.RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to update cheapest price. ProductId: {ProductId}", productId);
-				throw new InvalidOperationException("Failed to update cheapest price", ex);
-			}
-		}
     }
 }

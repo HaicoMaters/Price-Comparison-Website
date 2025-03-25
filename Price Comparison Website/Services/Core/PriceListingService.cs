@@ -13,11 +13,20 @@ namespace Price_Comparison_Website.Services.Implementations
     {
         private readonly IRepository<PriceListing> _priceListings;
         private readonly ILogger<PriceListingService> _logger;
+        private readonly INotificationService _notificationService;
+        private readonly IProductService _productService;
 
-        public PriceListingService(IRepository<PriceListing> priceListings, ILogger<PriceListingService> logger)
+        public PriceListingService(
+            IRepository<PriceListing> priceListings,
+            ILogger<PriceListingService> logger,
+            INotificationService notificationService,
+            IProductService productService
+         )
         {
             _priceListings = priceListings;
             _logger = logger;
+            _notificationService = notificationService;
+            _productService = productService;
         }
 
         public async Task AddPriceListing(PriceListing priceListing)
@@ -130,6 +139,29 @@ namespace Price_Comparison_Website.Services.Implementations
             {
                 _logger.LogError(ex, "Failed to update pricelistings");
                 throw;
+            }
+        }
+
+        public async Task UpdateCheapestPrice(int productId, decimal newPrice)
+        {
+            try
+            {
+                var existingProduct = await _productService.GetProductById(productId, new QueryOptions<Product>());
+                if (existingProduct == null)
+                    throw new InvalidOperationException("Product not found");
+
+                decimal oldPrice = existingProduct.CheapestPrice;
+                if (newPrice < existingProduct.CheapestPrice || existingProduct.CheapestPrice == 0)
+                {
+                    // Send Notification to Users with item on wishlist if price drops
+                    await _notificationService.CreateProductPriceDropNotifications(productId, existingProduct.Name, newPrice, oldPrice);
+                }
+                await _productService.RecalculateCheapestPrice(productId); // Recalculate cheapest price after updating
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update cheapest price. ProductId: {ProductId}", productId);
+                throw new InvalidOperationException("Failed to update cheapest price", ex);
             }
         }
     }
