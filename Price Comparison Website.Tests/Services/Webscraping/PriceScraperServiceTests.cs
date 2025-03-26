@@ -21,13 +21,13 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
         private readonly Mock<IPriceListingService> _priceListingServiceMock;
         private readonly Mock<IPriceParserFactory> _priceParserFactoryMock;
         private readonly Mock<ILogger<PriceScraperService>> _loggerMock;
-        private readonly Mock<IRateLimiter> _rateLimiterMock;
+        private readonly Mock<IScraperRateLimiter> _rateLimiterMock;
         private readonly Mock<IScraperHttpClient> _scraperHttpClientMock;
         private readonly IPriceScraperService _priceScraperService;
 
         public PriceScraperServiceTests()
         {
-            _rateLimiterMock = new Mock<IRateLimiter>();
+            _rateLimiterMock = new Mock<IScraperRateLimiter>();
             _vendorServiceMock = new Mock<IVendorService>();
             _robotsTxtCheckerMock = new Mock<IRobotsTxtChecker>();
             _priceListingServiceMock = new Mock<IPriceListingService>();

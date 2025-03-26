@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Price_Comparison_Website.Services.Utilities.Interfaces
 {
-    public interface IRateLimiter
+    public interface IScraperRateLimiter
     {
         Task EnqueueRequest(Func<Task> requestFunc, string domain);
         void SetCooldown(string domain, TimeSpan cooldown);

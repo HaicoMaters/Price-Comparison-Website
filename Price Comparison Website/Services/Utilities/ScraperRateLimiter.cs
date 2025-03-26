@@ -6,12 +6,12 @@ using Price_Comparison_Website.Services.Utilities.Interfaces;
 
 namespace Price_Comparison_Website.Services.Utilities
 {
-    public class RateLimiter : IRateLimiter
+    public class ScraperRateLimiter : IScraperRateLimiter
     {
         private readonly Dictionary<string, DateTime> _cooldowns = new();
         private readonly TimeSpan _cooldownDuration = TimeSpan.FromSeconds(2);
 
-        public RateLimiter(TimeSpan cooldownDuration)
+        public ScraperRateLimiter(TimeSpan cooldownDuration)
         {
             _cooldownDuration = cooldownDuration;
         }

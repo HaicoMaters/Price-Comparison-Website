@@ -21,7 +21,7 @@ namespace Price_Comparison_Website.Services.WebScraping
         private readonly IPriceListingService _priceListingService;
         private readonly IPriceParserFactory _priceParserFactory;
         private readonly ILogger<PriceScraperService> _logger;
-        private readonly IRateLimiter _rateLimiter;
+        private readonly IScraperRateLimiter _rateLimiter;
         private readonly IScraperHttpClient _scraperHttpClient;
 
 
@@ -30,7 +30,7 @@ namespace Price_Comparison_Website.Services.WebScraping
             IVendorService vendorService,
             IPriceListingService priceListingService,
             ILogger<PriceScraperService> logger,
-            IRateLimiter rateLimiter,
+            IScraperRateLimiter rateLimiter,
             IScraperHttpClient scraperHttpClient,
             IPriceParserFactory priceParserFactory
         )
