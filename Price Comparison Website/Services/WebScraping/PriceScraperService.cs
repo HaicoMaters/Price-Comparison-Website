@@ -101,7 +101,7 @@ namespace Price_Comparison_Website.Services.WebScraping
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to filter using robots.txt");
+                _logger.LogError(ex, "Failed to filter using robots.txt. Failed to update Listings.");
                 return;
             }
 
