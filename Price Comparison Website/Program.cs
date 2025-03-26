@@ -13,6 +13,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddApplicationServices();
+builder.Services.AddPriceParsers();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

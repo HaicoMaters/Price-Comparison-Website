@@ -8,10 +8,11 @@ namespace Price_Comparison_Website.Services.WebScraping.Parsers
 {
     public class AmazonPriceParser : IPriceParser
     {
-        public bool CanParse(Uri uri) => uri.Host.Contains("amazon.co.uk"); // For each unique add the relevant vendor here
+        public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain); // For each unique add the relevant vendor here
 
+        public string SupportedDomain => "amazon.co.uk";
 
-        public Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(Uri uri)
+        public Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse)
         {
             throw new NotImplementedException();
         }

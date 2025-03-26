@@ -247,7 +247,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -279,7 +279,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for each listing
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Exactly(4));
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Exactly(4));
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Exactly(4));
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Exactly(4));
 
             foreach (var listing in listingsVend1.Concat(listingsVend6))
             {
@@ -345,7 +345,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -377,7 +377,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the No tasks should be created 
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Never);
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Never);
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Never);
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Never);
 
 
             _priceListingServiceMock.Verify(p => p.UpdatePriceListing(It.IsAny<PriceListing>()), Times.Never);
@@ -438,7 +438,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -475,7 +475,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for each listing
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Exactly(4));
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Exactly(4));
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Exactly(4));
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Exactly(4));
 
             foreach (var listing in listingsVend1.Concat(listingsVend6))
             {
@@ -545,7 +545,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain("example.com")) // THIS IS THE MAIN THING DIFFERENT THAT IS BEING TESTED
@@ -580,7 +580,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for each listing
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Exactly(4));
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Exactly(4));
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Exactly(2));
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Exactly(2));
 
             foreach (var listing in listingsVend1)
             {
@@ -794,7 +794,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -830,7 +830,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task failing at update price listing
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Exactly(4));
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Exactly(4));
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Exactly(4));
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Exactly(4));
 
             // Check that pricelisting updates are what are stoping it
             _priceListingServiceMock.Verify(p => p.UpdatePriceListing(It.IsAny<PriceListing>()), Times.Exactly(4));
@@ -896,7 +896,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -928,7 +928,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for no listings
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Never);
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Never);
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Never);
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Never);
 
             _loggerMock.Verify(l => l.Log(LogLevel.Information, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
                 It.IsAny<Exception>(), It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.AtLeastOnce);
@@ -984,7 +984,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -1016,7 +1016,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for no listings
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Never);
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Never);
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Never);
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Never);
 
             _loggerMock.Verify(x => x.Log(LogLevel.Warning, It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Invalid URL format for listing")),
@@ -1074,7 +1074,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // Mock Price Parser    
             var mockParser = new Mock<IPriceParser>();
 
-            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<Uri>()))
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
                 .ReturnsAsync((5.00m, 4.50m));
 
             _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
@@ -1106,7 +1106,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             // These should show the ScrapeAndUpdate() task succeeding for 2 listings
             _scraperHttpClientMock.Verify(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get), Times.Exactly(2));
             _priceParserFactoryMock.Verify(p => p.GetParserForDomain(It.IsAny<string>()), Times.Exactly(2));
-            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<Uri>()), Times.Exactly(2));
+            mockParser.Verify(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()), Times.Exactly(2));
 
             _loggerMock.Verify(x => x.Log(LogLevel.Warning, It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Invalid URL format for listing")),

@@ -2,19 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
+
 
 namespace Price_Comparison_Website.Services.HttpClients
 {
     public class ScraperHttpClient : IScraperHttpClient
     {
-        public Task<HttpResponseMessage> SendRequestAsync(Uri uri, HttpMethod method)
+        private readonly HttpClient _httpClient;
+
+        public ScraperHttpClient(HttpClient httpClient) // FIGURE OUT WHERE AND HOW TO PROPERLY INITALISE THIS
         {
-            throw new NotImplementedException();
+            _httpClient = httpClient;
         }
 
-        public void SetupClient()
+        public async Task<HttpResponseMessage> SendRequestAsync(Uri uri, HttpMethod method)
         {
-            throw new NotImplementedException();
+            var requestMessage = new HttpRequestMessage(method, uri);
+            HttpResponseMessage response = await _httpClient.SendAsync(requestMessage);
+
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
     }
 }

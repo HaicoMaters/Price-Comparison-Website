@@ -21,19 +21,21 @@ namespace Price_Comparison_Website.Services.WebScraping
                         });
         */
 
-        public IEnumerable<string> GetAllSupportedParsers()
+        private readonly Dictionary<string, IPriceParser> _parsers;
+
+        public PriceParserFactory(IEnumerable<IPriceParser> parsers)
         {
-            throw new NotImplementedException();
+            _parsers = parsers.ToDictionary(p => p.SupportedDomain, p => p, StringComparer.OrdinalIgnoreCase);
         }
+
+        public IEnumerable<string> GetAllSupportedParsers() => _parsers.Keys;
 
         public IPriceParser? GetParserForDomain(string domain)
         {
-            throw new NotImplementedException();
+            _parsers.TryGetValue(domain, out var parser);
+            return parser;
         }
 
-        public bool HasParserForDomain(string domain)
-        {
-            throw new NotImplementedException();
-        }
+        public bool HasParserForDomain(string domain) => _parsers.ContainsKey(domain);
     }
 }

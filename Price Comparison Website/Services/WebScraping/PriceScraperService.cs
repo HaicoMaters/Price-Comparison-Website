@@ -118,7 +118,7 @@ namespace Price_Comparison_Website.Services.WebScraping
                     try
                     {
                         // Send request using HTTP client
-                        var htmlContent = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
+                        var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
 
                         // Get the correct parser
                         var parser = _priceParserFactory.GetParserForDomain(domain);
@@ -126,7 +126,7 @@ namespace Price_Comparison_Website.Services.WebScraping
                         if (parser != null)
                         {
                             // Parse the content to extract prices
-                            var (price, discountedPrice) = await parser.ParsePriceAsync(uri);
+                            var (price, discountedPrice) = await parser.ParsePriceAsync(httpResponse);
 
                             // Update the listing with new prices
                             var listing = await _priceListingService.GetPriceListingById(listingId, new QueryOptions<PriceListing>());
