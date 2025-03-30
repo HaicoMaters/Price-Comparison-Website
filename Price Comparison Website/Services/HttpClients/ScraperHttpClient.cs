@@ -11,7 +11,7 @@ namespace Price_Comparison_Website.Services.HttpClients
     {
         private readonly HttpClient _httpClient;
 
-        public ScraperHttpClient(HttpClient httpClient) // FIGURE OUT WHERE AND HOW TO PROPERLY INITALISE THIS
+        public ScraperHttpClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
