@@ -14,7 +14,7 @@ namespace Price_Comparison_Website.Tests.Services.Utilities
 
         public ScraperRateLimiterTests()
         {
-            _rateLimiter = new ScraperRateLimiter(TimeSpan.FromMilliseconds(500)); // Use short cooldown for testing
+            _rateLimiter = new ScraperRateLimiter();
         }
 
         // ----------------------------------------------------------------------------- EnqueueRequest ----------------------------------------

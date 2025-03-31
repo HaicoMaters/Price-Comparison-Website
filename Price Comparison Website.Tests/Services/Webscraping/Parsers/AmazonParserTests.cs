@@ -70,7 +70,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping.Parsers
         public void SupportedDomain_ShouldBeSetToCorrectDomain()
         {
             // Act and Assert
-            Assert.Equal("amazon.co.uk", amazonPriceParser.SupportedDomain);
+            Assert.Equal("www.amazon.co.uk", amazonPriceParser.SupportedDomain);
         }
 
         // ------------------------------------------ ParsePriceAsync --------------------------------------

@@ -11,9 +11,8 @@ namespace Price_Comparison_Website.Services.Utilities
         private readonly Dictionary<string, DateTime> _cooldowns = new();
         private readonly TimeSpan _cooldownDuration = TimeSpan.FromSeconds(2);
 
-        public ScraperRateLimiter(TimeSpan cooldownDuration)
+        public ScraperRateLimiter()
         {
-            _cooldownDuration = cooldownDuration;
         }
 
         public async Task EnqueueRequest(Func<Task> requestFunc, string domain)

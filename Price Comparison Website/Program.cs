@@ -7,6 +7,9 @@ using Price_Comparison_Website.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Retrieve LocalhostUrl from configuration
+string localhostUrl = builder.Configuration["LocalhostUrl"] ?? "http://localhost:5173";
+
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -37,7 +40,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost",
         builder =>
         {
-            builder.WithOrigins("https://localhost:7056") // Adjust the origin as needed
+            builder.WithOrigins(localhostUrl)  // Use the LocalhostUrl from appsettings
                    .AllowAnyMethod()
                    .AllowAnyHeader();
         });

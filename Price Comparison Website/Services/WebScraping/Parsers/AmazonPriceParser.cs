@@ -12,7 +12,7 @@ namespace Price_Comparison_Website.Services.WebScraping.Parsers
     {
         public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain);
 
-        public string SupportedDomain => "amazon.co.uk";
+        public string SupportedDomain => "www.amazon.co.uk";
 
         public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse) // This can always be updated to support more page layouts (i noticed some page layouts are not the same)
         {

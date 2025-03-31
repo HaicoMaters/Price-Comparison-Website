@@ -27,6 +27,11 @@
                             <i class="bi bi-clock-history"></i> Login Activities
                         </a>
                     </li>
+                    <li class="nav-item"></li>
+                    <a class="nav-link" href="#listingUpdates" data-bs-toggle="tab">
+                        <i class="bi bi-person-check"></i> Listings Updates
+                    </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -36,10 +41,11 @@
             <div class="tab-content" id="adminContent">
                 <!-- Notifications Panel -->
                 <div class="tab-pane fade show active" id="notifications">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Global Notifications</h1>
                     </div>
-                    
+
                     @if (TempData["SuccessMessage"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -61,7 +67,8 @@
                                 @Html.AntiForgeryToken()
                                 <div class="mb-3">
                                     <label for="message" class="form-label">Notification Message</label>
-                                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                                    <textarea class="form-control" id="message" name="message" rows="4"
+                                        required></textarea>
                                     <div class="form-text">This message will be sent to all users.</div>
                                 </div>
                                 <div class="d-grid">
@@ -74,7 +81,8 @@
 
                 <!-- Statistics Panel -->
                 <div class="tab-pane fade" id="statistics">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Statistics</h1>
                     </div>
                     <div class="row">
@@ -115,7 +123,8 @@
 
                 <!-- Login Activities Panel -->
                 <div class="tab-pane fade" id="activities">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Recent Login Activities</h1>
                     </div>
                     <div class="table-responsive">
@@ -151,6 +160,51 @@
                                 }
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                <!-- Listings Updates Panel -->
+                <div class="tab-pane fade" id="listingUpdates">
+                    <div
+                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Listings Updates</h1>
+                    </div>
+
+                    <!-- Display Success/Error Messages -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Listing Update Logs</h5>
+                            <ul id="listingLogs" class="list-group">
+                                @foreach (var vendor in ViewBag.VendorsSupportingAutomaticUpdates)
+                                {
+                                    <li class="list-group-item">
+                                        <strong>@vendor.Name:</strong> @vendor.Name
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Update Listings Button -->
+                    <div class="d-grid mt-4">
+                        <form asp-action="UpdateAllListings" method="post">
+                            @Html.AntiForgeryToken() <!-- Anti-forgery token for security -->
+                            <button type="submit" class="btn btn-primary">Update All Listings</button>
+                        </form>
                     </div>
                 </div>
             </div>

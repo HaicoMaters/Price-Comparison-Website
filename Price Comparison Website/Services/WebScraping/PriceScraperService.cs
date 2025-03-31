@@ -70,6 +70,8 @@ namespace Price_Comparison_Website.Services.WebScraping
         {
             var vendorIds = await GetVendorIdsThatSupportScraping();
 
+            Console.WriteLine($"Got Vendors {vendorIds.Count} : Total");
+
             Dictionary<Uri, int> uris = new Dictionary<Uri, int>(); // Uri attached with price listing id
 
             // Get all price listings by vendor id and add those with available parsers
@@ -98,6 +100,7 @@ namespace Price_Comparison_Website.Services.WebScraping
             try
             {
                 await FilterUsingRobotsTxt(uris);
+                Console.WriteLine($"Filtered now count is {uris.Count} ");
             }
             catch (Exception ex)
             {
@@ -117,6 +120,7 @@ namespace Price_Comparison_Website.Services.WebScraping
                 {
                     try
                     {
+                        Console.WriteLine($"URL BEIGN ATTEMPTED HERE {uri}" );
                         // Send request using HTTP client
                         var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
 
@@ -133,6 +137,7 @@ namespace Price_Comparison_Website.Services.WebScraping
 
                             listing.Price = price;
                             listing.DiscountedPrice = discountedPrice;
+                            listing.DateListed = DateTime.Now;
 
                             await _priceListingService.UpdatePriceListing(listing);
 

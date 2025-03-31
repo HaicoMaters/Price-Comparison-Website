@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
@@ -14,6 +15,9 @@ namespace Price_Comparison_Website.Tests.Controllers
         private readonly Mock<ILogger<AdminController>> _loggerMock;
         private readonly Mock<ILoginActivityService> _loginActivityServiceMock;
         private readonly Mock<IAdminService> _adminServiceMock;
+        private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
+        private readonly Mock<IConfiguration> _configurationMock;
+        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly AdminController _adminController;
 
         public AdminControllerTests()
@@ -22,6 +26,10 @@ namespace Price_Comparison_Website.Tests.Controllers
             _notificationServiceMock = new Mock<INotificationService>();
             _loggerMock = new Mock<ILogger<AdminController>>();
             _loginActivityServiceMock = new Mock<ILoginActivityService>();
+
+            _httpClientFactoryMock = new Mock<IHttpClientFactory>();
+            _configurationMock = new Mock<IConfiguration>();
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
             // Mocking UserManager<ApplicationUser>
             var store = new Mock<IUserStore<ApplicationUser>>();
@@ -35,7 +43,10 @@ namespace Price_Comparison_Website.Tests.Controllers
                 _userManagerMock.Object,
                 _notificationServiceMock.Object,
                 _loggerMock.Object,
-                _loginActivityServiceMock.Object
+                _loginActivityServiceMock.Object,
+                _httpClientFactoryMock.Object,
+                _configurationMock.Object,
+                _httpContextAccessorMock.Object
             );
         }
 

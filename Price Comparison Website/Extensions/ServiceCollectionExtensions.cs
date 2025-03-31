@@ -4,6 +4,8 @@ using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services;
 using Price_Comparison_Website.Services.Implementations;
 using Price_Comparison_Website.Services.Interfaces;
+using Price_Comparison_Website.Services.WebScraping;
+using Price_Comparison_Website.Services.WebScraping.Interfaces;
 
 namespace Price_Comparison_Website.Extensions
 {
