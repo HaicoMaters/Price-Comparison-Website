@@ -24,6 +24,9 @@ namespace Price_Comparison_Website.Extensions
             services.AddScoped<IFileSystemWrapper, FileSystemWrapper>();
             services.AddScoped<IScraperRateLimiter, ScraperRateLimiter>();
 
+            services.AddScoped<IScraperStatusService, ScraperStatusService>();
+            services.AddHostedService<PriceScraperBackgroundService>();
+
 
             // Add individual parsers
             services.AddTransient<IPriceParser, AmazonPriceParser>();

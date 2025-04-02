@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Price_Comparison_Website.Services.WebScraping.Interfaces;
 
 namespace Price_Comparison_Website.Tests.Controllers
 {
@@ -18,6 +19,7 @@ namespace Price_Comparison_Website.Tests.Controllers
         private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
         private readonly Mock<IConfiguration> _configurationMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
+        private readonly Mock<IScraperStatusService> _scraperStatusServiceMock;
         private readonly AdminController _adminController;
 
         public AdminControllerTests()
@@ -30,6 +32,7 @@ namespace Price_Comparison_Website.Tests.Controllers
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _configurationMock = new Mock<IConfiguration>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _scraperStatusServiceMock = new Mock<IScraperStatusService>();
 
             // Mocking UserManager<ApplicationUser>
             var store = new Mock<IUserStore<ApplicationUser>>();
@@ -46,7 +49,8 @@ namespace Price_Comparison_Website.Tests.Controllers
                 _loginActivityServiceMock.Object,
                 _httpClientFactoryMock.Object,
                 _configurationMock.Object,
-                _httpContextAccessorMock.Object
+                _httpContextAccessorMock.Object,
+                _scraperStatusServiceMock.Object
             );
         }
 

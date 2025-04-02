@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Price_Comparison_Website.Data;
 using Price_Comparison_Website.Models;
 using Price_Comparison_Website.Services;
+using Price_Comparison_Website.Services.WebScraping.Interfaces;
 
 namespace Price_Comparison_Website.Controllers
 {
@@ -27,6 +28,8 @@ namespace Price_Comparison_Website.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IScraperStatusService _scraperStatusService;
+
 
         public AdminController(
             IAdminService adminService,
@@ -36,7 +39,8 @@ namespace Price_Comparison_Website.Controllers
             ILoginActivityService loginActivityService,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IScraperStatusService scraperStatusService)
         {
             _userManager = userManager;
             _adminService = adminService;
@@ -46,7 +50,7 @@ namespace Price_Comparison_Website.Controllers
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-
+            _scraperStatusService = scraperStatusService;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -68,14 +72,16 @@ namespace Price_Comparison_Website.Controllers
             var recentActivities = await _loginActivityService.GetNMostRecentActivities(50);
             ViewBag.RecentLoginActivities = recentActivities;
 
+            // Get last automatic update time
+            var lastUpdate = await _scraperStatusService.GetLastUpdateTime();
+            ViewBag.LastUpdateTime = lastUpdate;
+
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateAllListings()
         {
-            var client = _httpClientFactory.CreateClient();
-
             // Retrieve the base URL from appsettings.json
             var apiBaseUrl = _configuration["LocalhostUrl"]; // This gets the URL from appsettings.json
 

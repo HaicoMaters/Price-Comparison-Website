@@ -23,6 +23,7 @@ namespace Price_Comparison_Website.Services.WebScraping
         private readonly ILogger<PriceScraperService> _logger;
         private readonly IScraperRateLimiter _rateLimiter;
         private readonly IScraperHttpClient _scraperHttpClient;
+        private readonly IScraperStatusService _scraperStatusService;
 
 
         public PriceScraperService(
@@ -32,7 +33,8 @@ namespace Price_Comparison_Website.Services.WebScraping
             ILogger<PriceScraperService> logger,
             IScraperRateLimiter rateLimiter,
             IScraperHttpClient scraperHttpClient,
-            IPriceParserFactory priceParserFactory
+            IPriceParserFactory priceParserFactory,
+            IScraperStatusService scraperStatusService
         )
         {
             _robotsTxtChecker = robotsTxtChecker;
@@ -42,6 +44,7 @@ namespace Price_Comparison_Website.Services.WebScraping
             _rateLimiter = rateLimiter;
             _scraperHttpClient = scraperHttpClient;
             _priceParserFactory = priceParserFactory;
+            _scraperStatusService = scraperStatusService;
         }
 
         // maybe keep somewhere when the last update  was for the automatic updater
@@ -161,6 +164,7 @@ namespace Price_Comparison_Website.Services.WebScraping
             }
 
             await _rateLimiter.StopProcessing();
+            await _scraperStatusService.UpdateLastUpdateTime();
             _logger.LogInformation("All listings have been updated.");
         }
 
@@ -223,6 +227,11 @@ namespace Price_Comparison_Website.Services.WebScraping
         }
 
         public Task<bool> UpdateListing(int id) // This Can be added when needed
+        {
+            throw new NotImplementedException();
+        }
+
+        internal async Task ScrapeIfNeededAsync()
         {
             throw new NotImplementedException();
         }

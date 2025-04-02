@@ -21,6 +21,7 @@ namespace Price_Comparison_Website.Data
 		public DbSet<Notification> Notifications { get; set; }
 		public DbSet<UserNotification> UserNotifications { get; set; }
 		public DbSet<LoginActivity> LoginActivities { get; set; }
+		public DbSet<ScraperStatus> ScraperStatus {get; set;}
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
@@ -95,7 +96,10 @@ namespace Price_Comparison_Website.Data
 				.HasForeignKey(la => la.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
-			// Seed Data (Used AI Assistance just to have large quantity
+			// Seed Data
+			builder.Entity<ScraperStatus>().HasData(
+				new ScraperStatus { Id = 1, LastUpdated = DateTime.MinValue}
+			);
 
 			//Categories
 			builder.Entity<Category>().HasData(

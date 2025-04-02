@@ -24,6 +24,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
         private readonly Mock<IScraperRateLimiter> _rateLimiterMock;
         private readonly Mock<IScraperHttpClient> _scraperHttpClientMock;
         private readonly IPriceScraperService _priceScraperService;
+        private readonly Mock<IScraperStatusService> _scraperStatusServiceMock;
 
         public PriceScraperServiceTests()
         {
@@ -34,6 +35,7 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
             _loggerMock = new Mock<ILogger<PriceScraperService>>();
             _scraperHttpClientMock = new Mock<IScraperHttpClient>();
             _priceParserFactoryMock = new Mock<IPriceParserFactory>();
+            _scraperStatusServiceMock = new Mock<IScraperStatusService>();
 
             _priceScraperService = new PriceScraperService(
                 _robotsTxtCheckerMock.Object,
@@ -42,7 +44,8 @@ namespace Price_Comparison_Website.Tests.Services.Webscraping
                 _loggerMock.Object,
                 _rateLimiterMock.Object,
                 _scraperHttpClientMock.Object,
-                _priceParserFactoryMock.Object
+                _priceParserFactoryMock.Object,
+                _scraperStatusServiceMock.Object
             );
         }
 

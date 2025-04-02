@@ -185,16 +185,29 @@
                         </div>
                     }
 
+                    <p><strong>Last Update:</strong>
+                        @(ViewBag.LastUpdateTime != null
+                                                ? ((DateTime)ViewBag.LastUpdateTime).ToString("yyyy-MM-dd HH:mm:ss")
+                                                : "No updates recorded yet.")
+                    </p>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Supported Vendors for automatic updates</h5>
+                            <ul class="list-group">
+                                @foreach (var vendor in ViewBag.VendorsSupportingAutomaticUpdates)
+                                {
+                                    <li class="list-group-item">@vendor.Name</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Listing Update Logs</h5>
                             <ul id="listingLogs" class="list-group">
-                                @foreach (var vendor in ViewBag.VendorsSupportingAutomaticUpdates)
-                                {
-                                    <li class="list-group-item">
-                                        <strong>@vendor.Name:</strong> @vendor.Name
-                                    </li>
-                                }
+                                <li class="list-group-item text-muted">Update logs Or progress bar will be displayed here.< /li>
                             </ul>
                         </div>
                     </div>
