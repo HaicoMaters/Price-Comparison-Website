@@ -4,6 +4,12 @@
     ViewBag.Title = $"{Model.Name} Vendor";
 }
 
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-cards.css" asp-append-version="true" />
+}
+
+
 <h1>@Model.Name</h1>
 <div class="col-md-12">
     <input type="hidden" name="id" value="@Model.VendorId" />
@@ -12,9 +18,8 @@
         <div class="col-lg-6 col-md-12 mb-4">
             <div class="card mb-3">
                 <img src="@Url.Content(Model.VendorLogoUrl)"
-                     class="card-img-top img-fluid"
-                     alt="@Model.VendorUrl"
-                     style="max-width: 100%; height: auto; object-fit: cover;" />
+                     class="card-img-top fixed-image-height"
+                     alt="@Model.VendorUrl"/>
             </div>
             <!-- Space below the image for additional content -->
             <div class="mt-3">

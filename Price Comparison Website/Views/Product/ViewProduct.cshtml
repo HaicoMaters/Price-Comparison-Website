@@ -7,12 +7,17 @@
     bool isOnWishlist = User.IsInRole("User") && (bool)ViewData["OnWishlist"];
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-cards.css" asp-append-version="true" />
+}
+
 <h1>
     @Model.Name
     @if (isOnWishlist)
     {
-        <i class="bi bi-star-fill" style="color: gold;"
-         data-bs-toggle="tooltip" data-bs-placement="top" title="Is on wishlist"></i>
+         <div class="wishlist-indicator" data-bs-toggle="tooltip" data-bs-placement="top" title="On your wishlist">
+            <i class="bi bi-star-fill"></i>
+        </div>
     }
 </h1>
 
@@ -23,9 +28,8 @@
         <div class="col-lg-6 col-md-12 mb-4">
             <div class="card mb-3">
                 <img src="@Url.Content(Model.ImageUrl)"
-                     class="card-img-top img-fluid"
-                     alt="@Model.Description"
-                     style="max-width: 100%; height: auto; object-fit: cover;" />
+                     class="card-img-top fixed-image-height"
+                     alt="@Model.Description"/>
             </div>
                     <!-- Wishlist button -->
                     @if(User.IsInRole("User"))
