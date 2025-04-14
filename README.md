@@ -1,4 +1,4 @@
-   # Price Comparison Website
+   # PriceComparisonWebsite
 
    This project was built to help me learn **ASP.NET MVC** and enhance my **C# programming** skills. It is a simple platform where users can compare prices of a particular item across multiple vendors/websites. The platform includes several key features to facilitate the price comparison process and improve user experience.
 
