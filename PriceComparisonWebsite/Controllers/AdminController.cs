@@ -53,7 +53,7 @@ namespace PriceComparisonWebsite.Controllers
             _scraperStatusService = scraperStatusService;
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(string tab = "notifications")
         {
             var prods = await _adminService.GetAllProductsAsync();
             ViewBag.TotalProducts = prods.Count();
@@ -76,6 +76,8 @@ namespace PriceComparisonWebsite.Controllers
             var lastUpdate = await _scraperStatusService.GetLastUpdateTime();
             ViewBag.LastUpdateTime = lastUpdate;
 
+            ViewBag.ActiveTab = tab;
+
             return View();
         }
 
@@ -83,13 +85,12 @@ namespace PriceComparisonWebsite.Controllers
         public async Task<IActionResult> UpdateAllListings()
         {
             // Retrieve the base URL from appsettings.json
-            var apiBaseUrl = _configuration["LocalhostUrl"]; // This gets the URL from appsettings.json
+            var apiBaseUrl = _configuration["LocalhostUrl"];
 
             if (string.IsNullOrEmpty(apiBaseUrl))
             {
                 _logger.LogError("API Base URL is not configured in appsettings.");
-                ViewBag.Message = "Error: API Base URL not configured.";
-                return View();
+                return Json(new { success = false, message = "Error: API Base URL not configured." });
             }
 
             // Get the authentication cookies from the current request
@@ -111,7 +112,7 @@ namespace PriceComparisonWebsite.Controllers
             var authenticatedClient = new HttpClient(handler);
 
             // Call the specific endpoint for updating all listings (PATCH request)
-            var requestUri = $"{apiBaseUrl}/api/ScraperApi/update-all-listings";  // Target the correct API endpoint
+            var requestUri = $"{apiBaseUrl}/api/ScraperApi/update-all-listings";
 
             try
             {
@@ -122,22 +123,19 @@ namespace PriceComparisonWebsite.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    ViewBag.Message = "Listings updated successfully!";
+                    return Json(new { success = true, message = "Listings update process started successfully!" });
                 }
                 else
                 {
-                    ViewBag.Message = $"Failed to update listings. Status: {response.StatusCode}";
+                    return Json(new { success = false, message = $"Failed to update listings. Status: {response.StatusCode}" });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error calling ScraperApi");
-                ViewBag.Message = $"Error: {ex.Message}";
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
-
-            return RedirectToAction("Dashboard");
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]

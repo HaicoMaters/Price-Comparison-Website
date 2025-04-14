@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Admin Dashboard";
+    var activeTab = ViewBag.ActiveTab ?? "notifications";
 }
 
 @section Styles {
@@ -40,7 +41,7 @@
         <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="tab-content" id="adminContent">
                 <!-- Notifications Panel -->
-                <div class="tab-pane fade show active" id="notifications">
+                <div class="tab-pane fade @(activeTab == "notifications" ? "show active" : "")" id="notifications">
                     <div
                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Global Notifications</h1>
@@ -80,7 +81,7 @@
                 </div>
 
                 <!-- Statistics Panel -->
-                <div class="tab-pane fade" id="statistics">
+                <div class="tab-pane fade @(activeTab == "statistics" ? "show active" : "")" id="statistics">
                     <div
                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Statistics</h1>
@@ -122,7 +123,7 @@
                 </div>
 
                 <!-- Login Activities Panel -->
-                <div class="tab-pane fade" id="activities">
+                <div class="tab-pane fade @(activeTab == "activities" ? "show active" : "")" id="activities">
                     <div
                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Recent Login Activities</h1>
@@ -163,7 +164,7 @@
                     </div>
                 </div>
                 <!-- Listings Updates Panel -->
-                <div class="tab-pane fade" id="listingUpdates">
+                <div class="tab-pane fade @(activeTab == "listingUpdates" ? "show active" : "")" id="listingUpdates">
                     <div
                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                         <h1 class="h2">Listings Updates</h1>
@@ -207,16 +208,16 @@
                         <div class="card-body">
                             <h5 class="card-title">Listing Update Logs</h5>
                             <ul id="listingLogs" class="list-group">
-                                <li class="list-group-item text-muted">Update logs  will be displayed here.< /li>
+                                <li class="list-group-item text-muted">Update logs will be displayed here. </li>
                             </ul>
                         </div>
                     </div>
 
                     <!-- Update Listings Button -->
                     <div class="d-grid mt-4">
-                        <form asp-action="UpdateAllListings" method="post">
-                            @Html.AntiForgeryToken() <!-- Anti-forgery token for security -->
-                            <button type="submit" class="btn btn-primary">Update All Listings</button>
+                        <form id="updateListingsForm" asp-action="UpdateAllListings" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary" id="updateListingsButton">Update All Listings</button>
                         </form>
                     </div>
                 </div>
@@ -226,5 +227,11 @@
 </div>
 
 @section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
     <script src="~/js/admin-dashboard.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            receiveScraperLogs();
+        });
+    </script>
 }
