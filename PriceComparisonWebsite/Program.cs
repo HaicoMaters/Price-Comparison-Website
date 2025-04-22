@@ -6,6 +6,8 @@ using PriceComparisonWebsite.Models;
 using PriceComparisonWebsite.Services;
 using PriceComparisonWebsite.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using System.Net.Http.Headers;
+using System.Net;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +56,18 @@ builder.Services.AddCors(options =>
                    .AllowCredentials() 
                    .SetIsOriginAllowed(_ => true); 
         });
+});
+
+builder.Services.AddHttpClient("API", client => // Not Secure right now, if want to make secure update attributes to use a custom api key, for authentication and etc. not needed for now
+{
+    client.BaseAddress = new Uri(builder.Configuration["LocalhostUrl"]);
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    client.DefaultRequestHeaders.Add("X-Internal-Client", "true"); // Add internal client header
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    CookieContainer = new CookieContainer(),
+    UseCookies = true
 });
 
 var app = builder.Build();

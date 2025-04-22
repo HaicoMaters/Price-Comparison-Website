@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PriceComparisonWebsite.Attributes;
 using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers.Api
@@ -11,7 +12,7 @@ namespace PriceComparisonWebsite.Controllers.Api
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Authorize(Roles = "Admin")]
+    [InternalOrAuthorized("Admin")]
     public class ScraperApiController : ControllerBase
     {
         IPriceScraperService _priceScraperService;
@@ -23,7 +24,7 @@ namespace PriceComparisonWebsite.Controllers.Api
             _logger = logger;
         }
 
-         [HttpPatch("update-all-listings")]
+        [HttpPatch("update-all-listings")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]      // Successful operation
         [ProducesResponseType(StatusCodes.Status500InternalServerError)] // Failure
         public async Task<IActionResult> UpdateAllListings()

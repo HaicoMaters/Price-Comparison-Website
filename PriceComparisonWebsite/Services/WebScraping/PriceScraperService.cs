@@ -130,7 +130,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
                     try
                     {
                         await _scraperLogService.SendLogAsync($"Processing: {uri}");
-                        _logger.LogInformation($"URL BEIGN ATTEMPTED HERE {uri}" );
+                        _logger.LogInformation($"Processing {uri}" );
                         // Send request using HTTP client
                         var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
 

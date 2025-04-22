@@ -64,16 +64,15 @@
 
                     <div class="card">
                         <div class="card-body">
-                            <form asp-action="SendGlobalNotification" method="post">
+                            <form id="globalNotificationForm" asp-action="SendGlobalNotification" method="post">
                                 @Html.AntiForgeryToken()
                                 <div class="mb-3">
                                     <label for="message" class="form-label">Notification Message</label>
-                                    <textarea class="form-control" id="message" name="message" rows="4"
-                                        required></textarea>
+                                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
                                     <div class="form-text">This message will be sent to all users.</div>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">Send Global Notification</button>
+                                    <button type="submit" class="btn btn-primary" id="sendNotificationButton">Send Global Notification</button>
                                 </div>
                             </form>
                         </div>

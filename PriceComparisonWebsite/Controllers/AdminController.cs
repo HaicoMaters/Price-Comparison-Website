@@ -4,10 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PriceComparisonWebsite.Data;
@@ -25,11 +28,10 @@ namespace PriceComparisonWebsite.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly ILoginActivityService _loginActivityService;
         private readonly IAdminService _adminService;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IScraperStatusService _scraperStatusService;
-
 
         public AdminController(
             IAdminService adminService,
@@ -47,10 +49,10 @@ namespace PriceComparisonWebsite.Controllers
             _notificationService = notificationService;
             _logger = logger;
             _loginActivityService = loginActivityService;
-            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _scraperStatusService = scraperStatusService;
+            _httpClient = httpClientFactory.CreateClient("API");
         }
 
         public async Task<IActionResult> Dashboard(string tab = "notifications")
@@ -84,51 +86,16 @@ namespace PriceComparisonWebsite.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateAllListings()
         {
-            // Retrieve the base URL from appsettings.json
-            var apiBaseUrl = _configuration["LocalhostUrl"];
-
-            if (string.IsNullOrEmpty(apiBaseUrl))
-            {
-                _logger.LogError("API Base URL is not configured in appsettings.");
-                return Json(new { success = false, message = "Error: API Base URL not configured." });
-            }
-
-            // Get the authentication cookies from the current request
-            var cookies = _httpContextAccessor.HttpContext.Request.Cookies;
-
-            // Add the authentication cookies to the HttpClient
-            var cookieContainer = new CookieContainer();
-            foreach (var cookie in cookies)
-            {
-                cookieContainer.Add(new Uri(apiBaseUrl), new Cookie(cookie.Key, cookie.Value));
-            }
-
-            var handler = new HttpClientHandler()
-            {
-                CookieContainer = cookieContainer
-            };
-
-            // Set the handler on the HttpClient to ensure cookies are sent
-            var authenticatedClient = new HttpClient(handler);
-
-            // Call the specific endpoint for updating all listings (PATCH request)
-            var requestUri = $"{apiBaseUrl}/api/ScraperApi/update-all-listings";
-
             try
             {
-                // Use HttpRequestMessage to send a PATCH request
-                var request = new HttpRequestMessage(HttpMethod.Patch, requestUri);
-
-                var response = await authenticatedClient.SendAsync(request);
+                var request = new HttpRequestMessage(HttpMethod.Patch, "api/ScraperApi/update-all-listings");
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
                     return Json(new { success = true, message = "Listings update process started successfully!" });
                 }
-                else
-                {
-                    return Json(new { success = false, message = $"Failed to update listings. Status: {response.StatusCode}" });
-                }
+                return Json(new { success = false, message = $"Failed to update listings. Status: {response.StatusCode}" });
             }
             catch (Exception ex)
             {
@@ -138,26 +105,25 @@ namespace PriceComparisonWebsite.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken] /// FIX THIS SO MESSAGE SENDS CORRECTLY AND NOT NULL OR EMPTY
         public async Task<IActionResult> SendGlobalNotification(string message)
         {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                ModelState.AddModelError("", "Message cannot be empty");
-                return RedirectToAction("Dashboard");
-            }
-
             try
             {
-                await _notificationService.CreateGlobalNotification(message);
-                TempData["SuccessMessage"] = "Global notification sent successfully!";
+                var request = new HttpRequestMessage(HttpMethod.Post, $"api/NotificationApi/create-global-notification/{message}");
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, message = "Global notification sent successfully!" });
+                }
+                return Json(new { success = false, message = $"Failed to send notification. Status: {response.StatusCode}" });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error sending notification: {ex.Message}";
+                _logger.LogError(ex, "Error calling NotificationApi");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
-
-            return RedirectToAction("Dashboard");
         }
     }
 }

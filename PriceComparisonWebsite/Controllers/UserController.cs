@@ -9,27 +9,38 @@ using PriceComparisonWebsite.Data;
 using PriceComparisonWebsite.Models;
 using PriceComparisonWebsite.Services;
 using PriceComparisonWebsite.Services.Interfaces;
+using System.Net;
+using System.Net.Http;
 
 namespace PriceComparisonWebsite.Controllers
 {
     [Authorize(Roles = "Admin,User")] 
     public class UserController : Controller
     {
-        public readonly IUserService _userService;
+        private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly INotificationService _notificationService;
         private readonly ILogger<UserController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserController(
             UserManager<ApplicationUser> userManager,
             INotificationService notificationService,
             ILogger<UserController> logger,
-            IUserService userService)
+            IUserService userService,
+            IConfiguration configuration,
+            IHttpClientFactory httpClientFactory,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userService = userService;
             _userManager = userManager;
             _notificationService = notificationService;
             _logger = logger;
+            _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _httpClient = httpClientFactory.CreateClient("API");
         }
 
         [Authorize(Roles = "User")]
@@ -150,44 +161,26 @@ namespace PriceComparisonWebsite.Controllers
         [HttpGet]
         public async Task<IActionResult> GetNotifications()
         {
-            try 
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized();
+                var requestUri = $"api/NotificationApi/user-notifications/{user.Id}";
+                var response = await _httpClient.GetAsync(requestUri);
 
-                try
+                if (response.IsSuccessStatusCode)
                 {
-                    // This is a pretty bad solution but it works for now
-                    // Get both read and unread notifications
-                    var readNotifications = await _notificationService.GetReadUserNotifications(user.Id);
-                    var unreadNotifications = await _notificationService.GetUnreadUserNotifications(user.Id);
-                    
-                    // Merge both lists and remove duplicates
-                    var allNotifications = readNotifications.Concat(unreadNotifications)
-                        .GroupBy(n => n.Id) // Remove duplicate notifications by ID
-                        .Select(g => g.First()) // Take the first occurrence
-                        .OrderByDescending(n => n.CreatedAt) // Sort by newest first
-                        .Select(n => new
-                        {
-                            id = n.Id,
-                            message = n.Message,
-                            timestamp = n.CreatedAt.ToString("g"),
-                            isRead = !unreadNotifications.Any(un => un.Id == n.Id) // Mark as read if not in unread list
-                        })
-                        .ToList();
-
-                    return Json(new { notifications = allNotifications });
+                    var content = await response.Content.ReadAsStringAsync();
+                    return Content(content, "application/json");
                 }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to fetch notifications for user {UserId}", User.Identity.Name);
-                    return BadRequest(new { error = "Failed to fetch notifications", details = ex.Message });
-                }
+                
+                return StatusCode((int)response.StatusCode, new { success = false, message = $"Failed to fetch notifications. Status: {response.StatusCode}" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error occurred while fetching notifications for user {UserId}", User.Identity.Name);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                _logger.LogError(ex, "Error calling NotificationApi");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
 
@@ -195,26 +188,25 @@ namespace PriceComparisonWebsite.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkNotificationsAsRead()
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized();
+                var requestUri = $"api/NotificationApi/mark-as-read/{user.Id}";
+                var response = await _httpClient.PostAsync(requestUri, null);
 
-                try
+                if (response.IsSuccessStatusCode)
                 {
-                    await _notificationService.MarkNotificationsAsRead(user.Id);
-                    return Ok(new { success = true });
+                    return Json(new { success = true, message = "Notifications marked as read successfully!" });
                 }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to mark notifications as read for user {UserId}", User.Identity.Name);
-                    return BadRequest(new { error = "Failed to mark notifications as read", details = ex.Message });
-                }
+                
+                return Json(new { success = false, message = $"Failed to mark notifications as read. Status: {response.StatusCode}" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error occurred while marking notifications as read for user {UserId}", User.Identity.Name);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                _logger.LogError(ex, "Error calling NotificationApi");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
 
@@ -223,29 +215,27 @@ namespace PriceComparisonWebsite.Controllers
         [Route("[controller]/DismissNotification/{notificationId}")]
         public async Task<IActionResult> DismissNotification(int notificationId)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null) return Unauthorized();
+                var requestUri = $"api/NotificationApi/dismiss/{user.Id}/{notificationId}";
+                var response = await _httpClient.PostAsync(requestUri, null);
 
-                try
+                if (response.IsSuccessStatusCode)
                 {
-                    await _notificationService.DeleteUserNotification(notificationId, user.Id);
-                    return Ok(new { success = true });
+                    return Json(new { success = true, message = "Notification dismissed successfully!" });
                 }
-                catch (InvalidOperationException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to dismiss notification for user {UserId}", User.Identity.Name);
-                    return BadRequest(new { error = "Failed to dismiss notification", details = ex.Message });
-                }
+                
+                return Json(new { success = false, message = $"Failed to dismiss notification. Status: {response.StatusCode}" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error occurred while dismissing notification for user {UserId}", User.Identity.Name);
-                return StatusCode(500, new { error = "An unexpected error occurred", details = ex.Message });
+                _logger.LogError(ex, "Error calling NotificationApi");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
-        
     } 
 }
 

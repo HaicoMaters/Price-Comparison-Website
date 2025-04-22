@@ -69,4 +69,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         formInitialized = true;
     }
+
+    // Handle global notification form submission
+    const notificationForm = document.getElementById('globalNotificationForm');
+    if (notificationForm) {
+        notificationForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = document.getElementById('sendNotificationButton');
+            const messageInput = document.getElementById('message');
+            button.disabled = true;
+            button.textContent = 'Sending...';
+
+            try {
+                const response = await fetch(notificationForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(messageInput.value)
+                });
+
+                const result = await response.json();
+                
+                // Show success/error message
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `alert alert-${result.success ? 'success' : 'danger'} alert-dismissible fade show`;
+                messageDiv.innerHTML = `
+                    ${result.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Insert message before the form
+                notificationForm.parentElement.insertBefore(messageDiv, notificationForm);
+
+                if (result.success) {
+                    messageInput.value = ''; // Clear the form on success
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Send Global Notification';
+            }
+        });
+    }
 });
