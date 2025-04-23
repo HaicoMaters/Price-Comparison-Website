@@ -28,9 +28,8 @@ namespace PriceComparisonWebsite.Controllers.Api
 
         [HttpPost("create-global-notification")]
         [InternalOrAuthorized("Admin")]
-        public async Task<IActionResult> CreateGlobalNotification(string message)
+        public async Task<IActionResult> CreateGlobalNotification([FromBody] string message)
         {
-
             if (string.IsNullOrWhiteSpace(message))
             {
                 _logger.LogWarning("Attempted to create empty global notification");

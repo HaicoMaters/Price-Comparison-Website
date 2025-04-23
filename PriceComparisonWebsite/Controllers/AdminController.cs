@@ -105,13 +105,17 @@ namespace PriceComparisonWebsite.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken] /// FIX THIS SO MESSAGE SENDS CORRECTLY AND NOT NULL OR EMPTY
-        public async Task<IActionResult> SendGlobalNotification(string message)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendGlobalNotification([FromBody] string message)
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"api/NotificationApi/create-global-notification/{message}");
-                var response = await _httpClient.SendAsync(request);
+                var content = new StringContent(
+                    JsonSerializer.Serialize(message),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var response = await _httpClient.PostAsync("api/NotificationApi/create-global-notification", content);
 
                 if (response.IsSuccessStatusCode)
                 {
