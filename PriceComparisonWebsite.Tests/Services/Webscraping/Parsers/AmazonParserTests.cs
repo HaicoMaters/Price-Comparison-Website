@@ -26,6 +26,7 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping.Parsers
             amazonPriceParser = new AmazonPriceParser();
         }
 
+        [Fact]
         public async Task SetupPageContent()
         {
             var DiscountedFilePath = Path.Combine(folderName, "AmazonDiscountedPageContent.txt");

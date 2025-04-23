@@ -15,8 +15,8 @@ namespace PriceComparisonWebsite.Controllers.Api
     [InternalOrAuthorized("Admin")]
     public class ScraperApiController : ControllerBase
     {
-        IPriceScraperService _priceScraperService;
-        ILogger<ScraperApiController> _logger;
+        private readonly IPriceScraperService _priceScraperService;
+        private readonly ILogger<ScraperApiController> _logger;
 
         public ScraperApiController(IPriceScraperService priceScraperService, ILogger<ScraperApiController> logger)
         {

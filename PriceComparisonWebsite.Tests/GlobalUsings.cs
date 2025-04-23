@@ -6,6 +6,7 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
 global using Moq;
 global using PriceComparisonWebsite.Controllers;
+global using PriceComparisonWebsite.Controllers.Api;
 global using PriceComparisonWebsite.Data;
 global using PriceComparisonWebsite.Models;
 global using PriceComparisonWebsite.Services;

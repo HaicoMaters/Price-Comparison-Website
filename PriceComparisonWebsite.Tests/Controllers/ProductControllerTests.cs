@@ -382,7 +382,7 @@ namespace PriceComparisonWebsite.Tests.Controllers
             // Assert
             Assert.NotNull(result);
             var model = Assert.IsType<List<Product>>(result.Model);
-            Assert.Equal(1, model.Count);
+            Assert.Single(model);
             Assert.Equal("Test 1", model[0].Name);
             Assert.Equal(1, model[0].ProductId);
 
