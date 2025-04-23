@@ -58,11 +58,12 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddHttpClient("API", client => // Not Secure right now, if want to make secure update attributes to use a custom api key, for authentication and etc. not needed for now
+builder.Services.AddHttpClient("API", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["LocalhostUrl"]);
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-    client.DefaultRequestHeaders.Add("X-Internal-Client", "true"); // Add internal client header
+    client.DefaultRequestHeaders.Add("X-Internal-Client", "true");
+    client.DefaultRequestHeaders.Add("X-Internal-Auth", builder.Configuration["InternalApi:Key"]);
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {

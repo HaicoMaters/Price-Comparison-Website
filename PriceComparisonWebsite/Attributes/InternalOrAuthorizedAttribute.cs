@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PriceComparisonWebsite.Attributes
 {
@@ -12,6 +14,7 @@ namespace PriceComparisonWebsite.Attributes
     {
         private readonly string[] _roles;
         private const string INTERNAL_CLIENT_HEADER = "X-Internal-Client";
+        private const string INTERNAL_AUTH_HEADER = "X-Internal-Auth";
 
         public InternalOrAuthorizedAttribute(params string[] roles)
         {
@@ -20,21 +23,25 @@ namespace PriceComparisonWebsite.Attributes
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            // Check for internal client header first
+            var configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var internalApiKey = configuration["InternalApi:Key"];
+
+            // Check for internal client headers
             if (context.HttpContext.Request.Headers.TryGetValue(INTERNAL_CLIENT_HEADER, out var clientHeader) 
-                && clientHeader == "true")
+                && context.HttpContext.Request.Headers.TryGetValue(INTERNAL_AUTH_HEADER, out var authHeader))
             {
-                return; // Allow internal client
+                if (clientHeader == "true" && authHeader == internalApiKey)
+                {
+                    return; // Allow internal client with correct auth key
+                }
             }
 
             // Check if user is authenticated and in the required role
             if (context.HttpContext.User.Identity?.IsAuthenticated == true)
             {
-                // If no roles specified, any authenticated user is allowed
                 if (_roles == null || _roles.Length == 0)
                     return;
 
-                // Check if user is in any of the required roles
                 if (_roles.Any(role => context.HttpContext.User.IsInRole(role)))
                     return;
             }
