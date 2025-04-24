@@ -142,7 +142,7 @@ namespace PriceComparisonWebsite.Controllers
 
                 try
                 {
-                    _userService.DeleteViewingHistory(user.Id);
+                    await _userService.DeleteViewingHistory(user.Id);
                     return RedirectToAction("ViewingHistory");
                 }
                 catch (InvalidOperationException ex)
