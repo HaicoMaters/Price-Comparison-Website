@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using PriceComparisonWebsite.Data;
 using PriceComparisonWebsite.Models;
 using PriceComparisonWebsite.Services;
+using PriceComparisonWebsite.Services.HttpClients;
 using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers
@@ -28,10 +29,10 @@ namespace PriceComparisonWebsite.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly ILoginActivityService _loginActivityService;
         private readonly IAdminService _adminService;
-        private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IScraperStatusService _scraperStatusService;
+        private readonly IApiHttpClient _apiClient;
 
         public AdminController(
             IAdminService adminService,
@@ -39,7 +40,7 @@ namespace PriceComparisonWebsite.Controllers
             INotificationService notificationService,
             ILogger<AdminController> logger,
             ILoginActivityService loginActivityService,
-            IHttpClientFactory httpClientFactory,
+            IApiHttpClient apiClient,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor,
             IScraperStatusService scraperStatusService)
@@ -52,7 +53,7 @@ namespace PriceComparisonWebsite.Controllers
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
             _scraperStatusService = scraperStatusService;
-            _httpClient = httpClientFactory.CreateClient("API");
+            _apiClient = apiClient;
         }
 
         public async Task<IActionResult> Dashboard(string tab = "notifications")
@@ -70,7 +71,7 @@ namespace PriceComparisonWebsite.Controllers
             ViewBag.TotalVendors = vends.Count();
             ViewBag.VendorsSupportingAutomaticUpdates = vends.Where(v => v.SupportsAutomaticUpdates == true);
 
-            // Get 10 most recent login activities
+            // Get 50 most recent login activities
             var recentActivities = await _loginActivityService.GetNMostRecentActivities(50);
             ViewBag.RecentLoginActivities = recentActivities;
 
@@ -88,12 +89,10 @@ namespace PriceComparisonWebsite.Controllers
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Patch, "api/ScraperApi/update-all-listings");
-                var response = await _httpClient.SendAsync(request);
-
+                var response = await _apiClient.SendAsync(HttpMethod.Patch, "api/ScraperApi/update-all-listings");
                 if (response.IsSuccessStatusCode)
                 {
-                    return Json(new { success = true, message = "Listings update process started successfully!" });
+                    return Json(new { success = true, message = "Listings updated sucessfully!" });
                 }
                 return Json(new { success = false, message = $"Failed to update listings. Status: {response.StatusCode}" });
             }
@@ -110,13 +109,7 @@ namespace PriceComparisonWebsite.Controllers
         {
             try
             {
-                var content = new StringContent(
-                    JsonSerializer.Serialize(message),
-                    Encoding.UTF8,
-                    "application/json");
-
-                var response = await _httpClient.PostAsync("api/NotificationApi/create-global-notification", content);
-
+                var response = await _apiClient.SendAsync(HttpMethod.Post, "api/NotificationApi/create-global-notification", message);
                 if (response.IsSuccessStatusCode)
                 {
                     return Json(new { success = true, message = "Global notification sent successfully!" });

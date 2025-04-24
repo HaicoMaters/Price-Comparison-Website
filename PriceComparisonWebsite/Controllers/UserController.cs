@@ -11,6 +11,7 @@ using PriceComparisonWebsite.Services;
 using PriceComparisonWebsite.Services.Interfaces;
 using System.Net;
 using System.Net.Http;
+using PriceComparisonWebsite.Services.HttpClients;
 
 namespace PriceComparisonWebsite.Controllers
 {
@@ -22,7 +23,7 @@ namespace PriceComparisonWebsite.Controllers
         private readonly INotificationService _notificationService;
         private readonly ILogger<UserController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
+        private readonly IApiHttpClient _apiClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserController(
@@ -31,7 +32,7 @@ namespace PriceComparisonWebsite.Controllers
             ILogger<UserController> logger,
             IUserService userService,
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory,
+            IApiHttpClient apiClient,
             IHttpContextAccessor httpContextAccessor)
         {
             _userService = userService;
@@ -40,7 +41,7 @@ namespace PriceComparisonWebsite.Controllers
             _logger = logger;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
-            _httpClient = httpClientFactory.CreateClient("API");
+            _apiClient = apiClient;
         }
 
         [Authorize(Roles = "User")]
@@ -166,9 +167,7 @@ namespace PriceComparisonWebsite.Controllers
 
             try
             {
-                var requestUri = $"api/NotificationApi/user-notifications/{user.Id}";
-                var response = await _httpClient.GetAsync(requestUri);
-
+                var response = await _apiClient.SendAsync(HttpMethod.Get, $"api/NotificationApi/user-notifications/{user.Id}");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
@@ -193,8 +192,7 @@ namespace PriceComparisonWebsite.Controllers
 
             try
             {
-                var requestUri = $"api/NotificationApi/mark-as-read/{user.Id}";
-                var response = await _httpClient.PostAsync(requestUri, null);
+                var response = await _apiClient.SendAsync(HttpMethod.Post, $"api/NotificationApi/mark-as-read/{user.Id}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -220,8 +218,7 @@ namespace PriceComparisonWebsite.Controllers
 
             try
             {
-                var requestUri = $"api/NotificationApi/dismiss/{user.Id}/{notificationId}";
-                var response = await _httpClient.PostAsync(requestUri, null);
+                var response = await _apiClient.SendAsync(HttpMethod.Post, $"api/NotificationApi/dismiss/{user.Id}/{notificationId}");
 
                 if (response.IsSuccessStatusCode)
                 {
