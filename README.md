@@ -119,10 +119,10 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    ##### Automated Price Updates
    - **Scheduled Updates**: 
-   - Runs automatically every 8 hours
-   - Configurable update intervals via `PriceScraperBackgroundService`
-   - Manual triggers available through admin dashboard
-   - Real-time progress monitoring via SignalR
+      - Runs automatically every 8 hours
+      - Configurable update intervals via `PriceScraperBackgroundService`
+      - Manual triggers available through admin dashboard
+      - Real-time progress monitoring via SignalR
 
    ##### Smart Vendor Management
    - **Automatic Vendor Detection**:
