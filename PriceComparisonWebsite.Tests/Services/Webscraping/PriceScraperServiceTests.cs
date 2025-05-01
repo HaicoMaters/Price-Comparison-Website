@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using PriceComparisonWebsite.Services.HttpClients;
@@ -26,6 +27,7 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping
         private readonly IPriceScraperService _priceScraperService;
         private readonly Mock<IScraperStatusService> _scraperStatusServiceMock;
         private readonly Mock<IScraperLogService> _scraperLogServiceMock;
+        private readonly Mock<IRetryHandler> _retryHandlerMock;
 
         public PriceScraperServiceTests()
         {
@@ -38,6 +40,17 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping
             _priceParserFactoryMock = new Mock<IPriceParserFactory>();
             _scraperStatusServiceMock = new Mock<IScraperStatusService>();
             _scraperLogServiceMock = new Mock<IScraperLogService>();
+            _retryHandlerMock = new Mock<IRetryHandler>();
+
+            // Mock Retry Handler to just execute the action immediately
+            _retryHandlerMock.Setup(r => r.ExecuteWithRetryAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>()
+            )).Returns<Func<Task>, string, int>(async (operation, operationName, maxRetries) =>
+            {
+                await operation();
+            });
 
             _priceScraperService = new PriceScraperService(
                 _robotsTxtCheckerMock.Object,
@@ -48,7 +61,8 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping
                 _scraperHttpClientMock.Object,
                 _priceParserFactoryMock.Object,
                 _scraperStatusServiceMock.Object,
-                _scraperLogServiceMock.Object
+                _scraperLogServiceMock.Object,
+                _retryHandlerMock.Object
             );
         }
 
@@ -270,6 +284,7 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping
             // Mock RateLimiter behavior (just execute the action immediately)
             _rateLimiterMock.Setup(r => r.EnqueueRequest(It.IsAny<Func<Task>>(), It.IsAny<string>()))
                 .Returns<Func<Task>, string>((action, domain) => action());
+
 
             // Act
             await _priceScraperService.UpdateAllListings();
@@ -1120,6 +1135,192 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping
             );
         }
 
+        [Fact]
+        public async Task UpdateAllListings_WhenHttpRequestFailsTemporarily_ShouldRetryAndSucceed()
+        {
+                       // Arrange 
+            var vendors = new List<Vendor>{
+                new Vendor {VendorId = 1, VendorUrl = "https://example.com"},
+                new Vendor {VendorId = 6, VendorUrl = "https://example2.com"},
+            };
+
+            var listingsVend1 = new List<PriceListing>
+            {
+                new PriceListing{PriceListingId = 1, VendorId = 1, Price = 2.00m, DiscountedPrice = 1.50m, PurchaseUrl = "https://example.com/1", ProductId = 1}, // Each has different product id for explicit verification
+                new PriceListing{PriceListingId = 2, VendorId = 1, Price = 3.00m, DiscountedPrice = 3.00m, PurchaseUrl = "https://example.com/2", ProductId = 2}
+            };
+
+            var listingsVend6 = new List<PriceListing>
+            {
+                new PriceListing{PriceListingId = 3, VendorId = 6, Price = 2.00m, DiscountedPrice = 1.50m, PurchaseUrl = "https://example2.com/1", ProductId = 3},
+                new PriceListing{PriceListingId = 4, VendorId = 6, Price = 2.00m, DiscountedPrice = 2.00m, PurchaseUrl = "https://example2.com/2", ProductId = 4}
+            };
+
+            // Pass the other two functions fine
+            _vendorServiceMock.Setup(v => v.GetAllVendorsAsync(It.IsAny<QueryOptions<Vendor>>()))
+                .ReturnsAsync(vendors);
+
+            _robotsTxtCheckerMock.Setup(c => c.CheckRobotsTxt(It.IsAny<Uri>()))
+                .ReturnsAsync(true);
+
+            _priceParserFactoryMock.Setup(p => p.HasParserForDomain(It.IsAny<string>()))
+                .Returns(true);
+
+            // Main method setups 
+
+            _priceListingServiceMock.Setup(s => s.GetPriceListingsByVendorId(1, It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listingsVend1);
+
+            _priceListingServiceMock.Setup(s => s.GetPriceListingsByVendorId(6, It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listingsVend6);
+
+
+            // Mock GetPriceListingById for each listing
+            foreach (var listing in listingsVend1.Concat(listingsVend6))
+            {
+                _priceListingServiceMock.Setup(p => p.GetPriceListingById(listing.PriceListingId, It.IsAny<QueryOptions<PriceListing>>()))
+                    .ReturnsAsync(listing);
+            }
+
+            // Mock Price Parser    
+            var mockParser = new Mock<IPriceParser>();
+
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
+                .ReturnsAsync((5.00m, 4.50m));
+
+            _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
+                .Returns(mockParser.Object);
+
+            // Mock HTTP client responses
+                        var attemptCount = 0;
+            _scraperHttpClientMock.Setup(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get))
+                .Returns<Uri, HttpMethod>((uri, method) =>
+                {
+                    attemptCount++;
+                    if (attemptCount <= 2) // Fail first two attempts
+                    {
+                        throw new HttpRequestException("Temporary failure");
+                    }
+                    return Task.FromResult(new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("<html>Valid Content</html>")
+                    });
+                });
+
+
+            // Mock RateLimiter behavior (just execute the action immediately)
+            _rateLimiterMock.Setup(r => r.EnqueueRequest(It.IsAny<Func<Task>>(), It.IsAny<string>()))
+                .Returns<Func<Task>, string>((action, domain) => action());
+
+            _retryHandlerMock.Setup(r => r.ExecuteWithRetryAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>()
+            )).Returns<Func<Task>, string, int>(async (operation, operationName, maxRetries) =>
+            {
+                await operation();
+            });
+
+            // Act
+            await _priceScraperService.UpdateAllListings();
+
+            // Assert
+            Assert.True(attemptCount > 1);
+            _retryHandlerMock.Verify(r => r.ExecuteWithRetryAsync(
+                It.IsAny<Func<Task>>(),
+                It.Is<string>(s => s.Contains("Scraping https://example.com/1")), // just one of the uris to check
+                It.IsAny<int>()), 
+            Times.AtLeastOnce());
+        }
+
+        [Fact]
+        public async Task UpdateAllListings_WhenRetryHandlerExhaustsRetries_ShouldLogErrorAndContinue()
+        {
+            // Arrange 
+            var vendors = new List<Vendor>{
+                new Vendor {VendorId = 1, VendorUrl = "https://example.com"},
+                new Vendor {VendorId = 6, VendorUrl = "https://example2.com"},
+            };
+
+            var listingsVend1 = new List<PriceListing>
+            {
+                new PriceListing{PriceListingId = 1, VendorId = 1, Price = 2.00m, DiscountedPrice = 1.50m, PurchaseUrl = "https://example.com/1", ProductId = 1}, // Each has different product id for explicit verification
+                new PriceListing{PriceListingId = 2, VendorId = 1, Price = 3.00m, DiscountedPrice = 3.00m, PurchaseUrl = "https://example.com/2", ProductId = 2}
+            };
+
+            var listingsVend6 = new List<PriceListing>
+            {
+                new PriceListing{PriceListingId = 3, VendorId = 6, Price = 2.00m, DiscountedPrice = 1.50m, PurchaseUrl = "https://example2.com/1", ProductId = 3},
+                new PriceListing{PriceListingId = 4, VendorId = 6, Price = 2.00m, DiscountedPrice = 2.00m, PurchaseUrl = "https://example2.com/2", ProductId = 4}
+            };
+
+            // Pass the other two functions fine
+            _vendorServiceMock.Setup(v => v.GetAllVendorsAsync(It.IsAny<QueryOptions<Vendor>>()))
+                .ReturnsAsync(vendors);
+
+            _robotsTxtCheckerMock.Setup(c => c.CheckRobotsTxt(It.IsAny<Uri>()))
+                .ReturnsAsync(true);
+
+            _priceParserFactoryMock.Setup(p => p.HasParserForDomain(It.IsAny<string>()))
+                .Returns(true);
+
+            // Main method setups 
+
+            _priceListingServiceMock.Setup(s => s.GetPriceListingsByVendorId(1, It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listingsVend1);
+
+            _priceListingServiceMock.Setup(s => s.GetPriceListingsByVendorId(6, It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listingsVend6);
+
+
+            // Mock GetPriceListingById for each listing
+            foreach (var listing in listingsVend1.Concat(listingsVend6))
+            {
+                _priceListingServiceMock.Setup(p => p.GetPriceListingById(listing.PriceListingId, It.IsAny<QueryOptions<PriceListing>>()))
+                    .ReturnsAsync(listing);
+            }
+
+            // Mock Price Parser    
+            var mockParser = new Mock<IPriceParser>();
+
+            mockParser.Setup(p => p.ParsePriceAsync(It.IsAny<HttpResponseMessage>()))
+                .ReturnsAsync((5.00m, 4.50m));
+
+            _priceParserFactoryMock.Setup(p => p.GetParserForDomain(It.IsAny<string>()))
+                .Returns(mockParser.Object);
+
+            // Mock HTTP client responses
+            _scraperHttpClientMock.Setup(c => c.SendRequestAsync(It.IsAny<Uri>(), HttpMethod.Get))
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new StringContent("<html>Valid Content</html>")
+                });
+
+            // Mock RateLimiter behavior (just execute the action immediately)
+            _rateLimiterMock.Setup(r => r.EnqueueRequest(It.IsAny<Func<Task>>(), It.IsAny<string>()))
+                .Returns<Func<Task>, string>((action, domain) => action());
+
+
+            _retryHandlerMock.Setup(r => r.ExecuteWithRetryAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<string>(),
+                It.IsAny<int>()
+            )).ThrowsAsync(new Exception("Max retries exceeded"));
+
+            // Act
+            await _priceScraperService.UpdateAllListings();
+
+            // Assert
+            _loggerMock.Verify(x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Failed to scrape or update listing")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+            ), Times.AtLeastOnce());
+        }
 
         // ---------------------------------------------------------------- UpdateListing (not implemented yet don't even know if want to keep function) ------------------------------------------------
     }

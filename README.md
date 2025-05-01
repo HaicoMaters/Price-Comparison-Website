@@ -32,9 +32,117 @@
       - Price history tracking
       - Admin Panel for sending global notifications and viewing website statistics and monitoring site login activity/attempts
    
-   - **Manual Updates**: 
-      - Currently, all updates to products, vendors, and listings must be performed manually by an admin
-      - Future plans may include some sort of webscraping or api use to update listings automatically
+   - **Manual Updates With Partial Support of Automatic Updates**: 
+      - Some vendors that are added for example amazon support automatic updates
+      - This is done via a web scraping system
+      - For supportted vendors with a parser i.e. amazon automatic updates can be done
+      - Otherwise the updates are required to be done manually
+
+   
+   ## Web Scraping System
+
+   The website implements a robust, automated web scraping system that maintains up-to-date product prices across multiple vendors while ensuring ethical and efficient data collection.
+
+   ### Key Components
+
+   #### Automated Price Updates
+   - **Scheduled Updates**: 
+   - Runs automatically every 8 hours
+   - Configurable update intervals via `PriceScraperBackgroundService`
+   - Manual triggers available through admin dashboard
+   - Real-time progress monitoring via SignalR
+
+   #### Smart Vendor Management
+   - **Automatic Vendor Detection**:
+      - Dynamic parser assignment based on vendor domains
+      - Automatic capability detection for new vendors
+      - Self-updating vendor support flags
+
+   - **Vendor Compatibility**:
+      - `SupportsAutomaticUpdates` flag tracks scraping eligibility
+      - Automatic verification of:
+         - Parser availability
+         - Robots.txt compliance
+         - Site structure compatibility
+
+   #### Safety & Compliance Features
+   - **Ethical Scraping**:
+      - Robots.txt validation for each domain
+      - Cached robots.txt responses (24-hour TTL)
+      - Respects vendor-specific crawl delays
+   
+   - **Rate Limiting**:
+      - Domain-based request queuing
+      - 2-second minimum delay between requests
+      - Per-domain cooldown periods
+      - Concurrent request management
+
+   - **Fault Tolerance**:
+      - 3-attempt retry mechanism with exponential backoff
+      - Intelligent error categorization
+      - Automatic recovery from transient failures
+      - Detailed failure logging
+
+   #### Real-time Monitoring
+   - **Live Updates**:
+      - SignalR-powered progress indicators
+      - Real-time log streaming to admin dashboard
+      - Success/failure notifications
+      - Price change tracking
+
+   ### Technical Architecture
+
+   ```
+   /Services
+   ├── WebScraping/
+   │   ├── PriceScraperService.cs         # Main orchestration service
+   │   ├── PriceParserFactory.cs          # Parser management
+   │   ├── ScraperStatusService.cs        # Update tracking
+   │   ├── ScraperLogService.cs           # Real-time logging
+   │   │
+   │   ├── Parsers/                       # Site-specific parsers
+   │   │   ├── Interfaces/
+   │   │   │   └── IPriceParser.cs        # Parser contract
+   │   │   └── AmazonPriceParser.cs       # Amazon implementation
+   │   │
+   │   └── Interfaces/                    # Service contracts
+   │       ├── IPriceScraperService.cs
+   │       └── IScraperStatusService.cs
+   │
+   ├── HttpClients/                       # HTTP handling
+   │   ├── ScraperHttpClient.cs           # Request management
+   │   └── Interfaces/
+   │       └── IScraperHttpClient.cs
+   │
+   └── Utilities/                         # Support components
+      ├── RobotsTxtChecker.cs           # Compliance validation
+      ├── RetryHandler.cs               # Failure recovery
+      ├── RateLimiter.cs               # Request throttling
+      └── Interfaces/
+         ├── IRobotsTxtChecker.cs
+         └── IScraperRateLimiter.cs
+   ```
+
+   ### API Integration
+
+   The scraping system exposes secure RESTful endpoints:
+
+   ```http
+   PATCH  /api/scraper/update-all-listings   # Trigger manual price update
+   ```
+
+   Security Features:
+   - Requires admin authentication or internal system authorization
+   - Rate limited to prevent abuse
+   - Supports both synchronous and asynchronous operations
+
+   ### Background Processing
+
+   The system uses a dedicated background service (`PriceScraperBackgroundService`) that:
+   - Manages automatic update schedules
+   - Handles long-running operations
+   - Provides fault isolation
+   - Ensures consistent update intervals
 
    ## Admin Login
 
@@ -122,57 +230,9 @@ x
 
    While the core functionality is complete, potential future improvements could include:
 
+   - Add additional parsers for the webscraping side of thing to support more vendors having automatic updates
    - Finishing the testing of all current existing functions (did not start testing to much later in development) (could consider having tests for each function in own class file using inheritence for better readability)
    - Adding price history charts and analytics
-   - Automatic updating of pricelistings - using webscraping or api (ethical considerations exist, robots.txt etc. will have to do some research and only include vendors that will allow for it)
    - Expanding the notification system to include email alerts
    - Adding user preferences for notification settings
    - Adding social features like product reviews and ratings
-
-   Web Scraping:
-
-Web scraping updates every 8 hours or manually from the admin panel. Making sure to follow robots.txt. 2s delay for each request, 3 retries
-
-Vendors have a flag for supports web scraping/automatic updates, ones that don't may be due to implementation for them not being complete/implemented or being against the vendor site's terms of service.
-
-For each price listing with a valid url and the vendor support flag.
-
-Current plan for project structure as follows:
-
-/Services
- ├── Core
- │      ├── Interfaces                  
- │      │       ├── IProductService.cs  
- │      │       └── UserService.cs   etc...
- │      │  
- │      ├── ProductService.cs  
- │      └── UserService.cs  etc...
- │    
- │
- ├── WebScraping  
- │      ├── PriceScraperService.cs  
- │      ├── PriceParserFactory.cs  
- │      └── Parsers/  
- │              ├── AmazonPriceParser.cs  
- │              ├── EbayPriceParser.cs  
- │            	└── etc....
- │  
- ├── HttpClients  
- │      └── ScraperHttpClient.cs  
- │
- ├── Utilities  
- │      ├── RobotsTxtChecker.cs  
- │      ├── RetryHandler.cs  
- │      └── RateLimiter.cs  
-
-Main service for price scraping, with unique parsers for logic of how to parse the price from each indivdual website, with a priceparserfactory to handle picking between each parser. Adding new supported websites for each parser written.
-
-ScraperHttpClient for handling http requests.
-
-RobotsTxtChecker for ensuring compliance with robots.txt. Each robots.txt file should be cached after first retrieval. Maybe update every month or so (but this probably does not need to be changed).
-
-Retry Handler, for retrying upon faillure (current plan 3 retries).
-
-Rate Limtier for ratelimiting how fast requests are made (current plan 2s delay).
-
-In controller move notification logic to api and also, create ScrapingControllerApi with functions for mannually scraping for use in admin panel.

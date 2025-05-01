@@ -23,6 +23,7 @@ namespace PriceComparisonWebsite.Extensions
             services.AddScoped<IRobotsTxtChecker, RobotsTxtChecker>();
             services.AddScoped<IFileSystemWrapper, FileSystemWrapper>();
             services.AddScoped<IScraperRateLimiter, ScraperRateLimiter>();
+            services.AddScoped<IRetryHandler, RetryHandler>();
 
             services.AddScoped<IScraperStatusService, ScraperStatusService>();
             services.AddHostedService<PriceScraperBackgroundService>();

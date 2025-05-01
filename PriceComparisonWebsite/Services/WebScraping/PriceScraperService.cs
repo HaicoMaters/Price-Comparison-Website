@@ -25,6 +25,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
         private readonly IScraperHttpClient _scraperHttpClient;
         private readonly IScraperStatusService _scraperStatusService;
         private readonly IScraperLogService _scraperLogService;
+        private readonly IRetryHandler _retryHandler;
 
 
         public PriceScraperService(
@@ -36,7 +37,8 @@ namespace PriceComparisonWebsite.Services.WebScraping
             IScraperHttpClient scraperHttpClient,
             IPriceParserFactory priceParserFactory,
             IScraperStatusService scraperStatusService,
-            IScraperLogService scraperLogService
+            IScraperLogService scraperLogService,
+            IRetryHandler retryHandler
         )
         {
             _robotsTxtChecker = robotsTxtChecker;
@@ -48,6 +50,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             _priceParserFactory = priceParserFactory;
             _scraperStatusService = scraperStatusService;
             _scraperLogService = scraperLogService;
+            _retryHandler = retryHandler;
         }
 
         // maybe keep somewhere when the last update  was for the automatic updater
@@ -70,7 +73,6 @@ namespace PriceComparisonWebsite.Services.WebScraping
             so no requests against policy are made
         */
 
-        // Should probably have somewhere where listings match their venodr e.g. if tesco is picked as vendor with a link that is amazon.co.uk ; it should automatically be changed to amazon
 
         public async Task UpdateAllListings()
         {
@@ -130,37 +132,40 @@ namespace PriceComparisonWebsite.Services.WebScraping
                     try
                     {
                         await _scraperLogService.SendLogAsync($"Processing: {uri}");
-                        _logger.LogInformation($"Processing {uri}" );
-                        // Send request using HTTP client
-                        var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
+                        _logger.LogInformation($"Processing {uri}");
 
-                        // Get the correct parser
-                        var parser = _priceParserFactory.GetParserForDomain(domain);
-
-                        if (parser != null)
+                        await _retryHandler.ExecuteWithRetryAsync(async () =>
                         {
-                            // Parse the content to extract prices
-                            var (price, discountedPrice) = await parser.ParsePriceAsync(httpResponse);
-                            await _scraperLogService.SendLogAsync($"Found prices for {uri}: Price: {price}, Discounted: {discountedPrice}");
+                            // Send request using HTTP client
+                            var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
 
-                            // Update the listing with new prices
-                            var listing = await _priceListingService.GetPriceListingById(listingId, new QueryOptions<PriceListing>());
+                            // Get the correct parser
+                            var parser = _priceParserFactory.GetParserForDomain(domain);
 
-                            listing.Price = price;
-                            listing.DiscountedPrice = discountedPrice;
-                            listing.DateListed = DateTime.Now;
+                            if (parser != null)
+                            {
+                                // Parse the content to extract prices
+                                var (price, discountedPrice) = await parser.ParsePriceAsync(httpResponse);
+                                await _scraperLogService.SendLogAsync($"Found prices for {uri}: Price: {price}, Discounted: {discountedPrice}");
 
-                            await _priceListingService.UpdatePriceListing(listing);
+                                // Update the listing with new prices
+                                var listing = await _priceListingService.GetPriceListingById(listingId, new QueryOptions<PriceListing>());
 
-                            _logger.LogInformation($"Updated listing {uri} with Price: {price} and DiscountedPrice: {discountedPrice}");
+                                listing.Price = price;
+                                listing.DiscountedPrice = discountedPrice;
+                                listing.DateListed = DateTime.Now;
 
-                            await _priceListingService.UpdateCheapestPrice(listing.ProductId, discountedPrice);
-                        }
-                        else
-                        {
-                            await _scraperLogService.SendLogAsync($"No parser found for {domain}");
-                            _logger.LogWarning($"No parser found for {domain}");
-                        }
+                                await _priceListingService.UpdatePriceListing(listing);
+                                _logger.LogInformation($"Updated listing {uri} with Price: {price} and DiscountedPrice: {discountedPrice}");
+
+                                await _priceListingService.UpdateCheapestPrice(listing.ProductId, discountedPrice);
+                            }
+                            else
+                            {
+                                await _scraperLogService.SendLogAsync($"No parser found for {domain}");
+                                _logger.LogWarning($"No parser found for {domain}");
+                            }
+                        }, $"Scraping {uri}");
                     }
                     catch (Exception ex)
                     {
