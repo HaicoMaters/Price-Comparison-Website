@@ -61,22 +61,19 @@ namespace PriceComparisonWebsite.Tests.Controllers
             );
         }
 
-        // --------------------------------------------- Dashboard --------------------------------------------- (NEed fixing how the users are counted in the dashboard statistics so it matches correctly)
+        // --------------------------------------------- Dashboard ---------------------------------------------
 
-      /*  [Fact]
+        [Fact]
         public async Task Dashboard_WhenNoTabSpecified_ShouldReturnNotificationsTab()
         {
             // Arrange
             var expectedTab = "notifications";
-            var expectedViewName = "Dashboard";
-
             // Act
             var result = await _adminController.Dashboard();
 
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal(expectedTab, viewResult.ViewData["ActiveTab"]);
-            Assert.Equal(expectedViewName, viewResult.ViewName);
         }
 
         [Fact]
@@ -84,7 +81,6 @@ namespace PriceComparisonWebsite.Tests.Controllers
         {
             // Arrange
             var expectedTab = "users";
-            var expectedViewName = "Dashboard";
 
             // Act
             var result = await _adminController.Dashboard(expectedTab);
@@ -92,7 +88,6 @@ namespace PriceComparisonWebsite.Tests.Controllers
             // Assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal(expectedTab, viewResult.ViewData["ActiveTab"]);
-            Assert.Equal(expectedViewName, viewResult.ViewName);
         }
 
         [Fact]
@@ -110,7 +105,7 @@ namespace PriceComparisonWebsite.Tests.Controllers
             var lastUpdate = DateTime.Now.AddHours(-1);
 
             _adminServiceMock.Setup(x => x.GetAllProductsAsync()).ReturnsAsync(products);
-            _userManagerMock.Setup(x => x.Users).Returns(users.AsQueryable());
+            _adminServiceMock.Setup(x => x.GetTotalUsersAsync()).ReturnsAsync(users.Count);
             _adminServiceMock.Setup(x => x.GetAllPriceListingsAsync()).ReturnsAsync(listings);
             _adminServiceMock.Setup(x => x.GetAllVendorsAsync()).ReturnsAsync(vendors);
             _loginActivityServiceMock.Setup(x => x.GetNMostRecentActivities(50)).ReturnsAsync(recentActivities);
@@ -128,7 +123,7 @@ namespace PriceComparisonWebsite.Tests.Controllers
             Assert.Equal(lastUpdate, result.ViewData["LastUpdateTime"]);
             Assert.Equal(recentActivities, result.ViewData["RecentLoginActivities"]);
             Assert.Equal("notifications", result.ViewData["ActiveTab"]);
-        }*/
+        }
 
         // --------------------------------------------- UpdateAllListings ---------------------------------------------
 

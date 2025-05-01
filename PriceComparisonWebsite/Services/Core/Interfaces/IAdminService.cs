@@ -11,5 +11,6 @@ namespace PriceComparisonWebsite.Services
         Task<IEnumerable<Product>> GetAllProductsAsync();
         Task<IEnumerable<PriceListing>> GetAllPriceListingsAsync();
         Task<IEnumerable<Vendor>> GetAllVendorsAsync();
+        Task<int> GetTotalUsersAsync();
     }
 }

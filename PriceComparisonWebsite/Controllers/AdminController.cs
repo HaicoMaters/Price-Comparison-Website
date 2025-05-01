@@ -61,8 +61,7 @@ namespace PriceComparisonWebsite.Controllers
             var prods = await _adminService.GetAllProductsAsync();
             ViewBag.TotalProducts = prods.Count();
 
-            var users = await _userManager.Users.ToListAsync();
-            ViewBag.TotalUsers = users.Count();
+            ViewBag.TotalUsers = await _adminService.GetTotalUsersAsync();
 
             var listings = await _adminService.GetAllPriceListingsAsync();
             ViewBag.TotalListings = listings.Count();
