@@ -55,3 +55,36 @@ body {
     width: 95%;
 }
 
+.list-group-item {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.list-group-item.active {
+    background-color: rgba(37, 140, 251, 0.15) !important;
+    border-color: rgba(37, 140, 251, 0.3) !important;
+    color: #333 !important;
+}
+
+.list-group-item.active a {
+    color: #258cfb !important;
+    text-decoration: none;
+}
+
+.list-group-item a {
+    color: #666;
+    text-decoration: none;
+}
+
+.list-group-item:hover a {
+    color: #258cfb;
+}
