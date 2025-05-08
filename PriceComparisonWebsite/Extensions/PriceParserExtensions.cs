@@ -32,6 +32,7 @@ namespace PriceComparisonWebsite.Extensions
 
             // Add individual parsers
             services.AddTransient<IPriceParser, AmazonPriceParser>();
+            services.AddTransient<IPriceParser, NeweggPriceParser>();
 
             // Register the factory as a singleton with all parsers injected
             services.AddSingleton<IPriceParserFactory, PriceParserFactory>(sp =>

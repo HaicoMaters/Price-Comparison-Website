@@ -33,12 +33,12 @@ namespace PriceComparisonWebsite.Services.WebScraping.Parsers
 
             if (originalPriceNode != null)
             {
-                price = PriceExtractor.ExtractPrice(originalPriceNode.InnerText);
-                discountedPrice = PriceExtractor.ExtractPrice(priceNode.InnerText);
+                price = PriceExtractor.ExtractPriceAmazonFormat(originalPriceNode.InnerText);
+                discountedPrice = PriceExtractor.ExtractPriceAmazonFormat(priceNode.InnerText);
             }
             else if (priceNode != null)
             {
-                price = PriceExtractor.ExtractPrice(priceNode.InnerText);
+                price = PriceExtractor.ExtractPriceAmazonFormat(priceNode.InnerText);
                 discountedPrice = price;
             }
 

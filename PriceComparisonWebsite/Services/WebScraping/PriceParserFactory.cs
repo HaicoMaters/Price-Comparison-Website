@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using PriceComparisonWebsite.Services.WebScraping.Interfaces;
@@ -21,6 +22,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
         public IPriceParser? GetParserForDomain(string domain)
         {
             _parsers.TryGetValue(domain, out var parser);
+            Console.WriteLine($"Parser for domain '{domain}': {parser?.GetType().Name ?? "None"}"); // Debugging line
             return parser;
         }
 

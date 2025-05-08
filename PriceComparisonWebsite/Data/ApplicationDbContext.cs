@@ -148,6 +148,22 @@ namespace PriceComparisonWebsite.Data
 					ImageUrl = "https://m.media-amazon.com/images/I/71MrrNB7jCL._AC_SX679_.jpg", 
 					CategoryId = 9, 
 					CheapestPrice = 3.85m
+				},
+				new Product {
+					ProductId = 4,
+					Name = "AMD Ryzen 7 9700X Processor",
+					Description = "The AMD Ryzen 7 9700X is a high-performance processor designed for gaming and content creation. It features 8 cores and 16 threads, with a base clock speed of 3.8 GHz and a boost clock speed of up to 4.5 GHz. The processor is built on the 7nm process technology and supports DDR4 memory up to 3200 MHz. It also includes support for PCIe 4.0, allowing for faster data transfer rates with compatible devices. The Ryzen 7 9700X is compatible with AM4 motherboards and has a TDP of 105W.",
+					ImageUrl = "https://m.media-amazon.com/images/I/61F3ZChalyL._AC_SX679_.jpg",
+					CategoryId = 1,
+					CheapestPrice = 280.17m
+				},
+				new Product {
+					ProductId = 5,
+					Name = "Acer Aspire 14 AI Copilot+ PC 14.0 Touchscreen Laptop Ultra 7 256V 16GB RAM 1TB SSD Windows 11 Home A14-52M-72FH",
+					Description = "Intel Core Ultra 7 256V, 16GB LPDDR5X Onboard Memory Memory / 1 TB PCIe SSD, Intel Arc Graphics 140V, Non-Touch Screen, 1920 x 1200, Windows 11 Home",
+					ImageUrl = "https://c1.neweggimages.com/ProductImageCompressAll60/34-360-378-03.jpg",
+					CategoryId = 1,
+					CheapestPrice = 827.99m
 				}
 			);
 
@@ -157,7 +173,8 @@ namespace PriceComparisonWebsite.Data
 					VendorId = 1, 
 					Name = "Amazon", 
 					VendorUrl = "https://www.amazon.co.uk", 
-					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg"
+					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
+					SupportsAutomaticUpdates = true
 				},
 				new Vendor { 
 					VendorId = 2, 
@@ -170,6 +187,13 @@ namespace PriceComparisonWebsite.Data
 					Name = "Tesco", 
 					VendorUrl = "https://www.tesco.com/", 
 					VendorLogoUrl = "https://upload.wikimedia.org/wikipedia/en/thumb/b/b0/Tesco_Logo.svg/2560px-Tesco_Logo.svg.png"
+				},
+				new Vendor {
+					VendorId = 3,
+					Name = "Newegg",
+					VendorUrl = "https://www.newegg.com",
+					VendorLogoUrl = "https://c1.neweggimages.com/WebResource/Themes/Nest/logos/Newegg_full_color_logo_RGB.SVG",
+					SupportsAutomaticUpdates = true
 				}
 			);
 
@@ -219,6 +243,33 @@ namespace PriceComparisonWebsite.Data
 					PurchaseUrl = "https://www.ebay.co.uk/itm/175594341144",
 					DateListed = DateTime.Parse("2025-03-14 14:52:49.6649873"),
 					DiscountedPrice = 3.85m
+				},
+				new PriceListing { 
+					PriceListingId = 16, 
+					ProductId = 4, 
+					VendorId = 3, 
+					Price = 327.59m, 
+					PurchaseUrl = "https://www.newegg.com/global/uk-en/amd-ryzen-7-9700x-ryzen-7-9000-series-granite-ridge-socket-am5-processor/p/N82E16819113843",
+					DateListed = DateTime.Parse("2025-03-14 14:52:55.8122214"),
+					DiscountedPrice = 319.19m
+				},
+				new PriceListing { 
+					PriceListingId = 17, 
+					ProductId = 4, 
+					VendorId = 1, 
+					Price = 298.00m, 
+					PurchaseUrl = "https://www.amazon.co.uk/AMD-Ryzensets-9700X-Processor-frequency/dp/B0D6NMDNNX",
+					DateListed = DateTime.Parse("2025-03-14 14:52:57.8122214"),
+					DiscountedPrice = 280.17m
+				},
+				new PriceListing { 
+					PriceListingId = 18, 
+					ProductId = 5, 
+					VendorId = 3, 
+					Price = 827.99m, 
+					PurchaseUrl = "https://www.newegg.com/global/uk-en/aspire-14-ai/p/N82E16834360378",
+					DateListed = DateTime.Parse("2025-03-14 14:52:59.8122214"),
+					DiscountedPrice = 827.99m
 				}
 			);
 		}

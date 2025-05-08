@@ -138,6 +138,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
                         {
                             // Send request using HTTP client
                             var httpResponse = await _scraperHttpClient.SendRequestAsync(uri, HttpMethod.Get);
+                            _logger.LogInformation($"Received response for {uri}: {httpResponse.StatusCode}");
 
                             // Get the correct parser
                             var parser = _priceParserFactory.GetParserForDomain(domain);
