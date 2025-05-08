@@ -17,27 +17,32 @@ namespace PriceComparisonWebsite.Extensions
     {
         public static IServiceCollection AddPriceParsers(this IServiceCollection services)
         {
-            services.AddHttpClient<IScraperHttpClient, ScraperHttpClient>(); // Add the http client
+            // HTTP Client registration
+            services.AddHttpClient<IScraperHttpClient, ScraperHttpClient>();
 
+            // Singleton services 
+            services.AddSingleton<IContentCompressor, ContentCompressor>();
+            services.AddSingleton<IFileSystemWrapper, FileSystemWrapper>();
+            services.AddSingleton<IRetryHandler, RetryHandler>();
+            
+            // Scoped services
             services.AddScoped<IPriceScraperService, PriceScraperService>();
             services.AddScoped<IRobotsTxtChecker, RobotsTxtChecker>();
-            services.AddScoped<IFileSystemWrapper, FileSystemWrapper>();
             services.AddScoped<IScraperRateLimiter, ScraperRateLimiter>();
-            services.AddScoped<IRetryHandler, RetryHandler>();
-
             services.AddScoped<IScraperStatusService, ScraperStatusService>();
-            services.AddHostedService<PriceScraperBackgroundService>();
             services.AddScoped<IScraperLogService, ScraperLogService>();
 
+            // Background service
+            services.AddHostedService<PriceScraperBackgroundService>();
 
-            // Add individual parsers
+            // Price parsers as transient
             services.AddTransient<IPriceParser, AmazonPriceParser>();
             services.AddTransient<IPriceParser, NeweggPriceParser>();
 
-            // Register the factory as a singleton with all parsers injected
-            services.AddSingleton<IPriceParserFactory, PriceParserFactory>(sp =>
+            // Parser factory as singleton
+            services.AddSingleton<IPriceParserFactory>(sp =>
             {
-                var parsers = sp.GetServices<IPriceParser>().ToList();  // Retrieve all registered parsers
+                var parsers = sp.GetServices<IPriceParser>().ToList();
                 return new PriceParserFactory(parsers);
             });
 

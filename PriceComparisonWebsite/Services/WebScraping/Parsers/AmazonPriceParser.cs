@@ -1,28 +1,39 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using PriceComparisonWebsite.Services.Utilities;
+using PriceComparisonWebsite.Services.Utilities.Interfaces;
 using PriceComparisonWebsite.Services.WebScraping.Parsers.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping.Parsers
 {
     public class AmazonPriceParser : IPriceParser
     {
+        private readonly IContentCompressor _compressor;
+
+        public AmazonPriceParser(IContentCompressor compressor)
+        {
+            _compressor = compressor;
+        }
+
         public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain);
 
         public string SupportedDomain => "www.amazon.co.uk";
 
-        public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse) // This can always be updated to support more page layouts (i noticed some page layouts are not the same)
+        public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse)
         {
-            var htmlContent = await httpResponse.Content.ReadAsStringAsync();
+            var content = await httpResponse.Content.ReadAsByteArrayAsync();
+            var htmlContent = await _compressor.DecompressAsync(content);
 
             var document = new HtmlDocument();
             document.LoadHtml(htmlContent);
 
             // currently based off of certain page structures: 
-            // https://www.amazon.co.uk/UNO-Families-Collectible-Cards-Instructions/dp/B08WKF5HZR/ (this was discounted at the time)
+            // https://www.amazon.co.uk/UNO-W2087-Card-Game-European/dp/B005I5M2F8/259-3693489-2210466 (this was discounted at the time)
             // https://www.amazon.co.uk/Coca-Cola-Zero-7-92-Litre/dp/B007C7KGKI/ (this was not discounted at the time)
 
             decimal price = 0;

@@ -149,6 +149,13 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
       - Per-domain cooldown periods
       - Concurrent request management
 
+   - **Compression Handling**:
+      - Automatic GZIP compression/decompression
+      - Reduced bandwidth usage (70-90% smaller responses)
+      - Browser-like request headers
+      - Efficient memory management
+      - Proper encoding of international characters
+
    - **Fault Tolerance**:
       - 3-attempt retry mechanism with exponential backoff
       - Intelligent error categorization
@@ -187,12 +194,14 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
    │       └── IScraperHttpClient.cs
    │
    └── Utilities/                         # Support components
-      ├── RobotsTxtChecker.cs           # Compliance validation
-      ├── RetryHandler.cs               # Failure recovery
-      ├── RateLimiter.cs               # Request throttling
+      ├── RobotsTxtChecker.cs             # Compliance validation
+      ├── RetryHandler.cs                 # Failure recovery
+      ├── RateLimiter.cs                  # Request throttling
+      ├── ContentCompressor.cs            # GZIP compression handling
       └── Interfaces/
          ├── IRobotsTxtChecker.cs
-         └── IScraperRateLimiter.cs
+         ├── IScraperRateLimiter.cs
+         └── IContentCompressor.cs
    ```
 
    #### API Integration
@@ -257,7 +266,7 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    These tests ensure that repository methods behave as expected with real database interactions.
 
-   Much of the earlier tests were done while i was for the first time learning how to test for this application. So many of the older service, controller and repository tests may not be as good of some of the more recent ones, i.e. product controller (namely the latter functions) are better written than the tests for some of the earlier ones i.e. price listing controller.
+   Much of the earlier tests were done while i was for the first time learning how to test for this application. So many of the older service, controller and repository tests may not be as good of some of the more recent ones i.e. product controller (namely the latter functions) are better written than the tests for some of the earlier ones i.e. price listing controller.
    
    #### Unit Tests  
    Unit tests target the **service layer** and **controller layer**, using **mock repositories and services** to isolate logic.
@@ -356,6 +365,7 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
    │       ├── FileSystemWrapper.cs
    │       ├── RateLimiter.cs
    │       ├── RetryHandler.cs
+   │       ├── ContentCompressor.cs
    │       └── RobotsTxtChecker.cs
    │
    ├── Views/                       # Razor Views

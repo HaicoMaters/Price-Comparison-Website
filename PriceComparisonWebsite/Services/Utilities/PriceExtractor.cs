@@ -11,7 +11,9 @@ namespace PriceComparisonWebsite.Services.Utilities
     {
         public static decimal ExtractPriceAmazonFormat(string priceText)
         {
-            var regex = new Regex(@"[£$€]?\s*(\d+\.\d{2})");
+            Console.WriteLine($"Extracting price from: {priceText}"); // Debugging line
+
+            var regex = new Regex(@"[£$€]?\s*(\d+\.\d{2})"); 
 
             var match = regex.Match(priceText);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Moq;
 using PriceComparisonWebsite.Services.Utilities;
 using PriceComparisonWebsite.Services.Utilities.Interfaces;
 using PriceComparisonWebsite.Services.WebScraping.Parsers;
@@ -12,24 +13,27 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping.Parsers
 {
     public class NeweggPriceParserTests
     {
-        IFileSystemWrapper _fileSystem;
-        readonly string folderName;
-        string DiscountedPageContent; // From the page provided discounted price is £319.19 and normal price is £327.59 (was the response content from https://www.newegg.com/global/uk-en/amd-ryzen-7-9700x-ryzen-7-9000-series-granite-ridge-socket-am5-processor/p/N82E16819113843 on 08/05/2025)
-        string NonDiscountedPageContent; // From page provided price was £827.99 with no discounted price (was the response content from https://www.newegg.com/global/uk-en/aspire-14-ai/p/N82E16834360378 on 08/05/2025)
-        IPriceParser neweggPriceParser;
+        private readonly Mock<IContentCompressor> _mockCompressor;
+        private readonly IPriceParser _neweggPriceParser;
+        private readonly IFileSystemWrapper _fileSystem;
+        private readonly string _folderName;
+        private string DiscountedPageContent;
+        private string NonDiscountedPageContent;
 
         public NeweggPriceParserTests()
         {
-            folderName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, "Services", "Webscraping", "Parsers", "TestHttpResponses");
+            _folderName = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName, 
+                "Services", "Webscraping", "Parsers", "TestHttpResponses");
             _fileSystem = new FileSystemWrapper();
-            neweggPriceParser = new NeweggPriceParser();
+            _mockCompressor = new Mock<IContentCompressor>();
+            _neweggPriceParser = new NeweggPriceParser(_mockCompressor.Object);
         }
 
         [Fact]
         public async Task SetupPageContent()
         {
-            var DiscountedFilePath = Path.Combine(folderName, "NeweggDiscountedPageContent.txt");
-            var NonDiscountedFilePath = Path.Combine(folderName, "NeweggNonDiscountedPageContent.txt");
+            var DiscountedFilePath = Path.Combine(_folderName, "NeweggDiscountedPageContent.txt");
+            var NonDiscountedFilePath = Path.Combine(_folderName, "NeweggNonDiscountedPageContent.txt");
 
             Assert.True(_fileSystem.FileExists(DiscountedFilePath), $"File not found: {DiscountedFilePath}");
             Assert.True(_fileSystem.FileExists(NonDiscountedFilePath), $"File not found: {NonDiscountedFilePath}");
@@ -46,7 +50,7 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping.Parsers
             Uri uri = new Uri("https://www.newegg.com");
 
             // Act
-            var CanParse = neweggPriceParser.CanParse(uri);
+            var CanParse = _neweggPriceParser.CanParse(uri);
 
             // Assert
             Assert.True(CanParse);
@@ -59,7 +63,7 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping.Parsers
             Uri uri = new Uri("https://www.ebay.co.uk");
 
             // Act
-            var CanParse = neweggPriceParser.CanParse(uri);
+            var CanParse = _neweggPriceParser.CanParse(uri);
 
             // Assert
             Assert.False(CanParse);
@@ -70,72 +74,70 @@ namespace PriceComparisonWebsite.Tests.Services.Webscraping.Parsers
         public void SupportedDomain_ShouldBeSetToCorrectDomain()
         {
             // Act and Assert
-            Assert.Equal("www.newegg.com", neweggPriceParser.SupportedDomain);
+            Assert.Equal("www.newegg.com", _neweggPriceParser.SupportedDomain);
         }
 
         // ------------------------------------------ ParsePriceAsync --------------------------------------
         [Fact]
-        public async Task ParsePriceAsynce_WhenProductIsDiscounted_ShouldReturnBothPriceAndDiscountedPrice()
+        public async Task ParsePriceAsync_WhenProductIsDiscounted_ShouldReturnBothPriceAndDiscountedPrice()
         {
             // Arrange
             await SetupPageContent();
-
-            decimal expectedDiscountedPrice = 319.19m;
-            decimal expectedPrice = 327.59m;
+            _mockCompressor.Setup(x => x.DecompressAsync(It.IsAny<byte[]>()))
+                .ReturnsAsync(DiscountedPageContent);
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(DiscountedPageContent)
+                Content = new ByteArrayContent(new byte[] { 1, 2, 3 }) // dummy content
             };
 
             // Act
-            var prices = await neweggPriceParser.ParsePriceAsync(response);
+            var prices = await _neweggPriceParser.ParsePriceAsync(response);
 
             // Assert
-            Assert.Equal(expectedPrice, prices.Price);
-            Assert.Equal(expectedDiscountedPrice, prices.DiscountedPrice);
+            Assert.Equal(327.59m, prices.Price);
+            Assert.Equal(319.19m, prices.DiscountedPrice);
         }
 
         [Fact]
-        public async Task ParsePriceAsynce_WhenProductIsNotDiscounted_ShouldReturnBothPriceAndDiscountedPriceAsTheValueOfPrice()
+        public async Task ParsePriceAsync_WhenProductIsNotDiscounted_ShouldReturnBothPriceAndDiscountedPriceAsTheValueOfPrice()
         {
             // Arrange
             await SetupPageContent();
-
-            decimal expectedDiscountedPrice = 827.99m;
-            decimal expectedPrice = 827.99m;
+            _mockCompressor.Setup(x => x.DecompressAsync(It.IsAny<byte[]>()))
+                .ReturnsAsync(NonDiscountedPageContent);
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(NonDiscountedPageContent)
+                Content = new ByteArrayContent(new byte[] { 1, 2, 3 }) // dummy content
             };
 
             // Act
-            var prices = await neweggPriceParser.ParsePriceAsync(response);
+            var prices = await _neweggPriceParser.ParsePriceAsync(response);
 
             // Assert
-            Assert.Equal(expectedPrice, prices.Price);
-            Assert.Equal(expectedDiscountedPrice, prices.DiscountedPrice);
+            Assert.Equal(827.99m, prices.Price);
+            Assert.Equal(827.99m, prices.DiscountedPrice);
         }
 
         [Fact]
-        public async Task ParsePriceAsynce_WhenNonValidPageLayout_ShouldReturnBothPriceAndDiscountedPriceAsZero()
+        public async Task ParsePriceAsync_WhenNonValidPageLayout_ShouldReturnBothPriceAndDiscountedPriceAsZero()
         {
             // Arrange
-            decimal expectedDiscountedPrice = 0;
-            decimal expectedPrice = 0;
+            _mockCompressor.Setup(x => x.DecompressAsync(It.IsAny<byte[]>()))
+                .ReturnsAsync("NotValidContent");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent("NotValidContent")
+                Content = new ByteArrayContent(new byte[] { 1, 2, 3 }) // dummy content
             };
 
             // Act
-            var prices = await neweggPriceParser.ParsePriceAsync(response);
+            var prices = await _neweggPriceParser.ParsePriceAsync(response);
 
             // Assert
-            Assert.Equal(expectedPrice, prices.Price);
-            Assert.Equal(expectedDiscountedPrice, prices.DiscountedPrice);
+            Assert.Equal(0m, prices.Price);
+            Assert.Equal(0m, prices.DiscountedPrice);
         }
     }
 }

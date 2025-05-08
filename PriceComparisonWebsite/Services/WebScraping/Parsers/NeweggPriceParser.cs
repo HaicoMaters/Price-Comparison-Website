@@ -5,19 +5,27 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using PriceComparisonWebsite.Services.WebScraping.Parsers.Interfaces;
 using PriceComparisonWebsite.Services.Utilities;
+using PriceComparisonWebsite.Services.Utilities.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping.Parsers
 {
     public class NeweggPriceParser : IPriceParser // A site that allows scraping so thats why this was chosen
     {
+        private readonly IContentCompressor _compressor;
+
+        public NeweggPriceParser(IContentCompressor compressor)
+        {
+            _compressor = compressor;
+        }
+
         public string SupportedDomain => "www.newegg.com";
 
         public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain);
 
-
         public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse)
         {
-             var htmlContent = await httpResponse.Content.ReadAsStringAsync();
+            var content = await httpResponse.Content.ReadAsByteArrayAsync();
+            var htmlContent = await _compressor.DecompressAsync(content);
 
             var document = new HtmlDocument();
             document.LoadHtml(htmlContent);
