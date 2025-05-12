@@ -1,4 +1,4 @@
-
+using System.Net;
 using System.Runtime.Intrinsics.X86;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Identity.Client;
 using Moq.Protected;
+using PriceComparisonWebsite.Services.HttpClients;
 
 namespace PriceComparisonWebsite.Tests.Controllers
 {
@@ -20,6 +21,7 @@ namespace PriceComparisonWebsite.Tests.Controllers
         private readonly Mock<IUserService> _userServiceMock;
         private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
         private readonly Mock<ILogger<ProductController>> _loggerMock;
+        private readonly Mock<IApiHttpClient> _apiClientMock;
         private readonly ProductController _productController;
 
         public ProductControllerTests()
@@ -38,9 +40,17 @@ namespace PriceComparisonWebsite.Tests.Controllers
                 store.Object, null, null, null, null, null, null, null, null
             );
 
-            _productController = new ProductController(_categoryServiceMock.Object, _productServiceMock.Object,
-            _vendorServiceMock.Object, _userServiceMock.Object, _priceListingServiceMock.Object,
-            _userManagerMock.Object, _loggerMock.Object);
+            _apiClientMock = new Mock<IApiHttpClient>();
+
+            _productController = new ProductController(
+                _categoryServiceMock.Object, 
+                _productServiceMock.Object,
+                _vendorServiceMock.Object, 
+                _userServiceMock.Object, 
+                _priceListingServiceMock.Object,
+                _userManagerMock.Object, 
+                _loggerMock.Object,
+                _apiClientMock.Object);
         }
 
         // ---------------------------------------- Index ----------------------------------------------------------

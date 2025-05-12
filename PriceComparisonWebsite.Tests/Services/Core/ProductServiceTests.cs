@@ -16,16 +16,24 @@ namespace PriceComparisonWebsite.Tests.Services
         private readonly IProductService _productService;
         public readonly Mock<IRepository<Product>> _productRepoMock;
         public readonly Mock<IRepository<PriceListing>> _priceListingRepoMock;
+        private readonly Mock<IRepository<ProductPriceHistory>> _priceHistoryRepoMock;
         public readonly Mock<ILogger<ProductService>> _loggerMock;
 
         public ProductServiceTests()
         {
             _productRepoMock = new Mock<IRepository<Product>>();
             _priceListingRepoMock = new Mock<IRepository<PriceListing>>();
+            _priceHistoryRepoMock = new Mock<IRepository<ProductPriceHistory>>();
             _loggerMock = new Mock<ILogger<ProductService>>();
 
-            _productService = new ProductService(_productRepoMock.Object, _priceListingRepoMock.Object, _loggerMock.Object);
+            _productService = new ProductService(
+                _productRepoMock.Object, 
+                _priceListingRepoMock.Object,
+                _priceHistoryRepoMock.Object,
+                _loggerMock.Object);
         }
+
+        // ---------------------------------------- Recalculate Cheapest Price -----------------------------------------------
 
         [Fact]
         public async Task RecalculateCheapestPrice_WithPriceListings_ShouldSetCheapestPriceToThatOfCheapestListing()
@@ -89,6 +97,110 @@ namespace PriceComparisonWebsite.Tests.Services
 
             // Verify that GetByIdAsync was called once with the correct parameters
             _productRepoMock.Verify(r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>()), Times.Once);
+        }
+
+        // ---------------------------------------- Record Price History -----------------------------------------------
+
+        [Fact]
+        public async Task RecordPriceHistory_ShouldAddNewHistoryEntry()
+        {
+            // Arrange
+            int productId = 1;
+            decimal price = 10.99m;
+            ProductPriceHistory? capturedHistory = null;
+
+            _priceHistoryRepoMock.Setup(r => r.AddAsync(It.IsAny<ProductPriceHistory>()))
+                .Callback<ProductPriceHistory>(h => capturedHistory = h);
+
+            // Act
+            await _productService.RecordPriceHistory(productId, price);
+
+            // Assert
+            Assert.NotNull(capturedHistory);
+            Assert.Equal(productId, capturedHistory.ProductId);
+            Assert.Equal(price, capturedHistory.Price);
+            Assert.True((DateTime.Now - capturedHistory.Timestamp).TotalSeconds < 5); // 5 seconds tolerance
+
+            _priceHistoryRepoMock.Verify(r => r.AddAsync(It.IsAny<ProductPriceHistory>()), Times.Once);
+        }
+
+        // ---------------------------------------- Get Price History -----------------------------------------------
+
+        [Fact]
+        public async Task GetPriceHistory_ShouldReturnOrderedHistory()
+        {
+            // Arrange
+            int productId = 1;
+            var history = new List<ProductPriceHistory>
+            {
+                new ProductPriceHistory { ProductId = productId, Price = 10.99m, Timestamp = DateTime.Now.AddDays(-2) },
+                new ProductPriceHistory { ProductId = productId, Price = 9.99m, Timestamp = DateTime.Now.AddDays(-1) }
+            };
+
+            _priceHistoryRepoMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<ProductPriceHistory>>()))
+                .ReturnsAsync(history);
+
+            // Act
+            var result = await _productService.GetPriceHistory(productId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            Assert.Equal(history, result);
+
+            _priceHistoryRepoMock.Verify(r => r.GetAllAsync(It.Is<QueryOptions<ProductPriceHistory>>(
+                opt => opt.OrderBy != null && opt.Where != null
+            )), Times.Once);
+        }
+
+        [Fact]
+        public async Task RecalculateCheapestPrice_WhenPriceChanges_ShouldRecordNewHistoryEntry()
+        {
+            // Arrange
+            var product = new Product { ProductId = 1, CheapestPrice = 10.99m };
+            var listings = new[] {
+                new PriceListing { ProductId = 1, Price = 9.99m, DiscountedPrice = 9.99m }
+            };
+
+            _productRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+            _priceListingRepoMock.Setup(r => r.GetAllByIdAsync(1, "ProductId", It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listings);
+
+            ProductPriceHistory? capturedHistory = null;
+            _priceHistoryRepoMock.Setup(r => r.AddAsync(It.IsAny<ProductPriceHistory>()))
+                .Callback<ProductPriceHistory>(h => capturedHistory = h);
+
+            // Act
+            await _productService.RecalculateCheapestPrice(1);
+
+            // Assert
+            Assert.NotNull(capturedHistory);
+            Assert.Equal(1, capturedHistory.ProductId);
+            Assert.Equal(9.99m, capturedHistory.Price);
+
+            _priceHistoryRepoMock.Verify(r => r.AddAsync(It.IsAny<ProductPriceHistory>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task RecalculateCheapestPrice_WhenPriceUnchanged_ShouldNotRecordNewHistoryEntry()
+        {
+            // Arrange
+            var product = new Product { ProductId = 1, CheapestPrice = 9.99m };
+            var listings = new[] {
+                new PriceListing { ProductId = 1, Price = 9.99m, DiscountedPrice = 9.99m }
+            };
+
+            _productRepoMock.Setup(r => r.GetByIdAsync(1, It.IsAny<QueryOptions<Product>>()))
+                .ReturnsAsync(product);
+            _priceListingRepoMock.Setup(r => r.GetAllByIdAsync(1, "ProductId", It.IsAny<QueryOptions<PriceListing>>()))
+                .ReturnsAsync(listings);
+
+            // Act
+            await _productService.RecalculateCheapestPrice(1);
+
+            // Assert
+            _priceHistoryRepoMock.Verify(r => r.AddAsync(It.IsAny<ProductPriceHistory>()), Times.Never);
         }
 
         // ---------------------------------------- Setup Pagination -----------------------------------------------

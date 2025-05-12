@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PriceComparisonWebsite.Data;
 
@@ -11,9 +12,11 @@ using PriceComparisonWebsite.Data;
 namespace PriceComparisonWebsite.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250512122926_addedPriceHistory")]
+    partial class addedPriceHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -613,43 +616,6 @@ namespace PriceComparisonWebsite.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductPriceHistories");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Price = 7.50m,
-                            ProductId = 1,
-                            Timestamp = new DateTime(2025, 3, 14, 14, 52, 37, 413, DateTimeKind.Unspecified).AddTicks(3597)
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Price = 4.87m,
-                            ProductId = 2,
-                            Timestamp = new DateTime(2025, 3, 14, 14, 52, 45, 283, DateTimeKind.Unspecified).AddTicks(3811)
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Price = 3.85m,
-                            ProductId = 3,
-                            Timestamp = new DateTime(2025, 3, 14, 14, 52, 49, 664, DateTimeKind.Unspecified).AddTicks(9873)
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Price = 280.17m,
-                            ProductId = 4,
-                            Timestamp = new DateTime(2025, 3, 14, 14, 52, 57, 812, DateTimeKind.Unspecified).AddTicks(2214)
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Price = 827.99m,
-                            ProductId = 5,
-                            Timestamp = new DateTime(2025, 3, 14, 14, 52, 59, 812, DateTimeKind.Unspecified).AddTicks(2214)
-                        });
                 });
 
             modelBuilder.Entity("PriceComparisonWebsite.Models.ScraperStatus", b =>

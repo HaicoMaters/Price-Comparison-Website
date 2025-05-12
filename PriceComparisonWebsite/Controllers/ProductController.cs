@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PriceComparisonWebsite.Data;
 using PriceComparisonWebsite.Models;
+using PriceComparisonWebsite.Services.HttpClients;
 using PriceComparisonWebsite.Services.Implementations;
 using PriceComparisonWebsite.Services.Interfaces;
 
@@ -22,6 +23,8 @@ namespace PriceComparisonWebsite.Controllers
         private readonly IUserService _userService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<ProductController> _logger;
+        private readonly IApiHttpClient _apiClient;
+
 
         public ProductController(
             ICategoryService categoryService,
@@ -30,7 +33,8 @@ namespace PriceComparisonWebsite.Controllers
             IUserService userService,
             IPriceListingService priceListingService,
             UserManager<ApplicationUser> userManager,
-            ILogger<ProductController> logger)
+            ILogger<ProductController> logger
+            , IApiHttpClient apiClient)
         {
             _categoryService = categoryService;
             _productService = productService;
@@ -39,6 +43,7 @@ namespace PriceComparisonWebsite.Controllers
             _priceListingService = priceListingService;
             _userManager = userManager;
             _logger = logger;
+            _apiClient = apiClient;
         }
 
         public async Task<IActionResult> Index(int pageNumber = 1, int catId = 0, string searchQuery = "")
@@ -211,7 +216,6 @@ namespace PriceComparisonWebsite.Controllers
 
         public async Task<IActionResult> ViewProduct(int id)
         {
-
             if (id == 0)
                 return RedirectToAction("Index", "Product");
 
@@ -224,6 +228,9 @@ namespace PriceComparisonWebsite.Controllers
 
                 // Get price listings
                 ViewBag.Listings = await _priceListingService.GetPriceListingsByProductId(id, new QueryOptions<PriceListing> { Includes = "Vendor", OrderBy = l => l.DiscountedPrice });
+
+                // Get price history
+                ViewBag.PriceHistory = await GetPriceHistory(id);
 
                 if (User.Identity.IsAuthenticated)
                 {
@@ -255,6 +262,25 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        public async Task<IActionResult> GetPriceHistory(int id)
+        {
+             try
+            {
+                var response = await _apiClient.SendAsync(HttpMethod.Get, $"api/ProductApi/price-history/{id}");
+                 if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    return Content(content, "application/json");
+                }
+                
+                return StatusCode((int)response.StatusCode, new { success = false, message = $"Failed to fetch price history. Status: {response.StatusCode}" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling ProductApi");
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
 
         [Authorize(Roles = "User")]
         [ValidateAntiForgeryToken]

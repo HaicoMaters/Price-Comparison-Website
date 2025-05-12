@@ -18,5 +18,7 @@ namespace PriceComparisonWebsite.Services.Interfaces
         Task<IEnumerable<Product>> GetProductsByCategoryId(int categoryId ,QueryOptions<Product> queryOptions);
         Task RecalculateCheapestPrice(int productId);
         List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber, ViewDataDictionary viewData);
+        Task RecordPriceHistory(int productId, decimal price);
+        Task<IEnumerable<ProductPriceHistory>> GetPriceHistory(int productId);
     }
 }

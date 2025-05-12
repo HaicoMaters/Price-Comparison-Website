@@ -21,7 +21,8 @@ namespace PriceComparisonWebsite.Data
 		public DbSet<Notification> Notifications { get; set; }
 		public DbSet<UserNotification> UserNotifications { get; set; }
 		public DbSet<LoginActivity> LoginActivities { get; set; }
-		public DbSet<ScraperStatus> ScraperStatus {get; set;}
+		public DbSet<ScraperStatus> ScraperStatus { get; set; }
+		public DbSet<ProductPriceHistory> ProductPriceHistories { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
@@ -270,6 +271,40 @@ namespace PriceComparisonWebsite.Data
 					PurchaseUrl = "https://www.newegg.com/global/uk-en/aspire-14-ai/p/N82E16834360378",
 					DateListed = DateTime.Parse("2025-03-14 14:52:59.8122214"),
 					DiscountedPrice = 827.99m
+				}
+			);
+
+			// Add price history seed data
+			builder.Entity<ProductPriceHistory>().HasData(
+				new ProductPriceHistory {
+					Id = 1,
+					ProductId = 1,
+					Price = 7.50m,
+					Timestamp = DateTime.Parse("2025-03-14 14:52:37.4133597")
+				},
+				new ProductPriceHistory {
+					Id = 2,
+					ProductId = 2,
+					Price = 4.87m,
+					Timestamp = DateTime.Parse("2025-03-14 14:52:45.2833811")
+				},
+				new ProductPriceHistory {
+					Id = 3,
+					ProductId = 3,
+					Price = 3.85m,
+					Timestamp = DateTime.Parse("2025-03-14 14:52:49.6649873")
+				},
+				new ProductPriceHistory {
+					Id = 4,
+					ProductId = 4,
+					Price = 280.17m,
+					Timestamp = DateTime.Parse("2025-03-14 14:52:57.8122214")
+				},
+				new ProductPriceHistory {
+					Id = 5,
+					ProductId = 5,
+					Price = 827.99m,
+					Timestamp = DateTime.Parse("2025-03-14 14:52:59.8122214")
 				}
 			);
 		}

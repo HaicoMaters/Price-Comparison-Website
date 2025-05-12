@@ -115,6 +115,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Price History Graph Section moved to bottom -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Price History</h3>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-range="7">7 Days</button>
+                        <button type="button" class="btn btn-outline-secondary" data-range="30">30 Days</button>
+                        <button type="button" class="btn btn-outline-secondary active" data-range="90">90 Days</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="priceHistoryChart" style="height: 400px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @if (User.IsInRole("Admin"))
@@ -148,4 +167,10 @@
             </div>
         </form>
     </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
+    <script src="~/js/price-history.js" asp-append-version="true"></script>
 }

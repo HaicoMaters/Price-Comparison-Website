@@ -13,11 +13,13 @@ namespace PriceComparisonWebsite.Services.Implementations
         public readonly IRepository<Product> _products;
         public readonly IRepository<PriceListing> _priceListings;
         public readonly ILogger<ProductService> _logger;
+        private readonly IRepository<ProductPriceHistory> _priceHistory;
 
-        public ProductService(IRepository<Product> products, IRepository<PriceListing> priceListings, ILogger<ProductService> logger)
+        public ProductService(IRepository<Product> products, IRepository<PriceListing> priceListings, IRepository<ProductPriceHistory> priceHistory, ILogger<ProductService> logger)
         {
             _products = products;
             _priceListings = priceListings;
+            _priceHistory = priceHistory;
             _logger = logger;
         }
 
@@ -109,6 +111,10 @@ namespace PriceComparisonWebsite.Services.Implementations
 				}
 
 				decimal cheapestPrice = listings.Min(l => l.DiscountedPrice);
+				if (product.CheapestPrice != cheapestPrice && cheapestPrice > 0)
+                {
+                    await RecordPriceHistory(productId, cheapestPrice);
+                }
 				product.CheapestPrice = cheapestPrice;
 				await _products.UpdateAsync(product);
 			}
@@ -147,6 +153,43 @@ namespace PriceComparisonWebsite.Services.Implementations
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToList();
+        }
+
+        public async Task RecordPriceHistory(int productId, decimal price)
+        {
+            try
+            {
+                var history = new ProductPriceHistory
+                {
+                    ProductId = productId,
+                    Price = price,
+                    Timestamp = DateTime.Now
+                };
+                await _priceHistory.AddAsync(history);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to record price history");
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<ProductPriceHistory>> GetPriceHistory(int productId)
+        {
+            try
+            {
+                var options = new QueryOptions<ProductPriceHistory>
+                {
+                    OrderBy = h => h.Timestamp,
+                    Where = h => h.ProductId == productId
+                };
+                return await _priceHistory.GetAllAsync(options);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get price history");
+                throw;
+            }
         }
     }
 }
