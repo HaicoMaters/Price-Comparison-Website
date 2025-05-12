@@ -60,7 +60,7 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    ## Core Features
 
-   - **Product Listings**: Users can view products, vendors, and price listings.
+   - **Product Listings**: Users can view products, vendors, and price listings as well as graphs including the price history of individual products.
    - **Search Functionality**: Users can search for products by keywords in their description or title, and filter by categories. Pagination has been added to allow for better navigation of large product listings.
    - **User Accounts and Roles**:
    - **Admin**: Admin users can add, edit, and delete vendors, products, and listings. Also, admins have access to a admin panel.
@@ -83,7 +83,7 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
    - **Admin Capabilities**: 
       - Full control over product data (add, edit, delete)
       - Last updated timestamps for transparency
-      - Price history tracking
+      - Login history tracking
       - Admin Panel for sending global notifications and viewing website statistics and monitoring site login activity/attempts
    
    - **Manual Updates With Partial Support of Automatic Updates**: 
@@ -310,7 +310,6 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    - Add additional parsers for the webscraping side of thing to support more vendors having automatic updates
    - Finishing the testing of all current existing functions (did not start testing to much later in development) (could consider having tests for each function in own class file using inheritence for better readability)
-   - Adding price history charts and analytics
    - Expanding the notification system to include email alerts
    - Adding user preferences for notification settings
    - Adding social features like product reviews and ratings
