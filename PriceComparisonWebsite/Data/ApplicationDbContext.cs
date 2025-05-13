@@ -280,31 +280,127 @@ namespace PriceComparisonWebsite.Data
 					Id = 1,
 					ProductId = 1,
 					Price = 7.50m,
-					Timestamp = DateTime.Parse("2025-03-14 14:52:37.4133597")
+					Timestamp = DateTime.Now
 				},
 				new ProductPriceHistory {
 					Id = 2,
 					ProductId = 2,
 					Price = 4.87m,
-					Timestamp = DateTime.Parse("2025-03-14 14:52:45.2833811")
+					Timestamp = DateTime.Now
 				},
 				new ProductPriceHistory {
 					Id = 3,
 					ProductId = 3,
 					Price = 3.85m,
-					Timestamp = DateTime.Parse("2025-03-14 14:52:49.6649873")
+					Timestamp = DateTime.Now
 				},
 				new ProductPriceHistory {
 					Id = 4,
 					ProductId = 4,
 					Price = 280.17m,
-					Timestamp = DateTime.Parse("2025-03-14 14:52:57.8122214")
+					Timestamp = DateTime.Now
 				},
 				new ProductPriceHistory {
 					Id = 5,
 					ProductId = 5,
 					Price = 827.99m,
-					Timestamp = DateTime.Parse("2025-03-14 14:52:59.8122214")
+					Timestamp = DateTime.Now
+				},
+				new ProductPriceHistory {
+					Id = 26,
+					ProductId = 1,
+					Price = 11.50m,
+					Timestamp = DateTime.Now.AddDays(-18)
+				},
+				new ProductPriceHistory {
+					Id = 27,
+					ProductId = 2,
+					Price = 4.87m,
+					Timestamp = DateTime.Now.AddDays(-1)
+				},
+				new ProductPriceHistory {
+					Id = 28,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-3)
+				},
+				new ProductPriceHistory {
+					Id = 29,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-7)
+				},
+				new ProductPriceHistory {
+					Id = 30,
+					ProductId = 2,
+					Price = 6.50m,
+					Timestamp = DateTime.Now.AddDays(-14)
+				},
+				new ProductPriceHistory {
+					Id = 31,
+					ProductId = 2,
+					Price = 6.50m,
+					Timestamp = DateTime.Now.AddDays(-21)
+				},
+				new ProductPriceHistory {
+					Id = 32,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-28)
+				},
+				new ProductPriceHistory {
+					Id = 33,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-35)
+				},
+				new ProductPriceHistory {
+					Id = 34,
+					ProductId = 2,
+					Price = 4.99m,
+					Timestamp = DateTime.Now.AddDays(-42)
+				},
+				new ProductPriceHistory {
+					Id = 35,
+					ProductId = 2,
+					Price = 4.99m,
+					Timestamp = DateTime.Now.AddDays(-49)
+				},
+				new ProductPriceHistory {
+					Id = 36,
+					ProductId = 2,
+					Price = 5.50m,
+					Timestamp = DateTime.Now.AddDays(-56)
+				},
+				new ProductPriceHistory {
+					Id = 37,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-63)
+				},
+				new ProductPriceHistory {
+					Id = 38,
+					ProductId = 2,
+					Price = 6.99m,
+					Timestamp = DateTime.Now.AddDays(-70)
+				},
+				new ProductPriceHistory {
+					Id = 39,
+					ProductId = 2,
+					Price = 6.99m,
+					Timestamp = DateTime.Now.AddDays(-77)
+				},
+				new ProductPriceHistory {
+					Id = 40,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-84)
+				},
+				new ProductPriceHistory {
+					Id = 41,
+					ProductId = 2,
+					Price = 5.99m,
+					Timestamp = DateTime.Now.AddDays(-91)
 				}
 			);
 		}

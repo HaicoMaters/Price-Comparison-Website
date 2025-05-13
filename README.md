@@ -17,6 +17,7 @@
    - [Technologies Used](#technologies-used)
    - [TODO](#todo)
    - [Project Structure](#project-structure)
+   - [Screenshots](#screenshots)
 
    ## Getting Started
 
@@ -392,3 +393,75 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
    - **ViewModels/**: Data transfer objects specifically designed for view requirements
    - **Views/**: Razor views organized by controller
    - **wwwroot/**: Static files including CSS, JavaScript, and third-party libraries
+
+   ## Screenshots
+   Some screenshots maybe outdated depending on changes made. Also the screenshots are are of variable sizes, this should be improved in the future, but this is just includes some quickly taken screenshots for reference so that they at least exist. This tries to encompass a large portion of the website but some stuff has been ommited i.e. the vendor pages.
+
+   ### Product Index
+   ![Index for product, showing a logged in user with multiple items on wishlist](docs/screenshots/ProductIndexWishlisted.png)
+
+   Index for product showing a logged in user with multiple items on their wishlist
+
+   ![Index for product filtered by category](docs/screenshots/ProductIndexCategory.png)
+
+   Index for product showing filtering by category
+
+
+   ![Index for product filtered by search](docs/screenshots/ProductIndexSearch.png)
+
+   Index for product showing filtering by a search query
+
+   ### Product pages
+   ![View product page of showing price chart](docs/screenshots/ViewProductPage.png)
+
+   View product page from view of a user without it on wishlist
+
+   ![View product page of logged in user showing wishlist icons](docs/screenshots/ViewProductOnWishlist.png)
+
+   Same view product page but with item on wishlist
+
+   ![View product page of admin](docs/screenshots/ViewProductAdmin.png)
+
+   Same view from and admin perspective showcasing more of the options, and also a different view of the price history (30 days instead of 90)
+
+   ![View product page of deletion modal](docs/screenshots/ViewProductDeletionModal.png)
+
+   Confirmation modal for deletion, showcasing the ability to delete and the format for all of these types of modal across the website, i.e. for viewing history etc.
+   
+
+   ### User Area
+   ![Page showing notification dropdown](docs/screenshots/NotificationDropdown.png)
+
+   Notification dropdown with scroll bar at bottom and ability to dismiss notifications, I acknowledge this is not the best UI design for it
+
+   ![Page showing viewing history page](docs/screenshots/ViewingHistoryPage.png)
+
+   User's viewing history page
+
+   ![Page showing wishlist page](docs/screenshots/WishlistPage.png)
+
+   User's wishlist page
+
+   ### Admin Exclusive Pages
+
+   ![Add Edit Page](docs/screenshots/AddEditPage.png)
+
+   Add/Edit page for a price listing showcasing input validation
+
+   ### Admin Dashboard
+   ![Admin control panel](docs/screenshots/AdminDashboardSendGlobalNotification.png)
+
+   Area of admin dashboard where admin can send global notification message
+
+   ![Admin panel login activities](docs/screenshots/AdminDashboardLoginActivities.png)
+   
+   The most recent login activites, (needs to be updated to show email addresses)
+
+   ![Admin panel Pre Auto updates](docs/screenshots/AdminDashboardPreAutoUpdate.png)
+
+   Admin dashboard before starting automatic update
+
+   ![Admin panel Post Manual updates](docs/screenshots/AdminDashboardPostAutoUpdate.png)
+
+   Admin dashboard after finishing the automatic update. SingalR is used to send the logs to the dashboard in real-time as they happen.
+
