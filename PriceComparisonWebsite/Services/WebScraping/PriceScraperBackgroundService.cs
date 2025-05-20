@@ -5,7 +5,9 @@ using PriceComparisonWebsite.Models;
 using PriceComparisonWebsite.Services.WebScraping;
 using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
-
+/// <summary>
+/// Background service that periodically checks and updates prices through web scraping
+/// </summary>
 public class PriceScraperBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;

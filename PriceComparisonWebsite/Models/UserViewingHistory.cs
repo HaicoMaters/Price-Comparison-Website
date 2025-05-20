@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PriceComparisonWebsite.Models
 {
-    // Join Table
+    // <summary>
+    // A join table representing the many-to-many relationship between users and products as items in their viewing history
+    // </summary>
     public class UserViewingHistory
     {
         [Key]

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PriceComparisonWebsite.Models
 {
+    //  <summary>
+    // Represents a notification that can be sent to users
+    // </summary>
     public class Notification
     {
         [Key]

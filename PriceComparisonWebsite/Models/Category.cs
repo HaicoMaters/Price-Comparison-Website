@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PriceComparisonWebsite.Models
 {
+    //  <summary>
+    // Represents the category of a product
+    //  </summary>
     public class Category
     {
         public Category()

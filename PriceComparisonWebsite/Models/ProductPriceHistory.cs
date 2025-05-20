@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PriceComparisonWebsite.Models
 {
+
+    // <summary>
+    // Represents the price history of a product
+    // </summary>
     public class ProductPriceHistory
     {
         [Key]

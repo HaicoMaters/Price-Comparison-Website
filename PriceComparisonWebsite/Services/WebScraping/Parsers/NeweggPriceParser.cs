@@ -9,6 +9,7 @@ using PriceComparisonWebsite.Services.Utilities.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping.Parsers
 {
+    /// <inheritdoc />
     public class NeweggPriceParser : IPriceParser // A site that allows scraping so thats why this was chosen
     {
         private readonly IContentCompressor _compressor;
@@ -18,10 +19,13 @@ namespace PriceComparisonWebsite.Services.WebScraping.Parsers
             _compressor = compressor;
         }
 
+        /// <inheritdoc />
         public string SupportedDomain => "www.newegg.com";
 
+        /// <inheritdoc />
         public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain);
 
+        /// <inheritdoc />
         public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse)
         {
             var content = await httpResponse.Content.ReadAsByteArrayAsync();

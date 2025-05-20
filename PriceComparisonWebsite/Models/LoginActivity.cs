@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PriceComparisonWebsite.Models
 {
+    // <summary>
+    // Represents a login activity of a user
+    // </summary>
     public class LoginActivity
     {
         [Key]

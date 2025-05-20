@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PriceComparisonWebsite.Models
 {
+        /// <summary>
+	/// A join table representing the many-to-many relationship between users and notifications as items in their wish list
+	/// </summary>
     public class UserWishList
     {
         [Key]

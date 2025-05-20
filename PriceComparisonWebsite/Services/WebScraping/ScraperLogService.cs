@@ -8,6 +8,7 @@ using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping
 {
+    /// <inheritdoc />
     public class ScraperLogService : IScraperLogService
     {
         private readonly IHubContext<ScraperHub> _hubContext;
@@ -17,6 +18,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             _hubContext = hubContext;
         }
 
+        /// <inheritdoc />
         public async Task SendLogAsync(string message)
         {
             await _hubContext.Clients.All.SendAsync("ReceiveScraperLog", message);

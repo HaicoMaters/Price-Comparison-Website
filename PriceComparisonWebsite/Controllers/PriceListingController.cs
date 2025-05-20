@@ -7,6 +7,9 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers
 {
+    /// <summary>
+    /// Controller for managing price listings, restricted to admin users
+    /// </summary>
     [Authorize(Roles = "Admin")]
     public class PriceListingController : Controller
 	{
@@ -31,6 +34,12 @@ namespace PriceComparisonWebsite.Controllers
 			return RedirectToAction("Index", "Home");
 		}
 
+        /// <summary>
+        /// Displays the add/edit form for a price listing
+        /// </summary>
+        /// <param name="id">The ID of the price listing to edit (0 for new listing)</param>
+        /// <param name="prodId">The ID of the product the listing belongs to</param>
+        /// <returns>The add/edit view with the price listing data</returns>
         [HttpGet]
 		public async Task<IActionResult> AddEdit(int id, int prodId)
 		{
@@ -71,6 +80,11 @@ namespace PriceComparisonWebsite.Controllers
 			}
 		}
 
+        /// <summary>
+        /// Processes the add/edit form submission for a price listing
+        /// </summary>
+        /// <param name="priceListing">The price listing data from the form</param>
+        /// <returns>Redirects to the product view on success, or returns the form with errors</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
 		public async Task<IActionResult> AddEdit(PriceListing priceListing)
@@ -116,6 +130,11 @@ namespace PriceComparisonWebsite.Controllers
 			}
 		}
 
+        /// <summary>
+        /// Deletes a price listing
+        /// </summary>
+        /// <param name="id">The ID of the price listing to delete</param>
+        /// <returns>Redirects to the product view on success</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)

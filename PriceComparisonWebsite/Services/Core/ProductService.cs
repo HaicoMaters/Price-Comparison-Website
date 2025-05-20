@@ -8,6 +8,7 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Implementations
 {
+    /// <inheritdoc />
     public class ProductService : IProductService
     {
         public readonly IRepository<Product> _products;
@@ -23,6 +24,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddProduct(Product product)
         {
             try
@@ -36,6 +38,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteProduct(int productId)
         {
             try{
@@ -48,6 +51,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetAllProducts()
         {
             try{
@@ -59,6 +63,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetAllProducts(QueryOptions<Product> queryOptions)
         {
             try{
@@ -70,6 +75,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<Product> GetProductById(int productId, QueryOptions<Product> queryOptions)
         {
             try{
@@ -81,6 +87,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetProductsByCategoryId(int categoryId, QueryOptions<Product> queryOptions)
         {
             try{
@@ -92,6 +99,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task RecalculateCheapestPrice(int productId)
         {
             try
@@ -125,6 +133,7 @@ namespace PriceComparisonWebsite.Services.Implementations
 			}
         }
 
+        /// <inheritdoc />
         public async Task<Product> UpdateProduct(Product product)
         {
             try{
@@ -142,6 +151,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public List<Product> SetupPagination(IEnumerable<Product> allProducts, int pageNumber, ViewDataDictionary viewData)
         {
             int pageSize = 12; // Number of products per page
@@ -155,6 +165,7 @@ namespace PriceComparisonWebsite.Services.Implementations
                     .ToList();
         }
 
+        /// <inheritdoc />
         public async Task RecordPriceHistory(int productId, decimal price)
         {
             try
@@ -174,6 +185,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<ProductPriceHistory>> GetPriceHistory(int productId)
         {
             try

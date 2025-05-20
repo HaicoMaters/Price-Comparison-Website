@@ -9,6 +9,7 @@ using PriceComparisonWebsite.Services.Utilities.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Utilities
 {
+    /// <inheritdoc />
     public class RobotsTxtChecker : IRobotsTxtChecker
     {
         private readonly HttpClient _httpClient;
@@ -27,6 +28,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             _fileSystem.CreateDirectory(_cacheFolder);
         }
 
+        /// <inheritdoc />
         public async Task<bool> CheckRobotsTxt(Uri url)
         {
             try
@@ -93,6 +95,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             }
         }
 
+        /// <inheritdoc />
         public async Task CacheRobotsTxtFile(Uri url)
         {
             try
@@ -132,6 +135,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             }
         }
 
+        /// <inheritdoc />
         public bool CheckIfRobotsTxtFileIsCached(string domain)
         {
             try

@@ -7,6 +7,7 @@ using HtmlAgilityPack;
 
 namespace PriceComparisonWebsite.Services.HttpClients
 {
+    /// <inheritdoc />
     public class ScraperHttpClient : IScraperHttpClient
     {
         private readonly HttpClient _httpClient;
@@ -16,6 +17,7 @@ namespace PriceComparisonWebsite.Services.HttpClients
             _httpClient = httpClient;
         }
 
+        /// <inheritdoc />
         public async Task<HttpResponseMessage> SendRequestAsync(Uri uri, HttpMethod method)
         {
             var requestMessage = new HttpRequestMessage(method, uri);

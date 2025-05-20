@@ -11,6 +11,7 @@ using PriceComparisonWebsite.Services.WebScraping.Parsers.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping.Parsers
 {
+    /// <inheritdoc />
     public class AmazonPriceParser : IPriceParser
     {
         private readonly IContentCompressor _compressor;
@@ -20,10 +21,13 @@ namespace PriceComparisonWebsite.Services.WebScraping.Parsers
             _compressor = compressor;
         }
 
+        /// <inheritdoc />
         public bool CanParse(Uri uri) => uri.Host.Contains(SupportedDomain);
 
+        /// <inheritdoc />
         public string SupportedDomain => "www.amazon.co.uk";
 
+        /// <inheritdoc />
         public async Task<(decimal Price, decimal DiscountedPrice)> ParsePriceAsync(HttpResponseMessage httpResponse)
         {
             var content = await httpResponse.Content.ReadAsByteArrayAsync();

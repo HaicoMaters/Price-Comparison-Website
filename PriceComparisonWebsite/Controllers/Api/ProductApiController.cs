@@ -3,6 +3,9 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers.Api
 {
+    /// <summary>
+    /// API controller for managing product-related operations
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -17,6 +20,14 @@ namespace PriceComparisonWebsite.Controllers.Api
             _logger = logger;
         }
 
+        /// <summary>
+        /// Retrieves the price history for a specific product
+        /// </summary>
+        /// <param name="id">The ID of the product</param>
+        /// <returns>
+        /// 200 OK with the price history data containing dates and prices
+        /// 500 Internal Server Error if an error occurs during processing
+        /// </returns>
         [HttpGet("price-history/{id}")]
         public async Task<IActionResult> GetPriceHistory(int id)
         {

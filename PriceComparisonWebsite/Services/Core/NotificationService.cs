@@ -4,6 +4,7 @@ using PriceComparisonWebsite.Models;
 
 namespace PriceComparisonWebsite.Services
 {
+    /// <inheritdoc />
     public class NotificationService : INotificationService
     {
         private readonly IRepository<UserNotification> _userNotifications;
@@ -25,6 +26,7 @@ namespace PriceComparisonWebsite.Services
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Notification>> GetAllUserNotifications(string userId)
         {
             try
@@ -56,6 +58,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Notification>> GetUnreadUserNotifications(string userId)
         {
             try
@@ -89,6 +92,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Notification>> GetReadUserNotifications(string userId)
         {
             try
@@ -122,6 +126,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task MarkNotificationsAsRead(string userId)
         {
             try
@@ -157,6 +162,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteUserNotification(int notificationId, string userId)
         {
             try
@@ -197,6 +203,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task CreateProductPriceDropNotifications(int productId, string productName, decimal newPrice, decimal oldPrice)
         {
             try
@@ -234,6 +241,7 @@ namespace PriceComparisonWebsite.Services
             }
         }
 
+        /// <inheritdoc />
         public async Task CreateGlobalNotification(string message)
         {
             try

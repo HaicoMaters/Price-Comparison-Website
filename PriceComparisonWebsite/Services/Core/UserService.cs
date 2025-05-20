@@ -7,6 +7,7 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Implementations
 {
+    /// <inheritdoc />
     public class UserService : IUserService
     {
         private readonly IRepository<Product> _products;
@@ -24,6 +25,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddWishlistItem(UserWishList item)
         {
             try
@@ -37,6 +39,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task CleanupViewingHistory(string userId)
         {
             try
@@ -59,6 +62,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteViewingHistory(string userId)
         {
             try
@@ -79,6 +83,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetProductsFromViewingHistory(IEnumerable<UserViewingHistory> viewingHistoryItems)
         {
             try
@@ -101,6 +106,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetProductsFromWishList(IEnumerable<UserWishList> wishListItems)
         {
             try
@@ -123,6 +129,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<UserViewingHistory>> GetUserViewingHistory(string userId)
         {
             try
@@ -137,6 +144,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<UserWishList> GetUserWishListItemById(string userId, int prodId)
         {
             try
@@ -150,6 +158,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<UserWishList>> GetUserWishListItems(string userId)
         {
             try
@@ -163,6 +172,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task RemoveFromWishlist(int prodId, string userId)
         {
             try
@@ -179,6 +189,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateViewingHistory(string userId, int prodId)
         {
             try
@@ -207,6 +218,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<bool?> UpdateUserWishlist(string userId, int prodId)
         {
             try

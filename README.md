@@ -396,6 +396,12 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    ## Screenshots
    Some screenshots maybe outdated depending on changes made. Also the screenshots are are of variable sizes, this should be improved in the future, but this is just includes some quickly taken screenshots for reference so that they at least exist. This tries to encompass a large portion of the website but some stuff has been ommited i.e. the vendor pages.
+   
+   ### Home Page
+
+   ![Index for product, showing a logged in user with multiple items on wishlist](docs/screenshots/HomePage.png)
+
+   A view of the home page with the main layout of the site visible i.e. the navbar, background and foreground
 
    ### Product Index
    ![Index for product, showing a logged in user with multiple items on wishlist](docs/screenshots/ProductIndexWishlisted.png)

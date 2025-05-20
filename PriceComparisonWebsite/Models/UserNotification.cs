@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PriceComparisonWebsite.Models
 {
-    // Join table for User and Notification
+    /// <summary>
+	/// A join table representing the many-to-many relationship between users and notifications
+	/// </summary>
     public class UserNotification
     {
         [Key]

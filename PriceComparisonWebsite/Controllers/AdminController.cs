@@ -21,6 +21,9 @@ using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers
 {
+    /// <summary>
+    /// Controller for handling administrative operations
+    /// </summary>
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
@@ -56,6 +59,11 @@ namespace PriceComparisonWebsite.Controllers
             _apiClient = apiClient;
         }
 
+        /// <summary>
+        /// Displays the admin dashboard with various statistics and management options
+        /// </summary>
+        /// <param name="tab">Optional tab name to display specific section of the dashboard</param>
+        /// <returns>The dashboard view with relevant data</returns>
         public async Task<IActionResult> Dashboard(string tab = "notifications")
         {
             var prods = await _adminService.GetAllProductsAsync();
@@ -83,6 +91,10 @@ namespace PriceComparisonWebsite.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Triggers an update of all product listings
+        /// </summary>
+        /// <returns>JSON result indicating success or failure of the update operation</returns>
         [HttpPost]
         public async Task<IActionResult> UpdateAllListings()
         {
@@ -102,6 +114,11 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Sends a global notification to all users
+        /// </summary>
+        /// <param name="message">The notification message to send</param>
+        /// <returns>JSON result indicating success or failure of the notification sending</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendGlobalNotification([FromBody] string message)

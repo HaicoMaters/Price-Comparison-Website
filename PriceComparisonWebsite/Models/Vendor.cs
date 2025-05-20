@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PriceComparisonWebsite.Models
 {
-	// The websites selling the products
+	/// <summary>
+	/// Represents a vendor (retailer) in the price comparison system
+	/// </summary>
 	public class Vendor
 	{
 		public Vendor()
@@ -14,7 +16,6 @@ namespace PriceComparisonWebsite.Models
 			PriceListings = new List<PriceListing>();
 			SupportsAutomaticUpdates = false;
 		}
-
 		[Key]
 		public int VendorId { get; set; } // PK
 		

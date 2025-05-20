@@ -8,6 +8,7 @@ using PriceComparisonWebsite.Services.WebScraping.Parsers.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping
 {
+    /// <inheritdoc />
     public class PriceParserFactory : IPriceParserFactory
     {
         private readonly Dictionary<string, IPriceParser> _parsers; // domain and parser
@@ -17,8 +18,10 @@ namespace PriceComparisonWebsite.Services.WebScraping
             _parsers = parsers.ToDictionary(p => p.SupportedDomain, p => p, StringComparer.OrdinalIgnoreCase);
         }
 
+        /// <inheritdoc />
         public IEnumerable<string> GetAllSupportedParsers() => _parsers.Keys;
 
+        /// <inheritdoc />
         public IPriceParser? GetParserForDomain(string domain)
         {
             _parsers.TryGetValue(domain, out var parser);
@@ -26,6 +29,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             return parser;
         }
 
+        /// <inheritdoc />
         public bool HasParserForDomain(string domain) => _parsers.ContainsKey(domain);
     }
 }

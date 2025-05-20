@@ -7,6 +7,7 @@ using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping
 {
+    /// <inheritdoc />
     public class ScraperStatusService : IScraperStatusService
     {
         private readonly IRepository<ScraperStatus> _scraperStatus;
@@ -18,6 +19,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<DateTime> GetLastUpdateTime()
         {
             try
@@ -32,6 +34,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateLastUpdateTime()
         {
             try

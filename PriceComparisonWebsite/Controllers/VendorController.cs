@@ -8,6 +8,9 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Controllers
 {
+    /// <summary>
+    /// Controller for managing vendors and their related operations
+    /// </summary>
     public class VendorController : Controller
     {
         private readonly IVendorService _vendorService;
@@ -23,6 +26,12 @@ namespace PriceComparisonWebsite.Controllers
             _productService = productService;
         }
 
+        /// <summary>
+        /// Displays a paginated list of vendors with optional search functionality
+        /// </summary>
+        /// <param name="pageNumber">The page number to display</param>
+        /// <param name="searchQuery">Optional search term to filter vendors</param>
+        /// <returns>The index view with filtered and paginated vendors</returns>
         public async Task<IActionResult> Index(int pageNumber = 1, string searchQuery = "")
         {
             try
@@ -52,6 +61,11 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Displays the add/edit form for a vendor
+        /// </summary>
+        /// <param name="id">The ID of the vendor to edit (0 for new vendor)</param>
+        /// <returns>The add/edit view with the vendor data</returns>
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AddEdit(int id)
@@ -78,6 +92,11 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Processes the add/edit form submission for a vendor
+        /// </summary>
+        /// <param name="vendor">The vendor data from the form</param>
+        /// <returns>Redirects to the vendor view on success, or returns the form with errors</returns>
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         [HttpPost]
@@ -125,6 +144,11 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Displays detailed information about a specific vendor
+        /// </summary>
+        /// <param name="id">The ID of the vendor to view</param>
+        /// <returns>The vendor view with detailed vendor information and listings</returns>
         public async Task<IActionResult> ViewVendor(int id)
         {
             try
@@ -161,6 +185,11 @@ namespace PriceComparisonWebsite.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a vendor
+        /// </summary>
+        /// <param name="id">The ID of the vendor to delete</param>
+        /// <returns>Redirects to the index view on success</returns>
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         [HttpPost]

@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace PriceComparisonWebsite.Attributes
 {
+    /// <summary>
+    /// Authorization attribute that allows access either through internal API authentication or role-based authorization
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class InternalOrAuthorizedAttribute : Attribute, IAuthorizationFilter
     {
@@ -16,11 +19,19 @@ namespace PriceComparisonWebsite.Attributes
         private const string INTERNAL_CLIENT_HEADER = "X-Internal-Client";
         private const string INTERNAL_AUTH_HEADER = "X-Internal-Auth";
 
+        /// <summary>
+        /// Creates a new instance of InternalOrAuthorizedAttribute
+        /// </summary>
+        /// <param name="roles">Optional roles that are allowed to access the resource</param>
         public InternalOrAuthorizedAttribute(params string[] roles)
         {
             _roles = roles;
         }
 
+        /// <summary>
+        /// Performs authorization for the current request
+        /// </summary>
+        /// <param name="context">The authorization filter context</param>
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var configuration = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();

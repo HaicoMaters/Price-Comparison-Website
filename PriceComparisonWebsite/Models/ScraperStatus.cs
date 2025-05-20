@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace PriceComparisonWebsite.Models
 {
+    /// <summary>
+    /// Represents the status of the web scraper
+    /// </summary>
     public class ScraperStatus
     {
         public int Id { get; set; }

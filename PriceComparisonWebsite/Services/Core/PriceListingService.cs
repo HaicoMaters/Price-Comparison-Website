@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PriceComparisonWebsite.Services.Implementations
 {
+    /// <inheritdoc />
     public class PriceListingService : IPriceListingService
     {
         private readonly IRepository<PriceListing> _priceListings;
@@ -29,6 +30,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             _productService = productService;
         }
 
+        /// <inheritdoc />
         public async Task AddPriceListing(PriceListing priceListing)
         {
             try
@@ -43,6 +45,7 @@ namespace PriceComparisonWebsite.Services.Implementations
 
         }
 
+        /// <inheritdoc />
         public async Task DeletePriceListing(int priceListingId)
         {
             try
@@ -56,6 +59,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<PriceListing>> GetAllPriceListings(QueryOptions<PriceListing> queryOptions)
         {
             try
@@ -69,6 +73,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<PriceListing>> GetAllPriceListings()
         {
             try
@@ -82,6 +87,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<PriceListing> GetPriceListingById(int priceListingId, QueryOptions<PriceListing> queryOptions)
         {
             try
@@ -95,6 +101,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<PriceListing>> GetPriceListingsByProductId(int productId, QueryOptions<PriceListing> queryOptions)
         {
             try
@@ -108,6 +115,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<PriceListing>> GetPriceListingsByVendorId(int vendorId, QueryOptions<PriceListing> queryOptions)
         {
             try
@@ -121,6 +129,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdatePriceListing(PriceListing priceListing)
         {
             try
@@ -142,6 +151,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateCheapestPrice(int productId, decimal newPrice)
         {
             try

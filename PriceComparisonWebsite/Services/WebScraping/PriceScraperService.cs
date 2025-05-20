@@ -13,7 +13,8 @@ using PriceComparisonWebsite.Services.WebScraping.Interfaces;
 
 namespace PriceComparisonWebsite.Services.WebScraping
 {
-    public class PriceScraperService : IPriceScraperService // UPDATE THE INTERFACE BEFORE WORKING ON THIS 
+    /// <inheritdoc />
+    public class PriceScraperService : IPriceScraperService 
     {
 
         private readonly IRobotsTxtChecker _robotsTxtChecker;
@@ -53,31 +54,11 @@ namespace PriceComparisonWebsite.Services.WebScraping
             _retryHandler = retryHandler;
         }
 
-        // maybe keep somewhere when the last update  was for the automatic updater
-        // or just do at the same time everyday regardless of if admin requested it
-        //
-
-
-        /* Try to do things in order
-            Get All interfaces done so know functions that need to build off each other
-            This Class - Main logic and how things are handled
-            PriceParserFactory - Filtering logic to filter into valid parsers for each uri
-            RateLimiter - Handle Flow Control of requests
-            ScraperHttpClient - Make Requests based on flow control of rate limiter
-            RetryHandler - For Fault tolerance
-            Parsers - Add parsers for each vendor as available keep note of all currently supported vendors should have one example parser probably amazon for testing earlier on than expected
-            Scraper Api Controller (// DONT FORGET TO DO NOTIFICATION API CONTROLLER)
-
-
-            For writing up in readme later robotstxtchecker.cs checks that a uri is valid in terms of the sites rules for robots.txt scraping rule and helps filter which sites allow for what
-            so no requests against policy are made
-        */
-
-
+        /// <inheritdoc />
         public async Task UpdateAllListings()
         {
             await _scraperLogService.SendLogAsync("Starting update of all listings...");
-            
+
             var vendorIds = await GetVendorIdsThatSupportScraping();
             await _scraperLogService.SendLogAsync($"Found {vendorIds.Count} vendors that support scraping");
 
@@ -186,7 +167,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
         }
 
 
-
+        /// <inheritdoc />
         public async Task<List<int>> GetVendorIdsThatSupportScraping()
         {
             var vendors = await _vendorService.GetAllVendorsAsync(new QueryOptions<Vendor>
@@ -224,7 +205,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             return vendorIds;
         }
 
-
+        /// <inheritdoc />
         public async Task FilterUsingRobotsTxt(Dictionary<Uri, int> uris)
         {
             var keysToRemove = new List<Uri>();
@@ -243,6 +224,7 @@ namespace PriceComparisonWebsite.Services.WebScraping
             }
         }
 
+        /// <inheritdoc />
         public Task<bool> UpdateListing(int id) // This Can be added when needed
         {
             throw new NotImplementedException();

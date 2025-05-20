@@ -8,6 +8,7 @@ using PriceComparisonWebsite.Services.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Implementations
 {
+    /// <inheritdoc />
     public class VendorService : IVendorService
     {
         public readonly IRepository<Vendor> _vendorRepository;
@@ -19,6 +20,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task AddVendorAsync(Vendor vendor)
         {
             try
@@ -32,6 +34,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task DeleteVendorAsync(int vendorId)
         {
             try
@@ -49,6 +52,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Vendor>> GetAllVendorsAsync()
         {
             try
@@ -62,6 +66,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Vendor>> GetAllVendorsAsync(QueryOptions<Vendor> queryOptions)
         {
             try
@@ -75,6 +80,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task<Vendor> GetVendorByIdAsync(int vendorId)
         {
             try
@@ -88,6 +94,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
 
+        /// <inheritdoc />
         public async Task UpdateVendorAsync(Vendor vendor)
         {
             try
@@ -108,6 +115,7 @@ namespace PriceComparisonWebsite.Services.Implementations
             }
         }
         
+        /// <inheritdoc />
         public List<Vendor> SetupPagination(IEnumerable<Vendor> allVendors, int pageNumber, ViewDataDictionary viewData)
         {
             int pageSize = 12; // Number of products per page

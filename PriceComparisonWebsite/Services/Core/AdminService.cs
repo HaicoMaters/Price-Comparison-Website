@@ -8,6 +8,7 @@ using PriceComparisonWebsite.Models;
 
 namespace PriceComparisonWebsite.Services
 {
+    /// <inheritdoc />
     public class AdminService : IAdminService
     {
         private readonly IRepository<Product> _products;
@@ -30,21 +31,25 @@ namespace PriceComparisonWebsite.Services
             _userManager = userManager;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<PriceListing>> GetAllPriceListingsAsync()
         {
             return await _priceListings.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Product>> GetAllProductsAsync()
         {
             return await _products.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<Vendor>> GetAllVendorsAsync()
         {
             return await _vendors.GetAllAsync();
         }
 
+        /// <inheritdoc />
         public async Task<int> GetTotalUsersAsync()
         {
             try

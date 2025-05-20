@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PriceComparisonWebsite.Models
 {
+	/// <summary>
+	/// Represents a product in the price comparison system
+	/// </summary>
 	public class Product
 	{
 		public Product()
@@ -34,12 +37,10 @@ namespace PriceComparisonWebsite.Models
 		
 		public decimal CheapestPrice { get; set; }
 		
-		// Navigation Property
 		[ValidateNever]
 		public Category? Category { get; set; }
 		
 		[ValidateNever]
-		// Navigation Property for PriceListings
 		public ICollection<PriceListing>? PriceListings { get; set; }  // One Product can have many PriceListings
 	}
 }

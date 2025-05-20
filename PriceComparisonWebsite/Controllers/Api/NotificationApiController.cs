@@ -10,6 +10,9 @@ using PriceComparisonWebsite.Services;
 
 namespace PriceComparisonWebsite.Controllers.Api
 {
+    /// <summary>
+    /// API controller for managing notification-related operations
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -26,6 +29,15 @@ namespace PriceComparisonWebsite.Controllers.Api
             _logger = logger;
         }
 
+        /// <summary>
+        /// Creates a global notification that will be sent to all users
+        /// </summary>
+        /// <param name="message">The notification message to be sent</param>
+        /// <returns>
+        /// 200 OK if the notification was created successfully
+        /// 400 Bad Request if the message is empty or invalid
+        /// 500 Internal Server Error if an error occurs during processing
+        /// </returns>
         [HttpPost("create-global-notification")]
         [InternalOrAuthorized("Admin")]
         public async Task<IActionResult> CreateGlobalNotification([FromBody] string message)
@@ -48,6 +60,14 @@ namespace PriceComparisonWebsite.Controllers.Api
             }
         }
 
+        /// <summary>
+        /// Retrieves all notifications for a specific user
+        /// </summary>
+        /// <param name="userId">The ID of the user</param>
+        /// <returns>
+        /// 200 OK with the list of notifications
+        /// 500 Internal Server Error if an error occurs during processing
+        /// </returns>
         [HttpGet("user-notifications/{userId}")]
         [InternalOrAuthorized("Admin,User")]
         public async Task<IActionResult> GetUserNotifications(string userId)
@@ -79,6 +99,14 @@ namespace PriceComparisonWebsite.Controllers.Api
             }
         }
 
+        /// <summary>
+        /// Marks all notifications as read for a specific user
+        /// </summary>
+        /// <param name="userId">The ID of the user</param>
+        /// <returns>
+        /// 200 OK if the notifications were marked as read successfully
+        /// 500 Internal Server Error if an error occurs during processing
+        /// </returns>
         [HttpPost("mark-as-read/{userId}")]
         [InternalOrAuthorized("Admin,User")]
         public async Task<IActionResult> MarkNotificationsAsRead(string userId)
@@ -95,6 +123,15 @@ namespace PriceComparisonWebsite.Controllers.Api
             }
         }
 
+        /// <summary>
+        /// Dismisses a specific notification for a user
+        /// </summary>
+        /// <param name="userId">The ID of the user</param>
+        /// <param name="notificationId">The ID of the notification to dismiss</param>
+        /// <returns>
+        /// 200 OK if the notification was dismissed successfully
+        /// 500 Internal Server Error if an error occurs during processing
+        /// </returns>
         [HttpPost("dismiss/{userId}/{notificationId}")]
         [InternalOrAuthorized("Admin,User")]
         public async Task<IActionResult> DismissNotification(string userId, int notificationId)

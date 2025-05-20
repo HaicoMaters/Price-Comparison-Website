@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace PriceComparisonWebsite.Services.HttpClients
 {
+    /// <inheritdoc />
     public class ApiHttpClient : IApiHttpClient
     {
         private readonly HttpClient _httpClient;
@@ -24,6 +25,7 @@ namespace PriceComparisonWebsite.Services.HttpClients
             _httpClient.DefaultRequestHeaders.Add("X-Internal-Auth", configuration["InternalApi:Key"]);
         }
 
+        /// <inheritdoc />
         public async Task<HttpResponseMessage> SendAsync(HttpMethod method, string endpoint, object content = null)
         {
             var request = new HttpRequestMessage(method, endpoint);

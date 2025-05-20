@@ -5,6 +5,9 @@ using PriceComparisonWebsite.Models;
 
 namespace PriceComparisonWebsite.Controllers
 {
+    /// <summary>
+    /// Controller for handling different types of errors and status codes
+    /// </summary>
     public class ErrorController : Controller
     {
         private readonly ILogger<ErrorController> _logger;
@@ -14,6 +17,11 @@ namespace PriceComparisonWebsite.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handles HTTP status code errors and returns appropriate error pages
+        /// </summary>
+        /// <param name="statusCode">The HTTP status code that triggered the error</param>
+        /// <returns>The error view with appropriate error messages</returns>
         [Route("Error/{statusCode}")]
         public IActionResult HttpStatusCodeHandler(int statusCode)
         {
@@ -45,6 +53,10 @@ namespace PriceComparisonWebsite.Controllers
             return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        /// <summary>
+        /// Handles unhandled exceptions and returns a generic error page
+        /// </summary>
+        /// <returns>The error view with generic error message</returns>
         [Route("Error")]
         public IActionResult Error()
         {

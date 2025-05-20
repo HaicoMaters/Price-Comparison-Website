@@ -7,8 +7,10 @@ using PriceComparisonWebsite.Services.Utilities.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Utilities
 {
+    /// <inheritdoc />
     public class ContentCompressor : IContentCompressor
     {
+        /// <inheritdoc />
         public async Task<string> DecompressAsync(byte[] compressedContent)
         {
             using (var compressedStream = new MemoryStream(compressedContent))
@@ -19,6 +21,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             }
         }
 
+        /// <inheritdoc />
         public async Task<byte[]> CompressAsync(string content)
         {
             using (var memoryStream = new MemoryStream())

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PriceComparisonWebsite.Models
 {
+    /// <summary>
+    /// Custom application user class extending IdentityUser with additional properties
+    /// </summary>
     public class ApplicationUser : IdentityUser
     {
         [ValidateNever]

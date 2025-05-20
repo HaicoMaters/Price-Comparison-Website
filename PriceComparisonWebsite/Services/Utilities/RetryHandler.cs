@@ -7,6 +7,7 @@ using PriceComparisonWebsite.Services.Utilities.Interfaces;
 
 namespace PriceComparisonWebsite.Services.Utilities
 {
+    /// <inheritdoc />
     public class RetryHandler : IRetryHandler
     {
 
@@ -17,6 +18,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, int maxRetries = 3)
         {
             for (int i = 0; i <= maxRetries; i++)
@@ -38,6 +40,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             throw new Exception($"Operation {operationName} failed after {maxRetries} retries");
         }
 
+        /// <inheritdoc />
         public async Task ExecuteWithRetryAsync(Func<Task> operation, string operationName, int maxRetries = 3)
         {
             for (int i = 0; i <= maxRetries; i++)
@@ -60,6 +63,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             throw new Exception($"Operation {operationName} failed after {maxRetries} retries");
         }
 
+        /// <inheritdoc />
         public bool ShouldRetry(HttpRequestException ex, int attemptNumber, int maxRetries) // Status codes where delay should happen i.e. not retring if 404
         {
             if (attemptNumber >= maxRetries) return false;
@@ -81,6 +85,7 @@ namespace PriceComparisonWebsite.Services.Utilities
             return true; // Retry network-related errors
         }
 
+        /// <inheritdoc />
         public async Task HandleRetry(string operationName, int attemptNumber, int maxRetries, Exception ex)
         {
             double delay = Math.Pow(2, attemptNumber) * 1000; // Exponential backoff increse delay more the more attempts
