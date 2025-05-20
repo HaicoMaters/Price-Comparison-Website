@@ -461,7 +461,7 @@ Note: In VSCode I would just use the run web app launch configuration for ease o
 
    ![Admin panel login activities](docs/screenshots/AdminDashboardLoginActivities.png)
    
-   The most recent login activites, (needs to be updated to show email addresses)
+   The most recent login activites for potential future monitoring purposes
 
    ![Admin panel Pre Auto updates](docs/screenshots/AdminDashboardPreAutoUpdate.png)
 
