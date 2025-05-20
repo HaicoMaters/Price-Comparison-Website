@@ -34,7 +34,7 @@ namespace PriceComparisonWebsite.Tests.Services
                 new LoginActivity { Id = 4, UserId = "4", IpAddress = "4", IsSuccessful = false, LoginTime = DateTime.Now.AddMinutes(-30) }
             };
 
-            _loginActivityRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(loginActivities.OrderByDescending(la => la.LoginTime));
+            _loginActivityRepoMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<LoginActivity>>())).ReturnsAsync(loginActivities.OrderByDescending(la => la.LoginTime));
 
             // Act
             var activities = await _loginActivityService.GetNMostRecentActivities(n);
